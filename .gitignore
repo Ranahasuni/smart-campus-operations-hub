@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Sensitive config (do NOT commit real passwords) ###
+src/main/resources/application.properties
+
+### Frontend ###
+smart-campus-frontend/node_modules/
+smart-campus-frontend/dist/
+smart-campus-frontend/.env
+smart-campus-frontend/.env.local
