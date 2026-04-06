@@ -3,6 +3,9 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import UserProfile from './pages/auth/UserProfile';
+import NotificationsPage from './pages/NotificationsPage';
 import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import TicketsPage from './pages/tickets/TicketsPage';
@@ -13,19 +16,43 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/resources" element={
-            <ProtectedRoute><ResourcesPage /></ProtectedRoute>
-          } />
-          <Route path="/bookings" element={
-            <ProtectedRoute><BookingsPage /></ProtectedRoute>
-          } />
-          <Route path="/tickets" element={
-            <ProtectedRoute><TicketsPage /></ProtectedRoute>
-          } />
-        </Routes>
+        <div style={{ minHeight: 'calc(100vh - 64px)' }}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/* Authenticated Routes */}
+            <Route path="/profile" element={
+              <ProtectedRoute><UserProfile /></ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute><NotificationsPage /></ProtectedRoute>
+            } />
+
+            {/* Member Module Routes */}
+            <Route path="/resources" element={
+              <ProtectedRoute><ResourcesPage /></ProtectedRoute>
+            } />
+            <Route path="/bookings" element={
+              <ProtectedRoute><BookingsPage /></ProtectedRoute>
+            } />
+            <Route path="/tickets" element={
+              <ProtectedRoute><TicketsPage /></ProtectedRoute>
+            } />
+
+            {/* Admin only */}
+            <Route path="/admin" element={
+              <ProtectedRoute role="ADMIN">
+                <div style={{ padding: '80px', textAlign: 'center', color: '#fff' }}>
+                  <h1>Admin Dashboard</h1>
+                  <p>Management interface for Member 4 & System Admins.</p>
+                </div>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </div>
       </BrowserRouter>
     </AuthProvider>
   );
