@@ -1,0 +1,190 @@
+/* ─── Notifications Page ──────────────────────────────────── */
+
+.notif-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  min-height: 100vh;
+}
+
+/* Header */
+.notif-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.notif-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notif-title-row h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.notif-badge-pill {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+/* Actions */
+.notif-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.notif-toggle,
+.notif-mark-all {
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.notif-toggle {
+  background: rgba(255,255,255,0.07);
+  color: #cbd5e1;
+}
+.notif-toggle.active,
+.notif-toggle:hover {
+  background: #6366f1;
+  color: #fff;
+  border-color: #6366f1;
+}
+
+.notif-mark-all {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border-color: rgba(99,102,241,0.35);
+}
+.notif-mark-all:hover:not(:disabled) {
+  background: #6366f1;
+  color: #fff;
+}
+.notif-mark-all:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Filter chips */
+.notif-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.filter-chip {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: capitalize;
+}
+.filter-chip:hover    { border-color: #818cf8; color: #818cf8; }
+.filter-chip.active   { background: #6366f1; color: #fff; border-color: #6366f1; }
+
+/* List */
+.notif-list { display: flex; flex-direction: column; gap: 12px; }
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 16px 18px;
+  transition: background 0.2s, transform 0.15s;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity:0; transform:translateX(-8px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+.notif-item:hover { background: rgba(255,255,255,0.07); transform: translateX(4px); }
+.notif-item.unread { background: rgba(99,102,241,0.07); }
+.notif-item.unread:hover { background: rgba(99,102,241,0.12); }
+
+.notif-item-icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+
+.notif-item-body { flex: 1; min-width: 0; }
+
+.notif-item-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 4px;
+}
+
+.notif-item-msg {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.notif-item-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+.notif-type-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(99,102,241,0.2);
+  color: #818cf8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.notif-time { font-size: 0.75rem; color: #64748b; }
+
+.notif-read-btn {
+  background: rgba(99,102,241,0.2);
+  border: none;
+  color: #818cf8;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.notif-read-btn:hover { background: #6366f1; color: #fff; }
+
+/* Empty / loading states */
+.notif-empty {
+  text-align: center;
+  padding: 80px 24px;
+  color: #64748b;
+}
+.notif-empty-icon { font-size: 4rem; margin-bottom: 16px; }
+.notif-empty p    { font-size: 1.1rem; }
+.notif-loading    { text-align: center; padding: 40px; color: #64748b; }
