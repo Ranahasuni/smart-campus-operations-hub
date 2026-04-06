@@ -17,8 +17,15 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/');
+      const data = await login(email, password);
+      // data contains { userId, name, email, role, token }
+      if (data.role === 'ADMIN') {
+        navigate('/admin');
+      } else if (data.role === 'STAFF') {
+        navigate('/staff');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message);
     } finally {

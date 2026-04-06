@@ -16,8 +16,9 @@ import java.util.Map;
  * REST API for notifications. (MongoDB)
  */
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/notifications")
 @RequiredArgsConstructor
+@CrossOrigin
 public class NotificationController {
 
     private final NotificationService notificationService;

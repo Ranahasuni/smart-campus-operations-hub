@@ -51,6 +51,16 @@ export default function App() {
                 </div>
               </ProtectedRoute>
             } />
+
+            {/* Staff only */}
+            <Route path="/staff" element={
+              <ProtectedRoute role="STAFF">
+                <div style={{ padding: '80px', textAlign: 'center', color: '#fff' }}>
+                  <h1>Staff Dashboard</h1>
+                  <p>Internal Faculty & Staff portal for Campus Operations.</p>
+                </div>
+              </ProtectedRoute>
+            } />
           </Routes>
         </div>
       </BrowserRouter>

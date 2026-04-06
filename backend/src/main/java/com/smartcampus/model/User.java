@@ -1,10 +1,5 @@
 package com.smartcampus.model;
 
-<<<<<<< HEAD
-=======
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
->>>>>>> main
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,17 +21,11 @@ public class User {
     @Indexed
     private String name;
 
-<<<<<<< HEAD
     @Indexed(unique = true)
     private String email;
 
     /** BCrypt-hashed password */
     private String password;
-=======
-    private String email;
-
-    private Role role = Role.USER;
->>>>>>> main
 
     @Builder.Default
     private Role role = Role.STUDENT;

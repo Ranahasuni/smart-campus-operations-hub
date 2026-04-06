@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/auth.css';
 
-const ROLES = ['STUDENT', 'LECTURER'];
+const ROLES = ['STUDENT', 'LECTURER', 'STAFF', 'ADMIN'];
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -28,8 +28,14 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name, email, password, role);
-      navigate('/');
+      const data = await register(name, email, password, role);
+      if (data.role === 'ADMIN') {
+        navigate('/admin');
+      } else if (data.role === 'STAFF') {
+        navigate('/staff');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message);
     } finally {

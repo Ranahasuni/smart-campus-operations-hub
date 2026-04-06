@@ -4,5 +4,6 @@ public enum Role {
     ADMIN,
     LECTURER,
     STUDENT,
-    USER       // kept for backward-compat
+    STAFF,
+    USER
 }
