@@ -16,7 +16,7 @@
 	<description>Smart Campus Operations Hub - Base Project Setup</description>
 
 	<properties>
-		<java.version>21</java.version>
+		<java.version>19</java.version>
 	</properties>
 
 	<dependencies>
@@ -27,11 +27,19 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+<<<<<<< HEAD
 		<!-- Spring Data MongoDB -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
 		</dependency>
+=======
+		<!-- MongoDB -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+>>>>>>> main
 
 		<!-- Spring Security -->
 		<dependency>
@@ -45,6 +53,10 @@
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 		</dependency>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 		<!-- Validation -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
