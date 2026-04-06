@@ -1,0 +1,167 @@
+/* ─── Notification Bell (navbar dropdown) ─────────────────── */
+
+.bell-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Bell button */
+.bell-btn {
+  position: relative;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  color: #fff;
+  line-height: 1;
+}
+.bell-btn:hover {
+  background: rgba(99,102,241,0.25);
+  transform: scale(1.05);
+}
+
+/* Unread badge */
+.bell-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #0f172a;
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+/* Dropdown panel */
+.bell-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 340px;
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  overflow: hidden;
+  z-index: 999;
+  animation: dropDown 0.2s ease;
+}
+
+@keyframes dropDown {
+  from { opacity:0; transform:translateY(-8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.bell-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-weight: 700;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+}
+
+.bell-count-label {
+  font-size: 0.75rem;
+  background: #ef4444;
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* Notification list inside dropdown */
+.bell-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.bell-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.15s;
+}
+.bell-item:hover { background: rgba(255,255,255,0.04); }
+.bell-item:last-child { border-bottom: none; }
+
+.bell-item-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+
+.bell-item-body { flex: 1; min-width: 0; }
+
+.bell-item-title {
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bell-item-msg {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bell-dismiss {
+  background: transparent;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.bell-dismiss:hover { color: #ef4444; }
+
+/* Empty / Loading */
+.bell-empty,
+.bell-loading {
+  padding: 24px 18px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+/* See all link */
+.bell-see-all {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  color: #818cf8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  transition: background 0.15s;
+}
+.bell-see-all:hover { background: rgba(99,102,241,0.1); }
