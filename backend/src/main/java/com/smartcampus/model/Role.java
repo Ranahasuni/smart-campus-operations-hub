@@ -5,5 +5,6 @@ public enum Role {
     LECTURER,
     STUDENT,
     STAFF,
-    USER
+    USER,
+    TECHNICIAN
 }
