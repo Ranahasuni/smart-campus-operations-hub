@@ -2,10 +2,28 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, role }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
+  // Wait for session restoration from localStorage
+  if (loading) {
+    return (
+      <div style={{
+        height: '80vh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', color: '#64748b'
+      }}>
+        Loading session...
+      </div>
+    );
+  }
+
+  // Redirect to login if user is not authenticated
   if (!user) return <Navigate to="/login" />;
-  if (role && user.role !== role) return <Navigate to="/" />;
+
+  // Redirect to home if role mismatch (e.g. non-admin tries to visit /admin)
+  if (role && user.role !== role) {
+    console.warn(`Access denied to role: ${role}`);
+    return <Navigate to="/" />;
+  }
 
   return children;
 }
