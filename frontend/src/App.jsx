@@ -15,6 +15,9 @@ import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import SystemLogs from './pages/admin/SystemLogs';
+import ManageBookings from './pages/admin/ManageBookings';
+import BookingReview from './pages/admin/BookingReview';
+import BookingCalendar from './pages/admin/BookingCalendar';
 
 export default function App() {
   return (
@@ -61,6 +64,21 @@ export default function App() {
             <Route path="/admin/resources" element={
               <ProtectedRoute role="ADMIN">
                 <ResourcesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings" element={
+              <ProtectedRoute role="ADMIN">
+                <ManageBookings />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <BookingReview />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings/calendar" element={
+              <ProtectedRoute role="ADMIN">
+                <BookingCalendar />
               </ProtectedRoute>
             } />
             <Route path="/admin/logs" element={

@@ -30,6 +30,7 @@ export default function Navbar() {
             <Link to="/admin"             className="nav-link nav-link-admin">Overview</Link>
             <Link to="/admin/users"       className="nav-link nav-link-admin">Accounts</Link>
             <Link to="/admin/resources"     className="nav-link nav-link-admin">Facilities</Link>
+            <Link to="/admin/bookings"    className="nav-link nav-link-admin">Reservations</Link>
             <Link to="/admin/logs"        className="nav-link nav-link-admin">System Logs</Link>
             <Link to="/notifications"     className="nav-link nav-link-admin">Alerts</Link>
           </>
