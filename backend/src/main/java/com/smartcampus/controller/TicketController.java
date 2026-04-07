@@ -40,16 +40,18 @@ public class TicketController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<Ticket> updateStatus(
             @PathVariable String id,
-            @RequestParam TicketStatus status,
-            @RequestParam String updatedBy) {
+            @RequestBody java.util.Map<String, String> request) {
+        TicketStatus status = TicketStatus.valueOf(request.get("status"));
+        String updatedBy = request.get("updatedBy");
         return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, updatedBy));
     }
 
     @PatchMapping("/{id}/assign")
     public ResponseEntity<Ticket> assignTechnician(
             @PathVariable String id,
-            @RequestParam String technicianId,
-            @RequestParam String assignedBy) {
+            @RequestBody java.util.Map<String, String> request) {
+        String technicianId = request.get("technicianId");
+        String assignedBy = request.get("assignedBy");
         return ResponseEntity.ok(ticketService.assignTechnician(id, technicianId, assignedBy));
     }
 }
