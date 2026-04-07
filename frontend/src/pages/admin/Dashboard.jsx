@@ -4,9 +4,9 @@ import { Users, ShieldAlert, Activity, BellRing, TrendingUp, Clock, ShieldCheck,
 
 export default function Dashboard() {
   const { authFetch } = useAuth();
-  const [stats, setStats] = useState({ 
-    totalUsers: 0, 
-    lockedUsers: 0, 
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    lockedUsers: 0,
     activeUsers: 0,
     recentLogs: []
   });
@@ -17,14 +17,20 @@ export default function Dashboard() {
   }, []);
 
   const fetchDashData = async () => {
+    // SECURITY FIX: Only fetch if user is truly an ADMIN
+    if (user?.role !== 'ADMIN') {
+      setLoading(false);
+      return;
+    }
+
     try {
       // Fetch users for counts
       const userRes = await authFetch('http://localhost:8081/api/users');
-      const users = await userRes.json();
-      
+      const users = userRes.ok ? await userRes.json() : [];
+
       // Fetch logs for activity
       const logRes = await authFetch('http://localhost:8081/api/logs');
-      const logs = await logRes.json();
+      const logs = logRes.ok ? await logRes.json() : [];
       
       const safeUsers = Array.isArray(users) ? users : [];
       const safeLogs  = Array.isArray(logs) ? logs : [];
@@ -36,7 +42,7 @@ export default function Dashboard() {
         recentLogs: safeLogs.slice(-6).reverse()
       });
     } catch (err) {
-      console.error(err);
+      console.error('Dashboard Fetch Error:', err);
     } finally {
       setLoading(false);
     }
@@ -68,12 +74,12 @@ export default function Dashboard() {
             </h2>
             <a href="/admin/logs" style={{ fontSize: '0.875rem', color: '#6366f1', textDecoration: 'none' }}>View All</a>
           </div>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {stats.recentLogs.map((log, idx) => (
-              <div key={idx} style={{ 
-                display: 'flex', alignItems: 'center', gap: '16px', 
-                padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.03)' 
+              <div key={idx} style={{
+                display: 'flex', alignItems: 'center', gap: '16px',
+                padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.03)'
               }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Clock size={16} color="#64748b" />
@@ -93,7 +99,7 @@ export default function Dashboard() {
         {/* Quick Tips / Quick Actions */}
         <div style={{ background: 'rgba(99, 102, 241, 0.05)', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.1)', padding: '30px' }}>
           <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-             <ShieldAlert size={20} color="#fbbf24" /> Security Tips
+            <ShieldAlert size={20} color="#fbbf24" /> Security Tips
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: '#94a3b8', fontSize: '0.875rem' }}>
             <p>• Accounts are locked after 3 failed password attempts.</p>
@@ -111,8 +117,8 @@ export default function Dashboard() {
 
 function StatCard({ icon, label, value, color, valueColor = '#fff' }) {
   return (
-    <div style={{ 
-      background: 'rgba(15, 23, 42, 0.5)', 
+    <div style={{
+      background: 'rgba(15, 23, 42, 0.5)',
       border: '1px solid rgba(255,255,255,0.08)',
       padding: '24px', borderRadius: '24px',
       display: 'flex', flexDirection: 'column', gap: '12px'

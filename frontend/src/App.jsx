@@ -8,6 +8,7 @@ import UserProfile from './pages/auth/UserProfile';
 import NotificationPage from './pages/NotificationPage';
 import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
+import BookingResourceListPage from './pages/bookings/BookingResourceListPage';
 import TicketsPage from './pages/tickets/TicketsPage';
 import CreateTicketPage from './pages/tickets/CreateTicketPage';
 import TicketDetailsPage from './pages/tickets/TicketDetailsPage';
@@ -17,6 +18,7 @@ import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import SystemLogs from './pages/admin/SystemLogs';
+import AdminResourcesPage from './pages/resources/AdminResourcesPage';
 
 export default function App() {
   return (
@@ -45,6 +47,9 @@ export default function App() {
             <Route path="/bookings" element={
               <ProtectedRoute><BookingsPage /></ProtectedRoute>
             } />
+            <Route path="/bookings/resources/:type" element={
+              <ProtectedRoute><BookingResourceListPage /></ProtectedRoute>
+            } />
             <Route path="/tickets" element={
               <ProtectedRoute><TicketsPage /></ProtectedRoute>
             } />
@@ -68,7 +73,7 @@ export default function App() {
             } />
             <Route path="/admin/resources" element={
               <ProtectedRoute role="ADMIN">
-                <ResourcesPage />
+                <AdminResourcesPage />
               </ProtectedRoute>
             } />
             <Route path="/admin/logs" element={

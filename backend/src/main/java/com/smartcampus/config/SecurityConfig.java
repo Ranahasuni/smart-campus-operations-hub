@@ -39,16 +39,18 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // ── Public endpoints ─────────────────────────────────────
                 .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/api/resources/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/actuator/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // ── Admin-only endpoints ──────────────────────────────────
-                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/bookings/*/approve").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/bookings/*/reject").hasRole("ADMIN")
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/bookings/*/approve").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/bookings/*/reject").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
 
                 // ── Everything else: any authenticated user ───────────────
                 .anyRequest().authenticated()
@@ -63,7 +65,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174", "http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")); // FIX: Supported Methods
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
