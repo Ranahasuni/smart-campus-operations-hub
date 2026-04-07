@@ -80,7 +80,7 @@ export default function ResourceFormPage() {
     } catch (err) {
       console.error('Submission error:', err);
       let errorMsg = 'Failed to save the resource. Please try again.';
-      
+
       if (err.response?.data) {
         if (err.response.data.messages) {
           // It's a Validation error format mapped from Spring Boot
@@ -93,7 +93,7 @@ export default function ResourceFormPage() {
           errorMsg = err.response.data.error + ' - Make sure you are logged in as an ADMIN.';
         }
       }
-      
+
       setError(errorMsg);
     } finally {
       setLoading(false);

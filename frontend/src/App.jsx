@@ -57,13 +57,11 @@ export default function App() {
                 <ManageUsers />
               </ProtectedRoute>
             } />
-            {/* <Route path="/admin/resources/new" element={
+            <Route path="/admin/resources/new" element={
               <ProtectedRoute role="ADMIN">
                 <ResourceFormPage />
               </ProtectedRoute>
-            } /> */}
-
-            <Route path="/admin/resources/new" element={<ResourceFormPage />} />
+            } />
 
             <Route path="/admin/resources/edit/:id" element={
               <ProtectedRoute role="ADMIN">
