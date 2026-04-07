@@ -33,6 +33,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        
+        // DEBUG LOGGING
+        if (authHeader != null) {
+            System.out.println("DEBUG: Incoming Header -> " + authHeader.substring(0, Math.min(authHeader.length(), 40)) + "...");
+        }
 
         // Skip if no Bearer token present
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -45,8 +50,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         try {
             username = jwtUtil.extractUsername(jwt);
+            System.out.println("Extracted username from token: " + username);
         } catch (Exception e) {
-            // Malformed / expired token — just skip auth
+            System.out.println("Failed to extract username from token: " + e.getMessage());
             filterChain.doFilter(request, response);
             return;
         }
@@ -64,6 +70,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("Authentication successful for user: " + username);
+            } else {
+                System.out.println("Token validation failed for user: " + username);
             }
         }
 

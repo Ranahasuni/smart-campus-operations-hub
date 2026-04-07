@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, RotateCcw } from 'lucide-react';
 import api from '../../../../api/axiosInstance';
 
 const RESOURCE_TYPES = ['LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'];
@@ -100,9 +100,16 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
 
       <button 
         onClick={clearFilters}
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 24px', borderRadius: '14px', background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', cursor: 'pointer' }}
+        style={{ 
+          display: 'flex', alignItems: 'center', gap: '8px', padding: '0 24px', 
+          borderRadius: '14px', background: '#fff', border: '1px solid #e2e8f0', 
+          color: '#64748b', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem',
+          transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+        }}
+        onMouseOver={e => e.currentTarget.style.borderColor = '#cbd5e1'}
+        onMouseOut={e => e.currentTarget.style.borderColor = '#e2e8f0'}
       >
-        <X size={16} /> Reset
+        <RotateCcw size={16} /> Clear Filters
       </button>
     </div>
   );

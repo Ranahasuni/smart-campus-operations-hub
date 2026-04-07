@@ -7,9 +7,11 @@ export default function PageHeader() {
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px' }}>
       <div>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-1px' }}>
-          Manage <span style={{ color: '#6366f1' }}>Resources</span>
+          Resource <span style={{ color: '#6366f1' }}>Management</span>
         </h1>
-        <p style={{ color: '#64748b', marginTop: '8px' }}>Administrative control over campus assets and real-estate inventory.</p>
+        <p style={{ color: '#64748b', marginTop: '8px', fontSize: '1rem', fontWeight: '500' }}>
+          Search, monitor and configure all campus facilities and inventory from a unified dashboard.
+        </p>
       </div>
       <Link to="/admin/resources/new" style={{ 
         background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
