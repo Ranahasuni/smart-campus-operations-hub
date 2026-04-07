@@ -43,9 +43,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // ── Admin-only endpoints ──────────────────────────────────
+                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/bookings/*/approve").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/bookings/*/reject").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 // ── Everything else: any authenticated user ───────────────
