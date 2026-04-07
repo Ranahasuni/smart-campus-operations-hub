@@ -27,10 +27,11 @@ export default function Navbar() {
         {/* Admin Navigation */}
         {user?.role === 'ADMIN' ? (
           <>
-            <Link to="/admin"       className="nav-link nav-link-admin">Overview</Link>
-            <Link to="/admin/users" className="nav-link nav-link-admin">Accounts</Link>
-            <Link to="/admin/logs"  className="nav-link nav-link-admin">System Logs</Link>
-            <Link to="/notifications" className="nav-link nav-link-admin">Alerts</Link>
+            <Link to="/admin"             className="nav-link nav-link-admin">Overview</Link>
+            <Link to="/admin/users"       className="nav-link nav-link-admin">Accounts</Link>
+            <Link to="/admin/resources/new" className="nav-link nav-link-admin">Facilities</Link>
+            <Link to="/admin/logs"        className="nav-link nav-link-admin">System Logs</Link>
+            <Link to="/notifications"     className="nav-link nav-link-admin">Alerts</Link>
           </>
         ) : (
           /* Student / Lecturer / Staff Navigation */
