@@ -19,7 +19,7 @@ import java.util.Map;
  * Includes general profile retrieval and ADMIN-only CRUD.
  */
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 @CrossOrigin
 public class UserController {
