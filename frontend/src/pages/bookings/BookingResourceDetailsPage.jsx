@@ -22,9 +22,15 @@ export default function BookingResourceDetailsPage() {
   const navigate = useNavigate();
   const { user, authFetch, API } = useAuth();
 
+  const getLocalDate = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now - offset).toISOString().split('T')[0];
+  };
+
   const [resource, setResource] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getLocalDate());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -171,7 +177,7 @@ export default function BookingResourceDetailsPage() {
                 className="date-input"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
+                min={getLocalDate()}
               />
             </div>
 
