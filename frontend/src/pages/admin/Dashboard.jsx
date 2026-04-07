@@ -19,7 +19,7 @@ export default function Dashboard() {
   const fetchDashData = async () => {
     try {
       // Fetch users for counts
-      const userRes = await authFetch('http://localhost:8081/users');
+      const userRes = await authFetch('http://localhost:8081/api/users');
       const users = await userRes.json();
       
       // Fetch logs for activity

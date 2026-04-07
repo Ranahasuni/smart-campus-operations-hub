@@ -26,7 +26,7 @@ export default function ManageUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await authFetch('http://localhost:8081/users');
+      const res = await authFetch('http://localhost:8081/api/users');
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
@@ -42,7 +42,7 @@ export default function ManageUsers() {
     setError('');
     
     try {
-      const res = await authFetch('http://localhost:8081/users', {
+      const res = await authFetch('http://localhost:8081/api/users', {
         method: 'POST',
         body: JSON.stringify(formData)
       });
@@ -64,7 +64,7 @@ export default function ManageUsers() {
     const newStatus = currentStatus === 'LOCKED' || currentStatus === 'DISABLED' ? 'ACTIVE' : 'LOCKED';
     if (!window.confirm(`Are you sure you want to change this user's status to ${newStatus}?`)) return;
     try {
-      const res = await authFetch(`http://localhost:8081/users/${id}/status`, {
+      const res = await authFetch(`http://localhost:8081/api/users/${id}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status: newStatus })
       });
@@ -79,7 +79,7 @@ export default function ManageUsers() {
   const deleteUser = async (id, name) => {
     if (!window.confirm(`CRITICAL: Are you sure you want to PERMANENTLY delete user "${name}"? This action cannot be undone.`)) return;
     try {
-      const res = await authFetch(`http://localhost:8081/users/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`http://localhost:8081/api/users/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setUsers(users.filter(u => u.id !== id));
       } else {
@@ -93,7 +93,7 @@ export default function ManageUsers() {
 
   const changeRole = async (id, newRole) => {
     try {
-      const res = await authFetch(`http://localhost:8081/users/${id}`, {
+      const res = await authFetch(`http://localhost:8081/api/users/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ role: newRole })
       });
@@ -250,7 +250,7 @@ export default function ManageUsers() {
             <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>User / Campus ID</th>
               <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>Role</th>
-              <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>Status</th>
+              <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>Status / Security</th>
               <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>Last Login</th>
               <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600', textAlign: 'right' }}>Actions</th>
             </tr>
@@ -261,7 +261,7 @@ export default function ManageUsers() {
                 <td style={{ padding: '16px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '600' }}>
-                      {user.fullName?.[0].toUpperCase()}
+                      {user.fullName?.charAt(0).toUpperCase() || '?'}
                     </div>
                     <div>
                       <div style={{ color: '#f8fafc', fontWeight: '500' }}>{user.fullName}</div>
@@ -303,6 +303,11 @@ export default function ManageUsers() {
                     }} />
                     <span style={{ fontSize: '0.875rem', color: '#cbd5e1' }}>{user.status}</span>
                   </div>
+                  {user.failedAttempts > 0 && user.status !== 'ACTIVE' && (
+                    <div style={{ fontSize: '0.7rem', color: '#f87171', marginTop: '4px' }}>
+                       ⚠️ {user.failedAttempts} failed attempts
+                    </div>
+                  )}
                 </td>
                 <td style={{ padding: '16px 24px', color: '#64748b', fontSize: '0.875rem' }}>
                   {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
@@ -313,11 +318,13 @@ export default function ManageUsers() {
                       <button 
                         onClick={() => toggleStatus(user.id, user.status)}
                         style={{ 
-                          padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
-                          background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', fontSize: '0.75rem'
+                          padding: '6px 12px', borderRadius: '8px', border: user.status === 'LOCKED' ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)',
+                          background: user.status === 'LOCKED' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(255,255,255,0.05)', 
+                          color: user.status === 'LOCKED' ? '#fbbf24' : '#fff', cursor: 'pointer', fontSize: '0.75rem',
+                          fontWeight: user.status === 'LOCKED' ? 'bold' : 'normal'
                         }}
                       >
-                        {user.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        {user.status === 'LOCKED' ? 'Unlock Account' : (user.status === 'ACTIVE' ? 'Deactivate' : 'Activate')}
                       </button>
                       <button 
                         onClick={() => deleteUser(user.id, user.fullName)}
