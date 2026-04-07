@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -30,8 +31,10 @@ public class Ticket {
     // -------------------------
 
     @Builder.Default
+    @Indexed
     private TicketStatus status = TicketStatus.OPEN;
 
+    @Indexed
     private Priority priority;
 
     private String technicianId; // Assigned technician
@@ -44,6 +47,9 @@ public class Ticket {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // --- SLA Timer Feature ---
+    private LocalDateTime updatedAt;
+
+    // --- SLA Timer Features ---
+    private LocalDateTime assignedAt;
     private LocalDateTime resolvedAt;
 }
