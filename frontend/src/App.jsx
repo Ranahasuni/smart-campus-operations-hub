@@ -10,6 +10,7 @@ import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import TicketsPage from './pages/tickets/TicketsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 
 export default function App() {
   return (
@@ -49,6 +50,19 @@ export default function App() {
                   <h1>Admin Dashboard</h1>
                   <p>Management interface for Member 4 & System Admins.</p>
                 </div>
+              </ProtectedRoute>
+            } />
+            {/* <Route path="/admin/resources/new" element={
+              <ProtectedRoute role="ADMIN">
+                <ResourceFormPage />
+              </ProtectedRoute>
+            } /> */}
+
+            <Route path="/admin/resources/new" element={<ResourceFormPage />} />
+
+            <Route path="/admin/resources/edit/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <ResourceFormPage />
               </ProtectedRoute>
             } />
 
