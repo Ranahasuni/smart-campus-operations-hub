@@ -23,11 +23,13 @@ public class Ticket {
     private String userId; // User who created the ticket
     private String resourceId; // The broken resource
 
+    private String title;
     private IssueType issueType;
     private String description;
 
     // --- Top Marks Feature ---
     private String contactDetails;
+    private String locationDetail; // e.g. "Second row, desk 3"
     // -------------------------
 
     @Builder.Default
