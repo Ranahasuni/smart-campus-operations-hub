@@ -15,6 +15,7 @@ import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import SystemLogs from './pages/admin/SystemLogs';
+import AdminResourcesPage from './pages/resources/AdminResourcesPage';
 
 export default function App() {
   return (
@@ -60,7 +61,7 @@ export default function App() {
             } />
             <Route path="/admin/resources" element={
               <ProtectedRoute role="ADMIN">
-                <ResourcesPage />
+                <AdminResourcesPage />
               </ProtectedRoute>
             } />
             <Route path="/admin/logs" element={

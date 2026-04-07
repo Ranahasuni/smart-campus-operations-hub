@@ -84,6 +84,23 @@
 }
 
 .navbar-user-name {
+  color: #fff;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.navbar-role-badge {
+  font-size: 0.65rem;
+  color: #6366f1; /* Indigo color */
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.navbar-user-name {
   font-size: 0.875rem;
   font-weight: 600;
   color: #cbd5e1;

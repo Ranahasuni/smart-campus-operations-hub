@@ -13,7 +13,7 @@ export default function StatusSection({ formData, handleChange }) {
         >
           <option value="ACTIVE">Active (Available for booking)</option>
           <option value="MAINTENANCE">Maintenance</option>
-          <option value="OUT_OF_SERVICE">Out of Service (Creates auto-ticket)</option>
+          <option value="OUT_OF_SERVICE">Out of Service</option>
         </select>
       </div>
     </div>
