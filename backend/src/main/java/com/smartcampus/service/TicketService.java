@@ -43,6 +43,12 @@ public class TicketService {
         return ticketRepository.findByUserId(userId);
     }
 
+    public List<Ticket> getTicketsByResourceId(String resourceId) {
+        return ticketRepository.findAll().stream()
+                .filter(t -> t.getResourceId() != null && t.getResourceId().equals(resourceId))
+                .toList();
+    }
+
     public Ticket updateTicketStatus(String ticketId, TicketStatus newStatus, String updatedBy) {
         Ticket ticket = getTicketById(ticketId);
         ticket.setStatus(newStatus);
@@ -67,5 +73,9 @@ public class TicketService {
         Ticket updatedTicket = ticketRepository.save(ticket);
         auditService.log(assignedBy, "TICKET_ASSIGNED", "Ticket " + ticketId + " assigned to technician " + technicianId);
         return updatedTicket;
+    }
+
+    public void deleteTicket(String id) {
+        ticketRepository.deleteById(id);
     }
 }

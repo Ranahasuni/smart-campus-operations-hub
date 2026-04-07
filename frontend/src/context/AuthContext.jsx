@@ -5,14 +5,14 @@ const AuthContext = createContext(null);
 const API = 'http://localhost:8081';
 
 export function AuthProvider({ children }) {
-  const [user, setUser]   = useState(null);
+  const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Restore session from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem('sc_token');
-    const storedUser  = localStorage.getItem('sc_user');
+    const storedUser = localStorage.getItem('sc_user');
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
@@ -22,9 +22,9 @@ export function AuthProvider({ children }) {
 
   const login = async (campusId, password) => {
     const res = await fetch(`${API}/auth/login`, {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ campusId, password }),
+      body: JSON.stringify({ campusId, password }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -37,9 +37,9 @@ export function AuthProvider({ children }) {
 
   const register = async (fullName, campusEmail, password, role = 'STUDENT', campusId = '') => {
     const res = await fetch(`${API}/auth/register`, {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ fullName, campusEmail, password, role, campusId }),
+      body: JSON.stringify({ fullName, campusEmail, password, role, campusId }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -61,11 +61,11 @@ export function AuthProvider({ children }) {
   const persistSession = (data) => {
     localStorage.setItem('sc_token', data.token);
     const userInfo = {
-      id:          data.user.id,
-      fullName:    data.user.fullName,
+      id: data.user.id,
+      fullName: data.user.fullName,
       campusEmail: data.user.campusEmail,
-      role:        data.user.role,
-      campusId:    data.user.campusId,
+      role: data.user.role,
+      campusId: data.user.campusId,
     };
     localStorage.setItem('sc_user', JSON.stringify(userInfo));
     setToken(data.token);
@@ -74,6 +74,7 @@ export function AuthProvider({ children }) {
 
   /** Authenticated fetch helper — auto-attaches Bearer token */
   const authFetch = (url, options = {}) => {
+    console.log(`[authFetch] Requesting: ${url} with token: ${token ? 'PRESENT' : 'MISSING'}`);
     return fetch(url, {
       ...options,
       headers: {

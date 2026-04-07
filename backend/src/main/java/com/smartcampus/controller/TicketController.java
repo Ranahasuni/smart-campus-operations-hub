@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/tickets")
 @RequiredArgsConstructor
+@CrossOrigin
 public class TicketController {
 
     private final TicketService ticketService;
@@ -32,6 +33,11 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
+    @GetMapping("/resource/{resourceId}")
+    public ResponseEntity<List<Ticket>> getByResource(@PathVariable String resourceId) {
+        return ResponseEntity.ok(ticketService.getTicketsByResourceId(resourceId));
+    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Ticket>> getTicketsByUser(@PathVariable String userId) {
         return ResponseEntity.ok(ticketService.getTicketsByUserId(userId));
@@ -42,7 +48,7 @@ public class TicketController {
             @PathVariable String id,
             @RequestBody java.util.Map<String, String> request) {
         TicketStatus status = TicketStatus.valueOf(request.get("status"));
-        String updatedBy = request.get("updatedBy");
+        String updatedBy = request.getOrDefault("updatedBy", "SYSTEM");
         return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, updatedBy));
     }
 
@@ -53,5 +59,11 @@ public class TicketController {
         String technicianId = request.get("technicianId");
         String assignedBy = request.get("assignedBy");
         return ResponseEntity.ok(ticketService.assignTechnician(id, technicianId, assignedBy));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        ticketService.deleteTicket(id);
+        return ResponseEntity.noContent().build();
     }
 }
