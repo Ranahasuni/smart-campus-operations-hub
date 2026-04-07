@@ -8,6 +8,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
+
+/**
+ * Enhanced User model to support advanced security features like account locking,
+ * login attempts tracking, and audit logging.
+ */
 @Document(collection = "users")
 @Data
 @Builder
@@ -18,11 +24,13 @@ public class User {
     @Id
     private String id;
 
-    @Indexed
-    private String name;
+    @Indexed(unique = true)
+    private String campusId; // student ID / lecturer ID / admin ID
+
+    private String fullName;
 
     @Indexed(unique = true)
-    private String email;
+    private String campusEmail;
 
     /** BCrypt-hashed password */
     private String password;
@@ -30,6 +38,14 @@ public class User {
     @Builder.Default
     private Role role = Role.STUDENT;
 
-    /** For Google OAuth2 sign-in */
-    private String googleId;
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Builder.Default
+    private int failedAttempts = 0;
+
+    private LocalDateTime lastLogin;
+
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -5,11 +5,14 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import UserProfile from './pages/auth/UserProfile';
-import NotificationsPage from './pages/NotificationsPage';
+import NotificationPage from './pages/NotificationPage';
 import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import TicketsPage from './pages/tickets/TicketsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+
+import Dashboard from './pages/admin/Dashboard';
+import ManageUsers from './pages/admin/ManageUsers';
 
 export default function App() {
   return (
@@ -28,7 +31,7 @@ export default function App() {
               <ProtectedRoute><UserProfile /></ProtectedRoute>
             } />
             <Route path="/notifications" element={
-              <ProtectedRoute><NotificationsPage /></ProtectedRoute>
+              <ProtectedRoute><NotificationPage /></ProtectedRoute>
             } />
 
             {/* Member Module Routes */}
@@ -45,19 +48,21 @@ export default function App() {
             {/* Admin only */}
             <Route path="/admin" element={
               <ProtectedRoute role="ADMIN">
-                <div style={{ padding: '80px', textAlign: 'center', color: '#fff' }}>
-                  <h1>Admin Dashboard</h1>
-                  <p>Management interface for Member 4 & System Admins.</p>
-                </div>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute role="ADMIN">
+                <ManageUsers />
               </ProtectedRoute>
             } />
 
-            {/* Staff only */}
+            {/* Staff-related dashboard (Staff, Lecturers, Technicians) */}
             <Route path="/staff" element={
-              <ProtectedRoute role="STAFF">
+              <ProtectedRoute role={['STAFF', 'LECTURER', 'TECHNICIAN']}>
                 <div style={{ padding: '80px', textAlign: 'center', color: '#fff' }}>
-                  <h1>Staff Dashboard</h1>
-                  <p>Internal Faculty & Staff portal for Campus Operations.</p>
+                  <h1>Staff Portal</h1>
+                  <p>Faculty, Maintenance & Academic staff resource hub.</p>
                 </div>
               </ProtectedRoute>
             } />
@@ -67,3 +72,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+

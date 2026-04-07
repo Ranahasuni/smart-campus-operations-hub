@@ -69,4 +69,12 @@ public class NotificationController {
         notificationService.markAllAsRead(userId);
         return ResponseEntity.noContent().build();
     }
+
+    /** Delete a notification */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        notificationService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
+

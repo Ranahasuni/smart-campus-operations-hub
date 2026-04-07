@@ -29,6 +29,10 @@ export default function Navbar() {
         {user?.role === 'ADMIN' && (
           <Link to="/admin" className="nav-link nav-link-admin">Admin</Link>
         )}
+        {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
+          <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
+        )}
+
       </div>
 
       {/* Right section */}
@@ -38,9 +42,9 @@ export default function Navbar() {
             <NotificationBell />
             <Link to="/profile" className="navbar-user">
               <div className="navbar-avatar">
-                {user.name?.[0]?.toUpperCase() || '?'}
+                {user.fullName?.[0]?.toUpperCase() || '?'}
               </div>
-              <span className="navbar-user-name">{user.name}</span>
+              <span className="navbar-user-name">{user.fullName}</span>
             </Link>
             <button
               id="btn-navbar-logout"

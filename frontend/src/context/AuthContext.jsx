@@ -20,11 +20,11 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (campusId, password) => {
     const res = await fetch(`${API}/auth/login`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, password }),
+      body:    JSON.stringify({ campusId, password }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -32,14 +32,14 @@ export function AuthProvider({ children }) {
     }
     const data = await res.json();
     persistSession(data);
-    return data;
+    return data.user;
   };
 
-  const register = async (name, email, password, role = 'STUDENT') => {
+  const register = async (fullName, campusEmail, password, role = 'STUDENT', campusId = '') => {
     const res = await fetch(`${API}/auth/register`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ name, email, password, role }),
+      body:    JSON.stringify({ fullName, campusEmail, password, role, campusId }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -47,8 +47,9 @@ export function AuthProvider({ children }) {
     }
     const data = await res.json();
     persistSession(data);
-    return data;
+    return data.user;
   };
+
 
   const logout = () => {
     localStorage.removeItem('sc_token');
@@ -59,14 +60,16 @@ export function AuthProvider({ children }) {
 
   const persistSession = (data) => {
     localStorage.setItem('sc_token', data.token);
-    localStorage.setItem('sc_user', JSON.stringify({
-      id:    data.userId,
-      name:  data.name,
-      email: data.email,
-      role:  data.role,
-    }));
+    const userInfo = {
+      id:          data.user.id,
+      fullName:    data.user.fullName,
+      campusEmail: data.user.campusEmail,
+      role:        data.user.role,
+      campusId:    data.user.campusId,
+    };
+    localStorage.setItem('sc_user', JSON.stringify(userInfo));
     setToken(data.token);
-    setUser({ id: data.userId, name: data.name, email: data.email, role: data.role });
+    setUser(userInfo);
   };
 
   /** Authenticated fetch helper — auto-attaches Bearer token */

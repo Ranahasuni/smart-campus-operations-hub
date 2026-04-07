@@ -1,89 +1,109 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { User, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import '../../styles/auth.css';
+import './auth.css';
 
-export default function LoginPage() {
+export default function Login() {
+  const navigate = useNavigate();
   const { login } = useAuth();
-  const navigate  = useNavigate();
-
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+  const [formData, setFormData] = useState({
+    campusId: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
+
     try {
-      const data = await login(email, password);
-      // data contains { userId, name, email, role, token }
-      if (data.role === 'ADMIN') {
+      const userData = await login(formData.campusId, formData.password);
+      
+      // Redirect based on role
+      if (userData.role === 'ADMIN') {
         navigate('/admin');
-      } else if (data.role === 'STAFF') {
+      } else if (['STAFF', 'LECTURER', 'TECHNICIAN'].includes(userData.role)) {
         navigate('/staff');
       } else {
-        navigate('/');
+        navigate('/profile');
       }
+
+
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-bg">
+    <div className="auth-container">
       <div className="auth-card">
-        {/* Logo / Brand */}
-        <div className="auth-brand">
-          <div className="auth-logo">🏫</div>
-          <h1 className="auth-title">Smart Campus</h1>
-          <p className="auth-subtitle">Sign in to your account</p>
+        <div className="auth-header text-center">
+          <h1>Smart Campus</h1>
+          <p>Sign in with your Campus ID</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="auth-error">⚠️ {error}</div>}
+        {error && (
+          <div className="auth-alert auth-alert-error">
+            <AlertCircle size={20} />
+            <span>{error}</span>
+          </div>
+        )}
 
-          <div className="form-group">
-            <label htmlFor="login-email">Email Address</label>
-            <input
-              id="login-email"
-              type="email"
-              placeholder="you@university.edu"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+        <form onSubmit={handleSubmit}>
+          {/* Campus ID Input */}
+          <div className="input-group">
+            <label htmlFor="campusId">Campus ID</label>
+            <div className="input-wrapper">
+              <input
+                id="campusId"
+                type="text"
+                className="input-field"
+                value={formData.campusId}
+                onChange={(e) => setFormData({ ...formData, campusId: e.target.value })}
+                placeholder="e.g. IT23864306 or LEC102"
+                required
+              />
+              <User size={18} className="input-icon" />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
+          {/* Password Input */}
+          <div className="input-group">
+            <label htmlFor="password">Password</label>
+            <div className="input-wrapper">
+              <input
+                id="password"
+                type="password"
+                className="input-field"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="••••••••"
+                required
+              />
+              <Lock size={18} className="input-icon" />
+            </div>
           </div>
 
           <button
-            id="btn-login-submit"
             type="submit"
-            className="auth-btn"
             disabled={loading}
+            className="btn-primary"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
           >
-            {loading ? <span className="spinner" /> : 'Sign In'}
+            {loading ? 'Signing in...' : (
+              <>
+                Sign In <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </form>
 
-        <p className="auth-footer">
-          Don&apos;t have an account?{' '}
-          <Link to="/register">Create one</Link>
-        </p>
+        {/* Public registration is disabled - accounts are created by Admin */}
       </div>
     </div>
   );
