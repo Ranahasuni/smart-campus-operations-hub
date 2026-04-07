@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -22,16 +23,20 @@ public class Ticket {
     private String userId; // User who created the ticket
     private String resourceId; // The broken resource
 
+    private String title;
     private IssueType issueType;
     private String description;
 
     // --- Top Marks Feature ---
     private String contactDetails;
+    private String locationDetail; // e.g. "Second row, desk 3"
     // -------------------------
 
     @Builder.Default
+    @Indexed
     private TicketStatus status = TicketStatus.OPEN;
 
+    @Indexed
     private Priority priority;
 
     private String technicianId; // Assigned technician
@@ -44,6 +49,9 @@ public class Ticket {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // --- SLA Timer Feature ---
+    private LocalDateTime updatedAt;
+
+    // --- SLA Timer Features ---
+    private LocalDateTime assignedAt;
     private LocalDateTime resolvedAt;
 }
