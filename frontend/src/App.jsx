@@ -58,6 +58,11 @@ export default function App() {
                 <ManageUsers />
               </ProtectedRoute>
             } />
+            <Route path="/admin/resources" element={
+              <ProtectedRoute role="ADMIN">
+                <ResourcesPage />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/logs" element={
               <ProtectedRoute role="ADMIN">
                 <SystemLogs />

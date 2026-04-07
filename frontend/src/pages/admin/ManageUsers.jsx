@@ -261,7 +261,7 @@ export default function ManageUsers() {
                 <td style={{ padding: '16px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '600' }}>
-                      {user.fullName?.[0].toUpperCase()}
+                      {user.fullName?.charAt(0).toUpperCase() || '?'}
                     </div>
                     <div>
                       <div style={{ color: '#f8fafc', fontWeight: '500' }}>{user.fullName}</div>
