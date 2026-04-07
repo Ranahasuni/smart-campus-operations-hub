@@ -19,7 +19,7 @@ export default function ResourcesPage() {
 
   const fetchResources = async () => {
     try {
-      const res = await authFetch('http://localhost:8081/api/resources');
+      const res = await authFetch('http://localhost:8082/api/resources');
       if (!res.ok) throw new Error('Failed to load facilities inventory');
       const data = await res.json();
       setResources(Array.isArray(data) ? data : []);
@@ -33,7 +33,7 @@ export default function ResourcesPage() {
   const deleteResource = async (id) => {
     if (!window.confirm('CRITICAL: Are you sure you want to permanently delete this facility?')) return;
     try {
-      const res = await authFetch(`http://localhost:8081/api/resources/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`http://localhost:8082/api/resources/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setResources(prev => prev.filter(r => r.id !== id));
       } else {
