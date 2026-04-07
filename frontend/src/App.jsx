@@ -14,6 +14,7 @@ import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
+import SystemLogs from './pages/admin/SystemLogs';
 
 export default function App() {
   return (
@@ -57,13 +58,17 @@ export default function App() {
                 <ManageUsers />
               </ProtectedRoute>
             } />
-            {/* <Route path="/admin/resources/new" element={
+            <Route path="/admin/logs" element={
+              <ProtectedRoute role="ADMIN">
+                <SystemLogs />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/resources/new" element={
               <ProtectedRoute role="ADMIN">
                 <ResourceFormPage />
               </ProtectedRoute>
-            } /> */}
-
-            <Route path="/admin/resources/new" element={<ResourceFormPage />} />
+            } />
 
             <Route path="/admin/resources/edit/:id" element={
               <ProtectedRoute role="ADMIN">

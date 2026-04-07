@@ -20,19 +20,30 @@ export default function Navbar() {
         Smart Campus
       </Link>
 
-      {/* Nav links */}
+      {/* Role-Specific Navigation */}
       <div className="navbar-links">
-        <Link to="/"           className="nav-link">Home</Link>
-        <Link to="/resources"  className="nav-link">Resources</Link>
-        <Link to="/bookings"   className="nav-link">Bookings</Link>
-        <Link to="/tickets"    className="nav-link">Tickets</Link>
-        {user?.role === 'ADMIN' && (
-          <Link to="/admin" className="nav-link nav-link-admin">Admin</Link>
+        <Link to="/" className="nav-link">Home</Link>
+        
+        {/* Admin Navigation */}
+        {user?.role === 'ADMIN' ? (
+          <>
+            <Link to="/admin"             className="nav-link nav-link-admin">Overview</Link>
+            <Link to="/admin/users"       className="nav-link nav-link-admin">Accounts</Link>
+            <Link to="/admin/resources/new" className="nav-link nav-link-admin">Facilities</Link>
+            <Link to="/admin/logs"        className="nav-link nav-link-admin">System Logs</Link>
+            <Link to="/notifications"     className="nav-link nav-link-admin">Alerts</Link>
+          </>
+        ) : (
+          /* Student / Lecturer / Staff Navigation */
+          <>
+            <Link to="/resources"  className="nav-link">Resources</Link>
+            <Link to="/bookings"   className="nav-link">Bookings</Link>
+            <Link to="/tickets"    className="nav-link">Tickets</Link>
+            {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
+              <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
+            )}
+          </>
         )}
-        {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
-          <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
-        )}
-
       </div>
 
       {/* Right section */}
