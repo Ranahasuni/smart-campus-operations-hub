@@ -3,6 +3,8 @@ package com.smartcampus.service;
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketStatus;
 import com.smartcampus.repository.TicketRepository;
+import com.smartcampus.repository.CommentRepository;
+import com.smartcampus.repository.TicketImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,34 +16,63 @@ import java.util.List;
 public class TicketService {
 
     private final TicketRepository ticketRepository;
+    private final CommentRepository commentRepository;
+    private final TicketImageRepository ticketImageRepository;
+    private final AuditService auditService;
 
-    /** Fetch all maintenance requests */
+    public Ticket createTicket(Ticket ticket) {
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setUpdatedAt(LocalDateTime.now());
+        
+        Ticket savedTicket = ticketRepository.save(ticket);
+        auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket created with ID: " + savedTicket.getId());
+        return savedTicket;
+    }
+
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAll();
     }
 
-    /** Find tickets for a specific room/resource */
+    public Ticket getTicketById(String id) {
+        return ticketRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + id));
+    }
+
+    public List<Ticket> getTicketsByUserId(String userId) {
+        return ticketRepository.findByUserId(userId);
+    }
+
     public List<Ticket> getTicketsByResourceId(String resourceId) {
         return ticketRepository.findAll().stream()
                 .filter(t -> t.getResourceId() != null && t.getResourceId().equals(resourceId))
                 .toList();
     }
 
-    /** Update ticket workflow status */
-    public Ticket updateStatus(String id, TicketStatus status) {
-        Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket not found: " + id));
-        
-        ticket.setStatus(status);
+    public Ticket updateTicketStatus(String ticketId, TicketStatus newStatus, String updatedBy) {
+        Ticket ticket = getTicketById(ticketId);
+        ticket.setStatus(newStatus);
         ticket.setUpdatedAt(LocalDateTime.now());
-        return ticketRepository.save(ticket);
+
+        if (newStatus == TicketStatus.RESOLVED) {
+            ticket.setResolvedAt(LocalDateTime.now());
+        }
+
+        Ticket updatedTicket = ticketRepository.save(ticket);
+        auditService.log(updatedBy, "TICKET_STATUS_UPDATED", "Ticket " + ticketId + " status changed to " + newStatus);
+        return updatedTicket;
     }
 
-    /** Create a new manual ticket */
-    public Ticket createTicket(Ticket ticket) {
-        ticket.setCreatedAt(LocalDateTime.now());
-        ticket.setStatus(ticket.getStatus() != null ? ticket.getStatus() : TicketStatus.OPEN);
-        return ticketRepository.save(ticket);
+    public Ticket assignTechnician(String ticketId, String technicianId, String assignedBy) {
+        Ticket ticket = getTicketById(ticketId);
+        ticket.setTechnicianId(technicianId);
+        ticket.setAssignedAt(LocalDateTime.now());
+        ticket.setStatus(TicketStatus.IN_PROGRESS);
+        ticket.setUpdatedAt(LocalDateTime.now());
+
+        Ticket updatedTicket = ticketRepository.save(ticket);
+        auditService.log(assignedBy, "TICKET_ASSIGNED", "Ticket " + ticketId + " assigned to technician " + technicianId);
+        return updatedTicket;
     }
 
     public void deleteTicket(String id) {
