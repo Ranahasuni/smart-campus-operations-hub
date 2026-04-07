@@ -9,6 +9,7 @@ import NotificationPage from './pages/NotificationPage';
 import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import TicketsPage from './pages/tickets/TicketsPage';
+import CreateTicketPage from './pages/tickets/CreateTicketPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 
@@ -45,6 +46,9 @@ export default function App() {
             } />
             <Route path="/tickets" element={
               <ProtectedRoute><TicketsPage /></ProtectedRoute>
+            } />
+            <Route path="/tickets/new" element={
+              <ProtectedRoute><CreateTicketPage /></ProtectedRoute>
             } />
 
             {/* Admin only */}
