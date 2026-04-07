@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 /**
  * Utility class for creating and validating JWT tokens.
- * Token payload includes: sub (email), role, iat, exp
+ * Token payload includes: sub (campusId), role, iat, exp
  */
 @Component
 public class JwtUtil {
@@ -46,8 +46,8 @@ public class JwtUtil {
     // ── token validation ────────────────────────────────────────────────────
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String email = extractEmail(token);
-        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        final String username = extractUsername(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
@@ -56,7 +56,7 @@ public class JwtUtil {
 
     // ── claim extraction ────────────────────────────────────────────────────
 
-    public String extractEmail(String token) {
+    public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 

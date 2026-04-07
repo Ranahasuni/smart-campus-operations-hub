@@ -94,6 +94,21 @@ public class NotificationService {
         send(req);
     }
 
+    /** Broadcast alert to all Administrators */
+    public void notifyAdmins(String title, String message, NotificationType type, NotificationPriority priority) {
+        List<User> admins = userRepository.findByRole(com.smartcampus.model.Role.ADMIN);
+        for (User admin : admins) {
+            Notification n = Notification.builder()
+                    .recipientId(admin.getId())
+                    .title(title)
+                    .message(message)
+                    .type(type)
+                    .priority(priority)
+                    .build();
+            notificationRepository.save(n);
+        }
+    }
+
     // ── Read operations ───────────────────────────────────────────────────────
 
     public List<NotificationResponse> getAllForUser(String userId) {
@@ -133,6 +148,12 @@ public class NotificationService {
         Update update = new Update().set("isRead", true);
         mongoTemplate.updateMulti(query, update, Notification.class);
     }
+
+    /** Permanently remove a notification */
+    public void delete(String id) {
+        notificationRepository.deleteById(id);
+    }
+
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

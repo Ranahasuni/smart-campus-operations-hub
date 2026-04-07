@@ -20,10 +20,14 @@ export default function ProtectedRoute({ children, role }) {
   if (!user) return <Navigate to="/login" />;
 
   // Redirect to home if role mismatch (e.g. non-admin tries to visit /admin)
-  if (role && user.role !== role) {
-    console.warn(`Access denied to role: ${role}`);
-    return <Navigate to="/" />;
+  if (role) {
+    const isAllowed = Array.isArray(role) ? role.includes(user.role) : user.role === role;
+    if (!isAllowed) {
+      console.warn(`Access denied to role: ${role}`);
+      return <Navigate to="/" />;
+    }
   }
+
 
   return children;
 }

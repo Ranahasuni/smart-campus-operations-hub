@@ -1,7 +1,9 @@
 package com.smartcampus.controller;
 
 import com.smartcampus.model.User;
+import com.smartcampus.model.UserStatus;
 import com.smartcampus.repository.UserRepository;
+import com.smartcampus.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,27 +15,32 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * GET /users/profile   → returns the logged-in user's profile
- * GET /users           → ADMIN only: list all users
+ * Controller to manage user accounts and profiles.
+ * Includes general profile retrieval and ADMIN-only CRUD.
  */
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
+@CrossOrigin
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
     /** Get the currently authenticated user's profile */
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userDetails.getUsername()));
 
         return ResponseEntity.ok(Map.of(
-                "id",    user.getId(),
-                "name",  user.getName(),
-                "email", user.getEmail(),
-                "role",  user.getRole().name()
+                "id",          user.getId(),
+                "fullName",    user.getFullName(),
+                "campusEmail", user.getCampusEmail(),
+                "role",        user.getRole().name(),
+                "status",      user.getStatus().name(),
+                "campusId",    user.getCampusId(),
+                "lastLogin",   user.getLastLogin() != null ? user.getLastLogin().toString() : ""
         ));
     }
 
@@ -41,6 +48,58 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    /** Get user details — ADMIN only */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    /** Update user profile — ADMIN only here, or extended for profile self-service later */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> updateUser(
+            @PathVariable String id, 
+            @RequestBody User updatedUser,
+            @AuthenticationPrincipal UserDetails admin) {
+        
+        // Get Admin ID from campusId for logging
+        User adminObj = userRepository.findByCampusId(admin.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Admin not found"));
+        
+        return ResponseEntity.ok(userService.updateUser(id, updatedUser, adminObj.getId()));
+    }
+
+    /** Update user status (LOCKED / ACTIVE / DISABLED) — ADMIN only */
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> updateStatus(
+            @PathVariable String id, 
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal UserDetails admin) {
+        
+        User adminObj = userRepository.findByCampusId(admin.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Admin not found"));
+        
+        UserStatus status = UserStatus.valueOf(body.get("status"));
+        userService.updateUserStatus(id, status, adminObj.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    /** Delete user — ADMIN only */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails admin) {
+        
+        User adminObj = userRepository.findByCampusId(admin.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Admin not found"));
+        
+        userService.deleteUser(id, adminObj.getId());
+        return ResponseEntity.noContent().build();
     }
 }
