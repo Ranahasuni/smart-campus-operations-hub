@@ -73,7 +73,7 @@ public class AuthService {
         auditService.log(user.getId(), "REGISTER", "New user registered: " + user.getCampusId() + " (" + role + ")");
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getCampusId());
-        String token = jwtUtil.generateToken(userDetails, user.getRole().name());
+        String token = jwtUtil.generateToken(userDetails, user.getRole().name(), user.getId());
 
         return AuthResponse.builder()
                 .token(token)
@@ -119,7 +119,7 @@ public class AuthService {
             auditService.log(user.getId(), "LOGIN_SUCCESS", "User " + user.getCampusId() + " authenticated successfully");
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(user.getCampusId());
-            String token = jwtUtil.generateToken(userDetails, user.getRole().name());
+            String token = jwtUtil.generateToken(userDetails, user.getRole().name(), user.getId());
 
             return AuthResponse.builder()
                     .token(token)

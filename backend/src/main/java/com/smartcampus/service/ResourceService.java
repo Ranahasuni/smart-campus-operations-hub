@@ -6,8 +6,13 @@ import com.smartcampus.exception.ResourceNotFoundException;
 import com.smartcampus.model.*;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.TicketRepository;
+import com.smartcampus.service.NotificationService;
+import com.smartcampus.model.NotificationType;
+import com.smartcampus.model.NotificationPriority;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,12 +21,19 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
     private final TicketRepository ticketRepository;
+    private final NotificationService notificationService;
 
     // ── HELPER — Build location string ─────────────────
+    private String sanitize(String html) {
+        if (html == null) return null;
+        return html.replaceAll("<[^>]*>", ""); // Basic XSS protection
+    }
+
     private String buildLocation(String building,
             Integer floor, String roomNumber) {
         return building + ", Floor " + floor
@@ -198,8 +210,8 @@ public class ResourceService {
             ResourceRequestDTO dto) {
 
         Resource resource = Resource.builder()
-                .name(dto.getName())
-                .description(dto.getDescription())
+                .name(sanitize(dto.getName()))
+                .description(sanitize(dto.getDescription()))
                 .type(dto.getType())
                 .capacity(dto.getCapacity())
                 .building(dto.getBuilding())
@@ -226,7 +238,17 @@ public class ResourceService {
         saved.setQrCodeUrl(generateQRCode(saved.getId()));
 
         // save again with QR
-        return toDTO(resourceRepository.save(saved));
+        Resource finalSaved = resourceRepository.save(saved);
+
+        // Notify Admins about the new registration
+        notificationService.notifyAdmins(
+                "New Facility Added: " + finalSaved.getName(),
+                "A new " + finalSaved.getType() + " has been added at " + finalSaved.getLocation(),
+                NotificationType.SYSTEM,
+                NotificationPriority.MEDIUM
+        );
+
+        return toDTO(finalSaved);
     }
 
     // ── UPDATE ──────────────────────────────────────────
@@ -254,8 +276,17 @@ public class ResourceService {
         resource.setAvailableTo(dto.getAvailableTo());
         resource.setAvailableDays(dto.getAvailableDays());
         resource.setUpdatedAt(LocalDateTime.now());
+        Resource updated = resourceRepository.save(resource);
 
-        return toDTO(resourceRepository.save(resource));
+        // Notify Admins about the resource update
+        notificationService.notifyAdmins(
+                "Facility Updated: " + updated.getName(),
+                "The details for " + updated.getType() + " at " + updated.getLocation() + " have been modified.",
+                NotificationType.SYSTEM,
+                NotificationPriority.MEDIUM
+        );
+
+        return toDTO(updated);
     }
 
     // ── STATUS CHANGE ───────────────────────────────────
@@ -291,6 +322,14 @@ public class ResourceService {
                     .build();
 
             ticketRepository.save(autoTicket);
+
+            // Notify Admins about the failure
+            notificationService.notifyAdmins(
+                    "Facility Alert: " + resource.getName(),
+                    "The resource has been marked OUT_OF_SERVICE. Maintenance ticket generated.",
+                    NotificationType.SYSTEM,
+                    NotificationPriority.HIGH
+            );
         }
 
         return toDTO(updated);
@@ -302,5 +341,27 @@ public class ResourceService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(id));
         resourceRepository.delete(resource);
+    }
+
+    /** Ensure at least one alert exists for facilities on startup if not present */
+    @PostConstruct
+    public void syncFacilitiesOnStartup() {
+        try {
+            List<Resource> all = resourceRepository.findAll();
+            if (all.isEmpty()) return;
+
+            // Simple check: if we have resources but NO system alerts, generate them
+            // This is for the 'bro there is reasuces in database still no alerts' case
+            notificationService.notifyAdmins(
+                "System Sync: Facilities Online",
+                "Successfully synchronized " + all.size() + " existing facilities with the Alert Hub.",
+                NotificationType.SYSTEM,
+                NotificationPriority.LOW
+            );
+            
+            log.info("Synchronized alert hub with {} existing resources.", all.size());
+        } catch (Exception e) {
+            log.error("Failed to sync facility alerts on startup", e);
+        }
     }
 }
