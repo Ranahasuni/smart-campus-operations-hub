@@ -30,12 +30,6 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<?> handleNoResourceFound(NoResourceFoundException ex) {
-        return ResponseEntity.status(404)
-                .body(Map.of("error", "Endpoint not found"));
-    }
-
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntime(RuntimeException ex) {
         return ResponseEntity.badRequest()
@@ -62,9 +56,28 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    // Static resource not found (e.g. invalid URL) → 404
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResource(
+            NoResourceFoundException ex) {
+        
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("status", 404);
+        error.put("error", "Not Found");
+        error.put("message", "The requested endpoint or resource does not exist.");
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(error);
+    }
+
     // Any other error → 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
+        
+        ex.printStackTrace(); // Keep this for debugging in development
+
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", LocalDateTime.now());
         error.put("status", 500);

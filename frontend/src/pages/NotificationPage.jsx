@@ -184,12 +184,14 @@ export default function NotificationPage() {
                 <div 
                   key={n.id} 
                   className={`notif-card ${!n.read ? 'unread' : 'read'}`}
+                  onClick={() => !n.read && markRead(n.id)}
                   style={{
                     display: 'flex', gap: '20px', padding: '22px', borderRadius: '20px',
                     background: !n.read ? 'rgba(99, 102, 241, 0.08)' : 'rgba(30, 41, 59, 0.4)',
                     border: `1px solid ${!n.read ? 'rgba(99, 102, 241, 0.3)' : 'rgba(255,255,255,0.05)'}`,
-                    position: 'relative', transition: 'transform 0.2s ease',
-                    opacity: n.read ? 0.75 : 1
+                    position: 'relative', transition: 'all 0.2s ease',
+                    opacity: n.read ? 0.75 : 1,
+                    cursor: !n.read ? 'pointer' : 'default'
                   }}
                 >
                   {/* Status Indicator (Red Dot) */}
@@ -261,7 +263,10 @@ export default function NotificationPage() {
                       </button>
                     )}
                     <button 
-                      onClick={() => deleteNotification(n.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotification(n.id);
+                      }}
                       className="action-btn-circle"
                       title="Delete"
                       style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)' }}
@@ -288,6 +293,7 @@ export default function NotificationPage() {
         .notif-card:hover {
           transform: translateX(4px);
           border-color: rgba(99, 102, 241, 0.4);
+          background: rgba(99, 102, 241, 0.12) !important;
         }
         .gradient-text {
           background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
