@@ -30,6 +30,7 @@ export default function ResourcesPage() {
       });
       
       const res = await api.get(`/resources?${query.toString()}`);
+      console.log('API Response (Catalogue):', res.data);
       
       // Perform Frontend-side array filtering for 'features'
       let finalData = res.data || [];
@@ -38,7 +39,7 @@ export default function ResourcesPage() {
         finalData = finalData.filter(resource => {
           if (!resource.equipment || resource.equipment.length === 0) return false;
           // Resource MUST contain EVERY selected feature to show up
-          return requiredFeatures.every(rf => resource.equipment.includes(rf));
+          return requiredFeatures.every(rf => (resource.equipment || []).includes(rf));
         });
       }
       

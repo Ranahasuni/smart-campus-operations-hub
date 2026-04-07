@@ -23,22 +23,22 @@ export default function Navbar() {
       {/* Role-Specific Navigation */}
       <div className="navbar-links">
         <Link to="/" className="nav-link">Home</Link>
-        
+
         {/* Admin Navigation */}
         {user?.role === 'ADMIN' ? (
           <>
-            <Link to="/admin"             className="nav-link nav-link-admin">Overview</Link>
-            <Link to="/admin/users"       className="nav-link nav-link-admin">Accounts</Link>
-            <Link to="/admin/resources"     className="nav-link nav-link-admin">Facilities</Link>
-            <Link to="/admin/logs"        className="nav-link nav-link-admin">System Logs</Link>
-            <Link to="/notifications"     className="nav-link nav-link-admin">Alerts</Link>
+            <Link to="/admin" className="nav-link nav-link-admin">Overview</Link>
+            <Link to="/admin/users" className="nav-link nav-link-admin">Accounts</Link>
+            <Link to="/admin/resources" className="nav-link nav-link-admin">Facilities</Link>
+            <Link to="/admin/logs" className="nav-link nav-link-admin">System Logs</Link>
+            <Link to="/notifications" className="nav-link nav-link-admin">Alerts</Link>
           </>
         ) : (
           /* Student / Lecturer / Staff Navigation */
           <>
-            <Link to="/resources"  className="nav-link">Resources</Link>
-            <Link to="/bookings"   className="nav-link">Bookings</Link>
-            <Link to="/tickets"    className="nav-link">Tickets</Link>
+            <Link to="/resources" className="nav-link">Resources</Link>
+            <Link to="/bookings" className="nav-link">Bookings</Link>
+            <Link to="/tickets" className="nav-link">Tickets</Link>
             {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
               <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
             )}
@@ -55,7 +55,10 @@ export default function Navbar() {
               <div className="navbar-avatar">
                 {user.fullName?.[0]?.toUpperCase() || '?'}
               </div>
-              <span className="navbar-user-name">{user.fullName}</span>
+              <span className="navbar-user-name">
+                {user.fullName}
+                <span className="navbar-role-badge">[{user.role}]</span>
+              </span>
             </Link>
             <button
               id="btn-navbar-logout"
@@ -67,7 +70,7 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/login"    className="navbar-btn-ghost">Sign In</Link>
+            <Link to="/login" className="navbar-btn-ghost">Sign In</Link>
             <Link to="/register" className="navbar-btn-primary">Register</Link>
           </>
         )}

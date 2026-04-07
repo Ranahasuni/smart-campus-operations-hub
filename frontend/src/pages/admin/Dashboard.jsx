@@ -17,18 +17,23 @@ export default function Dashboard() {
   }, []);
 
   const fetchDashData = async () => {
+    // SECURITY FIX: Only fetch if user is truly an ADMIN
+    if (user?.role !== 'ADMIN') {
+      setLoading(false);
+      return;
+    }
+
     try {
       // Fetch users for counts
       const userRes = await authFetch('http://localhost:8081/api/users');
-      const users = await userRes.json();
+      const users = userRes.ok ? await userRes.json() : [];
 
       // Fetch logs for activity
       const logRes = await authFetch('http://localhost:8081/api/logs');
-      const logs = await logRes.json();
+      const logs = logRes.ok ? await logRes.json() : [];
       
       const safeUsers = Array.isArray(users) ? users : [];
       const safeLogs  = Array.isArray(logs) ? logs : [];
-
 
       setStats({
         totalUsers: safeUsers.length,
@@ -37,7 +42,7 @@ export default function Dashboard() {
         recentLogs: safeLogs.slice(-6).reverse()
       });
     } catch (err) {
-      console.error(err);
+      console.error('Dashboard Fetch Error:', err);
     } finally {
       setLoading(false);
     }

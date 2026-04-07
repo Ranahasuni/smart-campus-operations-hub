@@ -71,10 +71,19 @@ export default function ResourceFormPage() {
     setError(null);
 
     try {
+      // Ensure numeric fields are sent as Numbers (Integers) for Spring Boot DTO
+      const preppedData = {
+        ...formData,
+        capacity: formData.capacity ? Number(formData.capacity) : null,
+        floor: formData.floor ? Number(formData.floor) : null
+      };
+
+      console.log('Sending Payload:', preppedData);
+
       if (isEdit) {
-        await api.put(`/resources/${id}`, formData);
+        await api.put(`/resources/${id}`, preppedData);
       } else {
-        await api.post('/resources', formData);
+        await api.post('/resources', preppedData);
       }
       navigate('/admin/resources');
     } catch (err) {
@@ -90,8 +99,12 @@ export default function ResourceFormPage() {
           errorMsg = err.response.data.message;
         } else if (err.response.data.error) {
           // Generic Spring Boot format (e.g. 403 Forbidden)
-          errorMsg = err.response.data.error + ' - Make sure you are logged in as an ADMIN.';
+          errorMsg = `Server Error (${err.response.status}): ${err.response.data.error} - Ensure you are an ADMIN.`;
         }
+      } else if (err.response?.status) {
+        errorMsg = `Server Error (${err.response.status}): The request was rejected by the server.`;
+      } else if (err.message) {
+        errorMsg = `Connection Error: ${err.message}`;
       }
 
       setError(errorMsg);

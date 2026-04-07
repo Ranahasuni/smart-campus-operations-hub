@@ -12,7 +12,7 @@ export default function ResourceCard({ resource }) {
     : null;
 
   // Converts ACTIVE to status-active
-  const statusClass = `status-${resource.status.toLowerCase().replace('_', '')}`;
+  const statusClass = `status-${(resource.status || 'ACTIVE').toLowerCase().replace('_', '')}`;
 
   return (
     <div className="resource-card">
@@ -20,7 +20,7 @@ export default function ResourceCard({ resource }) {
         {imageUrl && !imgError ? (
           <img 
             src={imageUrl} 
-            alt={resource.name} 
+            alt={resource.name || 'Resource'} 
             className="card-image" 
             onError={() => setImgError(true)}
           />
@@ -28,22 +28,22 @@ export default function ResourceCard({ resource }) {
           <div className="card-placeholder">No Image Available</div>
         )}
         <div className={`status-badge ${statusClass}`}>
-          {resource.status.replace(/_/g, ' ')}
+          {(resource.status || 'ACTIVE').replace(/_/g, ' ')}
         </div>
       </div>
 
       <div className="card-content">
-        <div className="card-type">{resource.type.replace('_', ' ')}</div>
-        <h3 className="card-title">{resource.name}</h3>
+        <div className="card-type">{(resource.type || 'FACILITY').replace('_', ' ')}</div>
+        <h3 className="card-title">{resource.name || 'Unnamed Resource'}</h3>
 
         <div className="card-details">
           <div className="detail-item">
             <Users size={16} />
-            <span>{resource.capacity} Seats</span>
+            <span>{resource.capacity || 0} Seats</span>
           </div>
           <div className="detail-item" style={{ gridColumn: 'span 2' }}>
             <MapPin size={16} />
-            <span>{resource.building}, Floor {resource.floor}, {resource.roomNumber}</span>
+            <span>{resource.building || 'N/A'}, Floor {resource.floor || '?'}, {resource.roomNumber || 'N/A'}</span>
           </div>
         </div>
 
