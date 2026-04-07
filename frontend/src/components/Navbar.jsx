@@ -17,13 +17,13 @@ export default function Navbar() {
       {/* Brand */}
       <Link to="/" className="navbar-brand">
         <span className="navbar-logo">🏫</span>
-        Smart Campus
+        Smart Campus Hub
       </Link>
 
       {/* Role-Specific Navigation */}
       <div className="navbar-links">
         <Link to="/" className="nav-link">Home</Link>
-        
+
         {/* Admin Navigation */}
         {user?.role === 'ADMIN' ? (
           <>
@@ -56,7 +56,10 @@ export default function Navbar() {
               <div className="navbar-avatar">
                 {user.fullName?.[0]?.toUpperCase() || '?'}
               </div>
-              <span className="navbar-user-name">{user.fullName}</span>
+              <span className="navbar-user-name">
+                {user.fullName}
+                <span className="navbar-role-badge">[{user.role}]</span>
+              </span>
             </Link>
             <button
               id="btn-navbar-logout"

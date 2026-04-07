@@ -18,6 +18,7 @@ import SystemLogs from './pages/admin/SystemLogs';
 import ManageBookings from './pages/admin/ManageBookings';
 import BookingReview from './pages/admin/BookingReview';
 import BookingCalendar from './pages/admin/BookingCalendar';
+import AdminResourcesPage from './pages/resources/AdminResourcesPage';
 
 export default function App() {
   return (
@@ -63,7 +64,7 @@ export default function App() {
             } />
             <Route path="/admin/resources" element={
               <ProtectedRoute role="ADMIN">
-                <ResourcesPage />
+                <AdminResourcesPage />
               </ProtectedRoute>
             } />
             <Route path="/admin/bookings" element={
@@ -114,4 +115,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
