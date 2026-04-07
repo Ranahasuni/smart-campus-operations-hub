@@ -42,7 +42,7 @@ export default function NotificationBell() {
     if (!user) return;
     const fetchCount = async () => {
       try {
-        const res  = await authFetch(`${API}/notifications/count?userId=${user.id}`);
+        const res  = await authFetch(`${API}/api/notifications/count?userId=${user.id}`);
         const data = await res.json();
         setCount(data.unread || 0);
       } catch (_) {}
@@ -57,7 +57,7 @@ export default function NotificationBell() {
     if (!open && user) {
       setLoading(true);
       try {
-        const res  = await authFetch(`${API}/notifications/unread?userId=${user.id}`);
+        const res  = await authFetch(`${API}/api/notifications/unread?userId=${user.id}`);
         const data = await res.json();
         setItems(Array.isArray(data) ? data.slice(0, 5) : []);
       } catch (_) { setItems([]); }
@@ -67,7 +67,7 @@ export default function NotificationBell() {
   };
 
   const markRead = async (id) => {
-    await authFetch(`${API}/notifications/${id}/read`, { method: 'PUT' });
+    await authFetch(`${API}/api/notifications/${id}/read`, { method: 'PUT' });
     setItems(prev => prev.filter(n => n.id !== id));
     setCount(c => Math.max(0, c - 1));
   };

@@ -44,6 +44,19 @@ public class UserController {
         ));
     }
 
+    /** Create a new user — ADMIN only */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> createUser(
+            @RequestBody User newUser,
+            @AuthenticationPrincipal UserDetails admin) {
+        
+        User adminObj = userRepository.findByCampusId(admin.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Admin not found"));
+        
+        return ResponseEntity.ok(userService.createUser(newUser, adminObj.getId()));
+    }
+
     /** List all users — ADMIN only */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

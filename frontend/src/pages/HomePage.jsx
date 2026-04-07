@@ -1,35 +1,24 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const FEATURES = [
-  {
-    icon: '🏰',
-    title: 'Facilities & Assets',
-    desc: 'Browse and manage university lecture halls, labs, and equipment catalogues.',
-    link: '/resources',
-  },
-  {
-    icon: '📅',
-    title: 'Reservations',
-    desc: 'Reserve space for lectures, workshops, or study groups in real-time.',
-    link: '/bookings',
-  },
-  {
-    icon: '🎫',
-    title: 'Support Tickets',
-    desc: 'Report facility issues or request technical support for campus assets.',
-    link: '/tickets',
-  },
-  {
-    icon: '🔔',
-    title: 'System Updates',
-    desc: 'Real-time notifications for booking approvals, ticket updates, and security alerts.',
-    link: '/notifications',
-  },
+// Role-Specific Module Lists
+const USER_FEATURES = [
+  { icon: '🏰', title: 'Facilities & Assets', desc: 'Browse and manage university lecture halls, labs, and catalogues.', link: '/resources' },
+  { icon: '📅', title: 'Reservations', desc: 'Reserve space for lectures, workshops, or study groups in real-time.', link: '/bookings' },
+  { icon: '🎫', title: 'Support Tickets', desc: 'Report facility issues or request technical support for campus assets.', link: '/tickets' },
+  { icon: '🔔', title: 'Notifications', desc: 'Real-time updates on booking approvals and ticket status.', link: '/notifications' }
+];
+
+const ADMIN_FEATURES = [
+  { icon: '🛡️', title: 'Admin Overview', desc: 'System-wide monitoring, status updates, and overall health reports.', link: '/admin' },
+  { icon: '👥', title: 'Account Control', desc: 'Manage users, assign roles, unlock accounts, and control system access.', link: '/admin/users' },
+  { icon: '📜', title: 'Security Logs', desc: 'View chronological audit trails of all system modifications and events.', link: '/admin/logs' },
+  { icon: '🔔', title: 'System Alerts', desc: 'Monitor failed login attempts and high-security system events.', link: '/notifications' }
 ];
 
 export default function HomePage() {
   const { user } = useAuth();
+  const features = user?.role === 'ADMIN' ? ADMIN_FEATURES : USER_FEATURES;
 
   return (
     <div className="home-hero" style={{
@@ -39,15 +28,17 @@ export default function HomePage() {
     }}>
       <div className="container" style={{ textAlign: 'center' }}>
         <h1 style={{ fontSize: '3.5rem', marginBottom: '20px' }}>
-          Welcome back, <span className="gradient-text">{user?.name || 'Academic Leader'}</span>
+          Welcome back, <span className="gradient-text">{user?.fullName || 'Academic Leader'}</span>
         </h1>
         <p style={{
-          color: 'var(--text-secondary)',
+          color: 'rgba(255,255,255,0.7)',
           fontSize: '1.25rem',
-          maxWidth: '700px',
+          maxWidth: '800px',
           margin: '0 auto 60px'
         }}>
-          Experience a smarter way to manage university operations. Seamlessly book space, monitor assets, and stay informed with real-time updates.
+          {user?.role === 'ADMIN' 
+            ? 'Administrator Portal: Oversee campus operations and maintain system integrity with full security authorization.'
+            : 'Experience a smarter way to manage university operations. Seamlessly book space, monitor assets, and stay informed.'}
         </p>
 
         {/* Feature Grid */}
@@ -57,7 +48,7 @@ export default function HomePage() {
           gap: '24px',
           margin: '0 auto',
         }}>
-          {FEATURES.map((f, i) => (
+          {features.map((f, i) => (
             <Link key={i} to={f.link} className="glass-card feature-item" style={{
               padding: '40px 32px',
               textAlign: 'left',
@@ -67,45 +58,38 @@ export default function HomePage() {
               gap: '16px',
             }}>
               <div style={{ fontSize: '2.5rem' }}>{f.icon}</div>
-              <h3 style={{ color: 'var(--text-primary)' }}>{f.title}</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{f.desc}</p>
+              <h3 style={{ color: '#fff' }}>{f.title}</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>{f.desc}</p>
               <div style={{
                 marginTop: 'auto',
-                color: 'var(--accent-primary)',
+                color: '#818cf8',
                 fontWeight: '600',
                 fontSize: '0.9rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                Explore module →
+                Open Module →
               </div>
             </Link>
           ))}
         </div>
 
-        {/* Call to Action for Admin */}
+        {/* Quick Help for Admin */}
         {user?.role === 'ADMIN' && (
           <div className="glass-card" style={{
             marginTop: '60px',
-            padding: '32px',
-            border: '1px solid var(--accent-primary)',
-            background: 'rgba(99, 102, 241, 0.05)',
-            display: 'flex',
+            padding: '24px',
+            border: '1px solid rgba(234, 179, 8, 0.3)',
+            background: 'rgba(234, 179, 8, 0.05)',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '24px',
-            flexWrap: 'wrap'
+            gap: '16px'
           }}>
-            <div style={{ textAlign: 'left' }}>
-              <h4 style={{ fontSize: '1.2rem', marginBottom: '4px' }}>🛡️ Admin Control Panel</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Manage user permissions, approve high-priority bookings, and oversee system health.
-              </p>
-            </div>
-            <Link to="/admin" className="navbar-btn-primary" style={{ padding: '12px 32px' }}>
-              Launch Admin Dashboard
-            </Link>
+            <span style={{ fontSize: '1.5rem' }}>🛡️</span>
+            <span style={{ color: '#fbbf24', fontSize: '0.9rem', fontWeight: '500' }}>
+              Security Protocol: You are logged in with **Full Administrative Privileges**.
+            </span>
           </div>
         )}
       </div>

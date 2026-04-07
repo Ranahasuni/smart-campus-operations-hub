@@ -4,11 +4,21 @@ import { User, Shield, Search, Trash2, Edit2, Lock, Unlock, Loader2, AlertCircle
 import { Link } from 'react-router-dom';
 
 export default function ManageUsers() {
-  const { authFetch } = useAuth();
+  const { user: currentUser, authFetch } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    campusId: '',
+    campusEmail: '',
+    password: '',
+    role: 'STUDENT'
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -19,7 +29,7 @@ export default function ManageUsers() {
       const res = await authFetch('http://localhost:8081/users');
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -27,8 +37,32 @@ export default function ManageUsers() {
     }
   };
 
+  const handleAddUser = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    try {
+      const res = await authFetch('http://localhost:8081/users', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        setUsers([...users, data]);
+        setShowModal(false);
+        setFormData({ fullName: '', campusId: '', campusEmail: '', password: '', role: 'STUDENT' });
+      } else {
+        setError(data.message || 'Creation failed');
+      }
+    } catch (err) {
+      setError('Connection refused. Is backend running?');
+    }
+  };
+
   const toggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'LOCKED' || currentStatus === 'DISABLED' ? 'ACTIVE' : 'LOCKED';
+    if (!window.confirm(`Are you sure you want to change this user's status to ${newStatus}?`)) return;
     try {
       const res = await authFetch(`http://localhost:8081/users/${id}/status`, {
         method: 'PUT',
@@ -42,12 +76,15 @@ export default function ManageUsers() {
     }
   };
 
-  const deleteUser = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user? This action is IRREVERSIBLE.')) return;
+  const deleteUser = async (id, name) => {
+    if (!window.confirm(`CRITICAL: Are you sure you want to PERMANENTLY delete user "${name}"? This action cannot be undone.`)) return;
     try {
       const res = await authFetch(`http://localhost:8081/users/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setUsers(users.filter(u => u.id !== id));
+      } else {
+        const data = await res.json();
+        setError(data.message || 'Deletion failed');
       }
     } catch (err) {
       console.error(err);
@@ -62,6 +99,9 @@ export default function ManageUsers() {
       });
       if (res.ok) {
         setUsers(users.map(u => u.id === id ? { ...u, role: newRole } : u));
+      } else {
+        const data = await res.json();
+        setError(data.message || 'Update failed');
       }
     } catch (err) {
       console.error(err);
@@ -89,25 +129,109 @@ export default function ManageUsers() {
           <p style={{ color: '#94a3b8' }}>Manage user access, roles, and security status ({users.length} total users)</p>
         </div>
         
-        <div style={{ position: 'relative' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-          <input 
-            type="text" 
-            placeholder="Search ID, email or name..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                padding: '10px 12px 10px 40px',
+                color: '#fff',
+                width: '240px',
+                outline: 'none'
+              }}
+            />
+          </div>
+          
+          <button 
+            onClick={() => setShowModal(true)}
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '12px',
-              padding: '12px 12px 12px 40px',
-              color: '#fff',
-              width: '300px',
-              outline: 'none'
+              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 20px',
+              fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+              boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
             }}
-          />
+          >
+            <User size={18} /> Add User
+          </button>
         </div>
       </header>
+
+      {/* Add User Modal */}
+      {showModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backdropFilter: 'blur(8px)'
+        }}>
+          <form onSubmit={handleAddUser} autoComplete="off" style={{
+            background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px',
+            padding: '32px', width: '450px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+          }}>
+            <h2 style={{ color: '#fff', marginBottom: '24px', fontSize: '1.5rem' }}>Create New Account</h2>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <input 
+                placeholder="Full Name" required autoComplete="off"
+                value={formData.fullName}
+                onChange={e => setFormData({...formData, fullName: e.target.value})}
+                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+              />
+              <input 
+                placeholder="Campus ID (e.g. STU123)" required autoComplete="off"
+                value={formData.campusId}
+                onChange={e => setFormData({...formData, campusId: e.target.value})}
+                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+              />
+              <input 
+                placeholder="Campus Email" required type="email" autoComplete="off"
+                value={formData.campusEmail}
+                onChange={e => setFormData({...formData, campusEmail: e.target.value})}
+                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+              />
+              <input 
+                placeholder="Initial Password" required type="password" autoComplete="new-password"
+                value={formData.password}
+                onChange={e => setFormData({...formData, password: e.target.value})}
+                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+              />
+              <select 
+                value={formData.role}
+                onChange={e => setFormData({...formData, role: e.target.value})}
+                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+              >
+                <option value="STUDENT">STUDENT</option>
+                <option value="LECTURER">LECTURER</option>
+                <option value="STAFF">STAFF</option>
+                <option value="TECHNICIAN">TECHNICIAN</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowModal(false)}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit"
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#6366f1', border: 'none', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Create Account
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {error && (
         <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', color: '#f87171', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -149,6 +273,8 @@ export default function ManageUsers() {
                   <select 
                     value={user.role}
                     onChange={(e) => changeRole(user.id, e.target.value)}
+                    disabled={user.id === currentUser?.id}
+                    title={user.id === currentUser?.id ? "You cannot change your own role" : ""}
                     style={{ 
                       padding: '4px 10px', 
                       borderRadius: '8px', 
@@ -158,7 +284,8 @@ export default function ManageUsers() {
                       color: user.role === 'ADMIN' ? '#fbbf24' : '#818cf8',
                       border: user.role === 'ADMIN' ? '1px solid rgba(234, 179, 8, 0.2)' : '1px solid rgba(99, 102, 241, 0.2)',
                       outline: 'none',
-                      cursor: 'pointer'
+                      cursor: user.id === currentUser?.id ? 'not-allowed' : 'pointer',
+                      opacity: user.id === currentUser?.id ? 0.5 : 1
                     }}
                   >
                     <option value="STUDENT">STUDENT</option>
@@ -177,27 +304,34 @@ export default function ManageUsers() {
                     <span style={{ fontSize: '0.875rem', color: '#cbd5e1' }}>{user.status}</span>
                   </div>
                 </td>
-                <td style={{ padding: '16px 24px', color: '#94a3b8', fontSize: '0.875rem' }}>
+                <td style={{ padding: '16px 24px', color: '#64748b', fontSize: '0.875rem' }}>
                   {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
                 </td>
                 <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                    <button 
-                      onClick={() => toggleStatus(user.id, user.status)}
-                      title={user.status === 'ACTIVE' ? 'Lock Account' : 'Unlock Account'}
-                      style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
-                    >
-                      {user.status === 'ACTIVE' ? <Lock size={18} /> : <Unlock size={18} color="#22c55e" />}
-                    </button>
-                    
-                    <button 
-                      onClick={() => deleteUser(user.id)}
-                      title="Delete User"
-                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                  {user.id !== currentUser?.id ? (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                      <button 
+                        onClick={() => toggleStatus(user.id, user.status)}
+                        style={{ 
+                          padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', fontSize: '0.75rem'
+                        }}
+                      >
+                        {user.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button 
+                        onClick={() => deleteUser(user.id, user.fullName)}
+                        style={{ 
+                          padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)',
+                          background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem'
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: '0.75rem', color: '#475569', fontStyle: 'italic' }}>Current Session</span>
+                  )}
                 </td>
               </tr>
             ))}
