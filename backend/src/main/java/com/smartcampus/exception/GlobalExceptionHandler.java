@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -29,6 +30,18 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoResourceFound(NoResourceFoundException ex) {
+        return ResponseEntity.status(404)
+                .body(Map.of("error", "Endpoint not found"));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntime(RuntimeException ex) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     // Validation errors → 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(
@@ -51,9 +64,7 @@ public class GlobalExceptionHandler {
 
     // Any other error → 500
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneral(
-            Exception ex) {
-
+    public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", LocalDateTime.now());
         error.put("status", 500);
