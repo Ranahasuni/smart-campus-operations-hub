@@ -10,6 +10,7 @@ import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import TicketsPage from './pages/tickets/TicketsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
@@ -54,6 +55,19 @@ export default function App() {
             <Route path="/admin/users" element={
               <ProtectedRoute role="ADMIN">
                 <ManageUsers />
+              </ProtectedRoute>
+            } />
+            {/* <Route path="/admin/resources/new" element={
+              <ProtectedRoute role="ADMIN">
+                <ResourceFormPage />
+              </ProtectedRoute>
+            } /> */}
+
+            <Route path="/admin/resources/new" element={<ResourceFormPage />} />
+
+            <Route path="/admin/resources/edit/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <ResourceFormPage />
               </ProtectedRoute>
             } />
 

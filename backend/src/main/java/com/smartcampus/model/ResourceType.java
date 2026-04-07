@@ -2,7 +2,9 @@ package com.smartcampus.model;
 
 public enum ResourceType {
     LAB,
-    ROOM,
-    HALL,
+    LECTURE_HALL,
+    MEETING_ROOM,
+    AUDITORIUM,
+    SPORTS_FACILITY,
     EQUIPMENT
 }
