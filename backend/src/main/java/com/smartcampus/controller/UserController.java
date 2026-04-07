@@ -19,7 +19,7 @@ import java.util.Map;
  * Includes general profile retrieval and ADMIN-only CRUD.
  */
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 @CrossOrigin
 public class UserController {
@@ -42,6 +42,19 @@ public class UserController {
                 "campusId",    user.getCampusId(),
                 "lastLogin",   user.getLastLogin() != null ? user.getLastLogin().toString() : ""
         ));
+    }
+
+    /** Create a new user — ADMIN only */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> createUser(
+            @RequestBody User newUser,
+            @AuthenticationPrincipal UserDetails admin) {
+        
+        User adminObj = userRepository.findByCampusId(admin.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Admin not found"));
+        
+        return ResponseEntity.ok(userService.createUser(newUser, adminObj.getId()));
     }
 
     /** List all users — ADMIN only */

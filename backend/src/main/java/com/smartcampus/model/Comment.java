@@ -26,4 +26,6 @@ public class Comment {
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    private LocalDateTime updatedAt;
 }

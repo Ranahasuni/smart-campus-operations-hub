@@ -43,9 +43,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // ── Admin-only endpoints ──────────────────────────────────
+                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/bookings/*/approve").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/bookings/*/reject").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 // ── Everything else: any authenticated user ───────────────
@@ -60,7 +62,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174", "http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
         configuration.setAllowCredentials(true);

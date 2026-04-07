@@ -19,18 +19,22 @@ export default function Dashboard() {
   const fetchDashData = async () => {
     try {
       // Fetch users for counts
-      const userRes = await authFetch('http://localhost:8081/users');
+      const userRes = await authFetch('http://localhost:8081/api/users');
       const users = await userRes.json();
 
       // Fetch logs for activity
       const logRes = await authFetch('http://localhost:8081/api/logs');
       const logs = await logRes.json();
+      
+      const safeUsers = Array.isArray(users) ? users : [];
+      const safeLogs  = Array.isArray(logs) ? logs : [];
+
 
       setStats({
-        totalUsers: users.length,
-        lockedUsers: users.filter(u => u.status === 'LOCKED').length,
-        activeUsers: users.filter(u => u.status === 'ACTIVE').length,
-        recentLogs: logs.slice(-6).reverse() // Last 6 logs
+        totalUsers: safeUsers.length,
+        lockedUsers: safeUsers.filter(u => u.status === 'LOCKED').length,
+        activeUsers: safeUsers.filter(u => u.status === 'ACTIVE').length,
+        recentLogs: safeLogs.slice(-6).reverse()
       });
     } catch (err) {
       console.error(err);

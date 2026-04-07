@@ -23,7 +23,7 @@ export default function UserProfile() {
 
   const fetchProfile = async () => {
     try {
-      const res = await authFetch(`${API}/users/profile`);
+      const res = await authFetch(`${API}/api/users/profile`);
       if (!res.ok) throw new Error('Could not load profile');
       const data = await res.json();
       setProfile(data);
