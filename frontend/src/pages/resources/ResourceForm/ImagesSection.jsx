@@ -1,19 +1,35 @@
+import React from 'react';
+import { ImagePlus, X, Image as ImageIcon } from 'lucide-react';
+
 export default function ImagesSection({ formData, setFormValue }) {
   const imageUrls = formData.imageUrls || [];
 
-  const handleUrlChange = (index, value) => {
-    const newUrls = [...imageUrls];
-    newUrls[index] = value;
-    setFormValue('imageUrls', newUrls);
+  const handleFileChange = (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check file size (limit to 1MB for Base64 storage safety in demo)
+    if (file.size > 1024 * 1024) {
+      alert("Image is too large. Please select an image under 1MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const newUrls = [...imageUrls];
+      newUrls[index] = reader.result; // This is the Base64 string
+      setFormValue('imageUrls', newUrls);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const addUrlRow = () => {
+  const addImageSlot = () => {
     if (imageUrls.length < 5) {
       setFormValue('imageUrls', [...imageUrls, '']);
     }
   };
 
-  const removeUrlRow = (index) => {
+  const removeImage = (index) => {
     const newUrls = [...imageUrls];
     newUrls.splice(index, 1);
     setFormValue('imageUrls', newUrls);
@@ -21,39 +37,67 @@ export default function ImagesSection({ formData, setFormValue }) {
 
   return (
     <div className="form-section">
-      <h3>Images</h3>
-      <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '-10px', marginBottom: '15px' }}>
-        Add up to 5 image URLs to showcase this resource.
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h3>Resource Gallery</h3>
+        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '500' }}>
+          {imageUrls.length} / 5 Images
+        </span>
+      </div>
+      
+      <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '-10px', marginBottom: '20px' }}>
+        Select up to 5 images from your computer to showcase this resource.
       </p>
 
-      {imageUrls.map((url, index) => (
-        <div key={index} className="image-url-row">
-          <input
-            type="url"
-            className="form-input"
-            placeholder={`Image URL ${index + 1}`}
-            value={url}
-            onChange={(e) => handleUrlChange(index, e.target.value)}
-          />
+      <div className="image-grid-paf">
+        {imageUrls.map((url, index) => (
+          <div key={index} className="image-slot-paf">
+            {url ? (
+              <div className="image-preview-wrapper">
+                <img src={url} alt={`Preview ${index}`} className="image-preview-paf" />
+                <button 
+                  type="button" 
+                  className="btn-remove-image-paf"
+                  onClick={() => removeImage(index)}
+                  title="Remove Image"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <label className="image-upload-label-paf">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, index)}
+                  style={{ display: 'none' }}
+                />
+                <div className="upload-placeholder-paf">
+                  <ImagePlus size={24} color="#3b82f6" />
+                  <span>Browse</span>
+                </div>
+              </label>
+            )}
+          </div>
+        ))}
+
+        {imageUrls.length < 5 && (
           <button 
             type="button" 
-            className="btn-remove-row"
-            onClick={() => removeUrlRow(index)}
-            title="Remove Image URL"
+            className="btn-add-slot-paf"
+            onClick={addImageSlot}
+            title="Add another image slot"
           >
-            &times;
+            <ImagePlus size={20} />
+            <span>Add Slot</span>
           </button>
-        </div>
-      ))}
+        )}
+      </div>
 
-      {imageUrls.length < 5 && (
-        <button 
-          type="button" 
-          className="btn-add-row"
-          onClick={addUrlRow}
-        >
-          + Add Image URL {imageUrls.length === 0 ? '(First Image)' : ''}
-        </button>
+      {imageUrls.length === 0 && (
+        <div className="empty-gallery-state">
+          <ImageIcon size={40} color="#e2e8f0" />
+          <p>No images selected yet</p>
+        </div>
       )}
     </div>
   );

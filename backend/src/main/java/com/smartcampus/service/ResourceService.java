@@ -5,7 +5,6 @@ import com.smartcampus.dto.ResourceResponseDTO;
 import com.smartcampus.exception.ResourceNotFoundException;
 import com.smartcampus.model.*;
 import com.smartcampus.repository.ResourceRepository;
-import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.service.NotificationService;
 import com.smartcampus.model.NotificationType;
 import com.smartcampus.model.NotificationPriority;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
-    private final TicketRepository ticketRepository;
     private final NotificationService notificationService;
 
     // ── HELPER — Build location string ─────────────────
@@ -73,50 +71,21 @@ public class ResourceService {
                 .build();
     }
 
-    // ── GET ALL WITH FILTERS ────────────────────────────
+    // ── GET ALL WITH FILTERS (PAF Dynamic Search) ───────
     public List<ResourceResponseDTO> getResources(
             String building, Integer floor,
             ResourceType type, ResourceStatus status,
             Integer capacity, String name) {
 
-        List<Resource> resources;
+        List<Resource> all = resourceRepository.findAll();
 
-        if (name != null) {
-            resources = resourceRepository
-                    .findByNameContainingIgnoreCase(name);
-        } else if (building != null && floor != null
-                && type != null && status != null) {
-            resources = resourceRepository
-                    .findByBuildingAndFloorAndTypeAndStatus(
-                            building, floor, type, status);
-        } else if (building != null && floor != null
-                && type != null) {
-            resources = resourceRepository
-                    .findByBuildingAndFloorAndType(
-                            building, floor, type);
-        } else if (building != null && floor != null) {
-            resources = resourceRepository
-                    .findByBuildingAndFloor(building, floor);
-        } else if (building != null && type != null) {
-            resources = resourceRepository
-                    .findByBuildingAndType(building, type);
-        } else if (building != null) {
-            resources = resourceRepository
-                    .findByBuilding(building);
-        } else if (type != null) {
-            resources = resourceRepository
-                    .findByType(type);
-        } else if (status != null) {
-            resources = resourceRepository
-                    .findByStatus(status);
-        } else if (capacity != null) {
-            resources = resourceRepository
-                    .findByCapacityGreaterThanEqual(capacity);
-        } else {
-            resources = resourceRepository.findAll();
-        }
-
-        return resources.stream()
+        return all.stream()
+                .filter(r -> name == null || r.getName().toLowerCase().contains(name.toLowerCase()))
+                .filter(r -> building == null || r.getBuilding().equalsIgnoreCase(building))
+                .filter(r -> floor == null || r.getFloor().equals(floor))
+                .filter(r -> type == null || r.getType() == type)
+                .filter(r -> status == null || r.getStatus() == status)
+                .filter(r -> capacity == null || r.getCapacity() >= capacity)
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -158,57 +127,31 @@ public class ResourceService {
     }
 
     // ── GET FLOOR MAP ───────────────────────────────────
-    public List<ResourceResponseDTO> getFloorMap(
-            String building, Integer floor) {
-        return resourceRepository
-                .findByBuildingAndFloorOrderByRoomNumber(
-                        building, floor)
+    public List<ResourceResponseDTO> getFloorMap(String building, Integer floor) {
+        return resourceRepository.findByBuildingAndFloorOrderByRoomNumber(building, floor)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
-    // ── GET ANALYTICS SUMMARY ───────────────────────────
+    // ── ANALYTICS SUMMARY ───────────────────────────────
     public Map<String, Object> getAnalyticsSummary() {
         List<Resource> all = resourceRepository.findAll();
 
-        long active = all.stream()
-                .filter(r -> r.getStatus()
-                        == ResourceStatus.ACTIVE)
-                .count();
-        long maintenance = all.stream()
-                .filter(r -> r.getStatus()
-                        == ResourceStatus.MAINTENANCE)
-                .count();
-        long outOfService = all.stream()
-                .filter(r -> r.getStatus()
-                        == ResourceStatus.OUT_OF_SERVICE)
-                .count();
-
-        Map<String, Long> byType = all.stream()
-                .collect(Collectors.groupingBy(
-                        r -> r.getType().toString(),
-                        Collectors.counting()));
-
-        Map<String, Long> byBuilding = all.stream()
-                .collect(Collectors.groupingBy(
-                        Resource::getBuilding,
-                        Collectors.counting()));
+        long active = all.stream().filter(r -> r.getStatus() == ResourceStatus.ACTIVE).count();
+        long maintenance = all.stream().filter(r -> r.getStatus() == ResourceStatus.MAINTENANCE).count();
+        long outOfService = all.stream().filter(r -> r.getStatus() == ResourceStatus.OUT_OF_SERVICE).count();
 
         return Map.of(
                 "totalResources", all.size(),
                 "activeResources", active,
                 "maintenanceResources", maintenance,
-                "outOfServiceResources", outOfService,
-                "resourcesByType", byType,
-                "resourcesByBuilding", byBuilding
+                "outOfServiceResources", outOfService
         );
     }
 
     // ── CREATE ──────────────────────────────────────────
-    public ResourceResponseDTO createResource(
-            ResourceRequestDTO dto) {
-
+    public ResourceResponseDTO createResource(ResourceRequestDTO dto) {
         Resource resource = Resource.builder()
                 .name(sanitize(dto.getName()))
                 .description(sanitize(dto.getDescription()))
@@ -217,13 +160,8 @@ public class ResourceService {
                 .building(dto.getBuilding())
                 .floor(dto.getFloor())
                 .roomNumber(dto.getRoomNumber())
-                .location(buildLocation(
-                        dto.getBuilding(),
-                        dto.getFloor(),
-                        dto.getRoomNumber()))
-                .status(dto.getStatus() != null
-                        ? dto.getStatus()
-                        : ResourceStatus.ACTIVE)
+                .location(buildLocation(dto.getBuilding(), dto.getFloor(), dto.getRoomNumber()))
+                .status(dto.getStatus() != null ? dto.getStatus() : ResourceStatus.ACTIVE)
                 .equipment(dto.getEquipment())
                 .imageUrls(dto.getImageUrls())
                 .availableFrom(dto.getAvailableFrom())
@@ -231,33 +169,26 @@ public class ResourceService {
                 .availableDays(dto.getAvailableDays())
                 .build();
 
-        // save first to get MongoDB ID
         Resource saved = resourceRepository.save(resource);
-
-        // generate QR using real ID
         saved.setQrCodeUrl(generateQRCode(saved.getId()));
-
-        // save again with QR
         Resource finalSaved = resourceRepository.save(saved);
 
-        // Notify Admins about the new registration
-        notificationService.notifyAdmins(
-                "New Facility Added: " + finalSaved.getName(),
-                "A new " + finalSaved.getType() + " has been added at " + finalSaved.getLocation(),
+        try {
+            notificationService.notifyAdmins(
+                "Facility Added: " + finalSaved.getName(),
+                "Location: " + finalSaved.getLocation(),
                 NotificationType.SYSTEM,
                 NotificationPriority.MEDIUM
-        );
+            );
+        } catch (Exception e) {}
 
         return toDTO(finalSaved);
     }
 
     // ── UPDATE ──────────────────────────────────────────
-    public ResourceResponseDTO updateResource(
-            String id, ResourceRequestDTO dto) {
-
+    public ResourceResponseDTO updateResource(String id, ResourceRequestDTO dto) {
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
 
         resource.setName(dto.getName());
         resource.setDescription(dto.getDescription());
@@ -266,71 +197,45 @@ public class ResourceService {
         resource.setBuilding(dto.getBuilding());
         resource.setFloor(dto.getFloor());
         resource.setRoomNumber(dto.getRoomNumber());
-        resource.setLocation(buildLocation(
-                dto.getBuilding(),
-                dto.getFloor(),
-                dto.getRoomNumber()));
+        resource.setLocation(buildLocation(dto.getBuilding(), dto.getFloor(), dto.getRoomNumber()));
         resource.setEquipment(dto.getEquipment());
         resource.setImageUrls(dto.getImageUrls());
         resource.setAvailableFrom(dto.getAvailableFrom());
         resource.setAvailableTo(dto.getAvailableTo());
         resource.setAvailableDays(dto.getAvailableDays());
         resource.setUpdatedAt(LocalDateTime.now());
+        
         Resource updated = resourceRepository.save(resource);
 
-        // Notify Admins about the resource update
-        notificationService.notifyAdmins(
+        try {
+            notificationService.notifyAdmins(
                 "Facility Updated: " + updated.getName(),
-                "The details for " + updated.getType() + " at " + updated.getLocation() + " have been modified.",
+                "Details for " + updated.getName() + " modified.",
                 NotificationType.SYSTEM,
                 NotificationPriority.MEDIUM
-        );
+            );
+        } catch (Exception e) {}
 
         return toDTO(updated);
     }
 
     // ── STATUS CHANGE ───────────────────────────────────
-    public ResourceResponseDTO updateStatus(
-            String id, ResourceStatus newStatus) {
-
+    public ResourceResponseDTO updateStatus(String id, ResourceStatus newStatus) {
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
 
-        ResourceStatus oldStatus = resource.getStatus();
         resource.setStatus(newStatus);
         resource.setUpdatedAt(LocalDateTime.now());
         Resource updated = resourceRepository.save(resource);
 
-        // Innovation — Auto Maintenance Ticket
-        if (newStatus == ResourceStatus.OUT_OF_SERVICE
-                && oldStatus != ResourceStatus.OUT_OF_SERVICE) {
-
-            Ticket autoTicket = Ticket.builder()
-                    .resourceId(resource.getId())
-                    .issueType(IssueType.OTHER)
-                    .description("Resource '"
-                            + resource.getName()
-                            + "' at "
-                            + resource.getLocation()
-                            + " marked as OUT_OF_SERVICE."
-                            + " Please inspect and resolve.")
-                    .priority(Priority.HIGH)
-                    .status(TicketStatus.OPEN)
-                    .contactDetails(
-                            "Admin System — Auto Generated")
-                    .build();
-
-            ticketRepository.save(autoTicket);
-
-            // Notify Admins about the failure
+        try {
             notificationService.notifyAdmins(
-                    "Facility Alert: " + resource.getName(),
-                    "The resource has been marked OUT_OF_SERVICE. Maintenance ticket generated.",
-                    NotificationType.SYSTEM,
-                    NotificationPriority.HIGH
+                "Status Alert: " + resource.getName(),
+                "Marked as " + newStatus,
+                NotificationType.SYSTEM,
+                NotificationPriority.HIGH
             );
-        }
+        } catch (Exception e) {}
 
         return toDTO(updated);
     }
@@ -338,30 +243,21 @@ public class ResourceService {
     // ── DELETE ──────────────────────────────────────────
     public void deleteResource(String id) {
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
         resourceRepository.delete(resource);
     }
 
-    /** Ensure at least one alert exists for facilities on startup if not present */
     @PostConstruct
     public void syncFacilitiesOnStartup() {
         try {
             List<Resource> all = resourceRepository.findAll();
             if (all.isEmpty()) return;
-
-            // Simple check: if we have resources but NO system alerts, generate them
-            // This is for the 'bro there is reasuces in database still no alerts' case
             notificationService.notifyAdmins(
-                "System Sync: Facilities Online",
-                "Successfully synchronized " + all.size() + " existing facilities with the Alert Hub.",
+                "Sync Complete",
+                all.size() + " resources indexed.",
                 NotificationType.SYSTEM,
                 NotificationPriority.LOW
             );
-            
-            log.info("Synchronized alert hub with {} existing resources.", all.size());
-        } catch (Exception e) {
-            log.error("Failed to sync facility alerts on startup", e);
-        }
+        } catch (Exception e) {}
     }
 }
