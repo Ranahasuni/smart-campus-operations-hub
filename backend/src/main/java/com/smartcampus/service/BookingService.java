@@ -82,11 +82,57 @@ public class BookingService {
         return mapToResponseDTO(bookingRepository.save(booking));
     }
 
+    public List<BookingResponseDTO> getUserBookings(String userId) {
+        return bookingRepository.findByUserId(userId)
+                .stream()
+                .map(this::mapToResponseDTOEnriched)
+                .collect(Collectors.toList());
+    }
+
+    public void cancelBooking(String bookingId, String userId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized action");
+        }
+
+        if (booking.getStatus() != BookingStatus.APPROVED && booking.getStatus() != BookingStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending or approved bookings can be cancelled");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+    }
+
+    public void deleteBooking(String bookingId, String userId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized action");
+        }
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending bookings can be deleted/withdrawn");
+        }
+
+        bookingRepository.delete(booking);
+    }
+
     private BookingResponseDTO mapToResponseDTO(Booking booking) {
+        return mapToResponseDTOEnriched(booking);
+    }
+
+    private BookingResponseDTO mapToResponseDTOEnriched(Booking booking) {
+        Resource resource = resourceRepository.findById(booking.getResourceId()).orElse(null);
+
         return BookingResponseDTO.builder()
                 .id(booking.getId())
                 .userId(booking.getUserId())
                 .resourceId(booking.getResourceId())
+                .resourceName(resource != null ? resource.getName() : "Unknown Resource")
+                .resourceType(resource != null ? resource.getType() : null)
                 .date(booking.getDate())
                 .startTime(booking.getStartTime())
                 .endTime(booking.getEndTime())

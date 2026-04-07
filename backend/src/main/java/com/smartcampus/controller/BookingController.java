@@ -53,4 +53,47 @@ public class BookingController {
                 .status(HttpStatus.CREATED)
                 .body(bookingService.createBooking(dto, user.getId()));
     }
+
+    /**
+     * Fetch all bookings for the currently authenticated user.
+     */
+    @GetMapping("/user")
+    public ResponseEntity<List<BookingResponseDTO>> getUserBookings(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        
+        return ResponseEntity.ok(bookingService.getUserBookings(user.getId()));
+    }
+
+    /**
+     * Cancel an approved or pending booking.
+     */
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelBooking(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        
+        bookingService.cancelBooking(id, user.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Delete/Withdraw a pending booking.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBooking(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        
+        bookingService.deleteBooking(id, user.getId());
+        return ResponseEntity.noContent().build();
+    }
 }
