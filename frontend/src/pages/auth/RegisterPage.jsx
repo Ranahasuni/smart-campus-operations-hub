@@ -1,136 +1,195 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { User, Mail, Lock, Shield, CreditCard, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import '../../styles/auth.css';
+import './auth.css';
 
-const ROLES = ['STUDENT', 'LECTURER', 'STAFF', 'ADMIN'];
-
-export default function RegisterPage() {
+export default function Register() {
+  const navigate = useNavigate();
   const { register } = useAuth();
-  const navigate      = useNavigate();
+  const [formData, setFormData] = useState({
+    fullName: '',
+    campusEmail: '',
+    password: '',
+    confirmPassword: '',
+    role: 'STUDENT',
+    campusId: '' 
+  });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const [name,     setName]     = useState('');
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm,  setConfirm]  = useState('');
-  const [role,     setRole]     = useState('STUDENT');
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+  // Available roles from backend Role enum
+  const roles = [
+    { value: 'STUDENT', label: 'Student' },
+    { value: 'LECTURER', label: 'Lecturer' },
+    { value: 'STAFF',    label: 'University Staff' },
+    { value: 'TECHNICIAN', label: 'Technician' }
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
-    if (password !== confirm) {
+    if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
+
     try {
-      const data = await register(name, email, password, role);
-      if (data.role === 'ADMIN') {
-        navigate('/admin');
-      } else if (data.role === 'STAFF') {
-        navigate('/staff');
-      } else {
-        navigate('/');
-      }
+      await register(formData.fullName, formData.campusEmail, formData.password, formData.role, formData.campusId);
+      
+      setSuccess('Registration successful! Redirecting to login...');
+      setTimeout(() => navigate('/login'), 2000);
+
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-bg">
-      <div className="auth-card">
-        <div className="auth-brand">
-          <div className="auth-logo">🎓</div>
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join Smart Campus today</p>
+    <div className="auth-container">
+      <div className="auth-card" style={{ maxWidth: '520px' }}>
+        <div className="auth-header">
+          <h1>Join Hub</h1>
+          <p>Create your smart campus account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="auth-error">⚠️ {error}</div>}
+        {error && (
+          <div className="auth-alert auth-alert-error">
+            <AlertCircle size={20} />
+            <span>{error}</span>
+          </div>
+        )}
 
-          <div className="form-group">
-            <label htmlFor="reg-name">Full Name</label>
-            <input
-              id="reg-name"
-              type="text"
-              placeholder="John Doe"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-            />
+        {success && (
+          <div className="auth-alert auth-alert-success">
+            <CheckCircle size={20} />
+            <span>{success}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          {/* Full Name */}
+          <div className="input-group">
+            <label htmlFor="fullName">Full Name</label>
+            <div className="input-wrapper">
+              <input
+                id="fullName"
+                type="text"
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                placeholder="John Doe"
+                required
+              />
+              <User size={18} className="input-icon" />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="reg-email">Email Address</label>
-            <input
-              id="reg-email"
-              type="email"
-              placeholder="you@university.edu"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+          {/* Campus Email */}
+          <div className="input-group">
+            <label htmlFor="campusEmail">Campus Email</label>
+            <div className="input-wrapper">
+              <input
+                id="campusEmail"
+                type="email"
+                value={formData.campusEmail}
+                onChange={(e) => setFormData({ ...formData, campusEmail: e.target.value })}
+                placeholder="name@campus.edu"
+                required
+              />
+              <Mail size={18} className="input-icon" />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="reg-role">Role</label>
-            <select
-              id="reg-role"
-              value={role}
-              onChange={e => setRole(e.target.value)}
-            >
-              {ROLES.map(r => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
+          {/* Role Selection */}
+          <div className="input-group">
+            <label htmlFor="role">Account Type</label>
+            <div className="input-wrapper">
+              <select
+                id="role"
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              >
+                {roles.map(r => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+              <Shield size={18} className="input-icon" />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="reg-password">Password</label>
-            <input
-              id="reg-password"
-              type="password"
-              placeholder="Min. 6 characters"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
+          {/* Campus ID */}
+          <div className="input-group">
+            <label htmlFor="campusId">Campus ID</label>
+            <div className="input-wrapper">
+              <input
+                id="campusId"
+                type="text"
+                value={formData.campusId}
+                onChange={(e) => setFormData({ ...formData, campusId: e.target.value })}
+                placeholder="e.g. IT23864306 or LEC102"
+                required
+              />
+              <CreditCard size={18} className="input-icon" />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="reg-confirm">Confirm Password</label>
-            <input
-              id="reg-confirm"
-              type="password"
-              placeholder="••••••••"
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              required
-            />
+          {/* Password */}
+          <div className="input-group">
+            <label htmlFor="password">Password</label>
+            <div className="input-wrapper">
+              <input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="••••••••"
+                required
+              />
+              <Lock size={18} className="input-icon" />
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="input-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <div className="input-wrapper">
+              <input
+                id="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                placeholder="••••••••"
+                required
+              />
+              <Lock size={18} className="input-icon" />
+            </div>
           </div>
 
           <button
-            id="btn-register-submit"
             type="submit"
-            className="auth-btn"
             disabled={loading}
+            className="btn-primary"
           >
-            {loading ? <span className="spinner" /> : 'Create Account'}
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
-        <p className="auth-footer">
-          Already have an account?{' '}
-          <Link to="/login">Sign in</Link>
-        </p>
+        <div className="auth-footer">
+          Already have an account? 
+          <Link to="/login">Sign in here</Link>
+        </div>
       </div>
     </div>
   );
