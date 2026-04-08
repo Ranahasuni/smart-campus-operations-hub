@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Calendar, Clock, Users, Info, AlertTriangle, 
   Trash2, XCircle, CheckCircle2, History,
-  Search, Loader2, ArrowRight
+  Search, Loader2, ArrowRight, Pencil
 } from 'lucide-react';
 import '../../styles/my-bookings.css';
 
@@ -17,6 +18,7 @@ const CATEGORY_MAP = {
 };
 
 export default function MyBookingsPage() {
+  const navigate = useNavigate();
   const { authFetch, API } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,10 +51,10 @@ export default function MyBookingsPage() {
   };
 
   const handleCancelAction = async (id, status) => {
-    const actionLabel = status === 'PENDING' ? 'withdraw' : 'cancel';
+    const actionLabel = status === 'PENDING' ? 'delete/withdraw' : 'cancel';
     
     // Explicitly check for confirm
-    if (!window.confirm(`Are you sure you want to ${actionLabel} this booking?`)) return;
+    if (!window.confirm(`Are you sure you want to ${actionLabel} this reservation?`)) return;
 
     try {
       const method = status === 'PENDING' ? 'DELETE' : 'PUT';
@@ -60,7 +62,8 @@ export default function MyBookingsPage() {
       
       const res = await authFetch(endpoint, { method });
       if (res.ok) {
-        showToast(`Booking ${actionLabel}ed successfully!`);
+        showToast(`Booking ${status === 'PENDING' ? 'withdrawn' : 'cancelled'} successfully!`);
+        if (status === 'PENDING') setActiveTab('CANCELLED');
         fetchBookings();
       } else {
         showToast('Action failed. Please try again.', 'error');
@@ -145,12 +148,20 @@ export default function MyBookingsPage() {
                 
                 <div className="booking-actions">
                   {booking.status === 'PENDING' && (
-                    <button 
-                      className="action-btn btn-withdraw"
-                      onClick={() => handleCancelAction(booking.id, 'PENDING')}
-                    >
-                      <Trash2 size={14} /> Withdraw
-                    </button>
+                    <>
+                      <button 
+                        className="action-btn btn-update"
+                        onClick={() => navigate(`/bookings/edit/${booking.id}`)}
+                      >
+                        <Pencil size={14} /> Update
+                      </button>
+                      <button 
+                        className="action-btn btn-withdraw"
+                        onClick={() => handleCancelAction(booking.id, 'PENDING')}
+                      >
+                        <Trash2 size={14} /> Withdraw
+                      </button>
+                    </>
                   )}
                   {booking.status === 'APPROVED' && (
                     <button 
