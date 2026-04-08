@@ -49,13 +49,16 @@ public class TicketService {
                 .toList();
     }
 
-    public Ticket updateTicketStatus(String ticketId, TicketStatus newStatus, String updatedBy) {
+    public Ticket updateTicketStatus(String ticketId, TicketStatus newStatus, String updatedBy, String resolutionNote) {
         Ticket ticket = getTicketById(ticketId);
         ticket.setStatus(newStatus);
         ticket.setUpdatedAt(LocalDateTime.now());
 
         if (newStatus == TicketStatus.RESOLVED) {
             ticket.setResolvedAt(LocalDateTime.now());
+            if (resolutionNote != null && !resolutionNote.isEmpty()) {
+                ticket.setResolutionNotes(resolutionNote);
+            }
         }
 
         Ticket updatedTicket = ticketRepository.save(ticket);
