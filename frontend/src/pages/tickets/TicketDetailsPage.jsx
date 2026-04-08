@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Loader2
 } from 'lucide-react';
+import CommentSection from '../../components/tickets/CommentSection';
 import '../../styles/tickets.css';
 
 export default function TicketDetailsPage() {
@@ -208,6 +209,8 @@ export default function TicketDetailsPage() {
               </div>
             </div>
           </div>
+
+          <CommentSection ticketId={id} />
         </div>
 
         {/* Right Side: Info & Metadata */}
