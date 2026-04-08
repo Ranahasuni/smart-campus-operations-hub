@@ -9,9 +9,10 @@ export default function Dashboard() {
     totalUsers: 0,
     lockedUsers: 0,
     activeUsers: 0,
-    openTickets: 0, // NEW: Open tickets count
-    allTickets: 0,  // NEW: Total tickets count
-    recentLogs: []
+    openTickets: 0,
+    allTickets: 0,
+    recentLogs: [],
+    resourceStats: null // NEW: For intelligence card
   });
   const [loading, setLoading] = useState(true);
 
@@ -47,13 +48,25 @@ export default function Dashboard() {
         console.error('Ticket Fetch Error:', tErr);
       }
 
+      // NEW: Robust Analytics Fetch
+      let rStats = null;
+      try {
+        const analyticsRes = await authFetch('http://localhost:8081/api/resources/analytics/summary');
+        if (analyticsRes.ok) {
+          rStats = await analyticsRes.json();
+        }
+      } catch (aErr) {
+        console.error('Analytics Fetch Error:', aErr);
+      }
+ 
       setStats({
         totalUsers: safeUsers.length,
         lockedUsers: safeUsers.filter(u => u.status === 'LOCKED').length,
         activeUsers: safeUsers.filter(u => u.status === 'ACTIVE').length,
         openTickets: ticketData.filter(t => t.status === 'OPEN').length,
         allTickets: ticketData.length,
-        recentLogs: safeLogs.slice(-6).reverse()
+        recentLogs: safeLogs.slice(-6).reverse(),
+        resourceStats: rStats
       });
     } catch (err) {
       console.error('Dashboard Fetch Error:', err);
@@ -114,14 +127,52 @@ export default function Dashboard() {
         {/* Quick Tips, Maintenance Management & Booking Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           
+          {/* Campus Intelligence Hub */}
+          <div style={{ 
+            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1))',
+            borderRadius: '24px', 
+            border: '1px solid rgba(16, 185, 129, 0.2)', 
+            padding: '30px',
+            position: 'relative'
+          }}>
+            <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TrendingUp size={22} color="#10b981" /> Campus Intelligence
+            </h2>
+            <p style={{ color: '#cbd5e1', fontSize: '0.875rem', marginBottom: '20px', lineHeight: '1.6' }}>
+               {stats.resourceStats ? (
+                  <>The analytics engine is monitoring <strong>{stats.resourceStats.activeResources}</strong> active facilities out of <strong>{stats.resourceStats.totalResources}</strong> total assets.</>
+               ) : (
+                  <>Synchronizing with facility analytics engine...</>
+               )}
+            </p>
+            <button 
+                onClick={() => window.location.href = '/admin/dashboard'}
+                style={{
+                  background: '#10b981',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 20px',
+                  borderRadius: '12px',
+                  fontWeight: '700',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.3)'
+                }}
+              >
+                Launch Full Analytics <Activity size={16} />
+            </button>
+          </div>
+
           {/* Maintenance Hub Card */}
           <div style={{ 
             background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))',
             borderRadius: '24px', 
             border: '1px solid rgba(99, 102, 241, 0.2)', 
             padding: '30px',
-            position: 'relative',
-            overflow: 'hidden'
+            position: 'relative'
           }}>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
