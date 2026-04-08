@@ -151,6 +151,18 @@
   color: white;
 }
 
+.btn-update {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+}
+
+.btn-update:hover {
+  background: var(--accent-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
 .btn-cancel {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);

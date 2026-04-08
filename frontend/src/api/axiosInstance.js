@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8081/api',
+  baseURL: 'http://localhost:8082/api',
   withCredentials: true,
 });
 
@@ -15,6 +15,19 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor to handle session expiration (401 Unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('sc_token');
+      localStorage.removeItem('sc_user');
+      window.location.href = '/login?expired=true';
+    }
     return Promise.reject(error);
   }
 );

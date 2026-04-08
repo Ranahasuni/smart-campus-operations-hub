@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-const API = 'http://localhost:8081';
+const API = 'http://localhost:8082';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -72,10 +72,9 @@ export function AuthProvider({ children }) {
     setUser(userInfo);
   };
 
-  /** Authenticated fetch helper — auto-attaches Bearer token */
-  const authFetch = (url, options = {}) => {
-    console.log(`[authFetch] Requesting: ${url} with token: ${token ? 'PRESENT' : 'MISSING'}`);
-    return fetch(url, {
+  /** Authenticated fetch helper — auto-attaches Bearer token and handles expiration */
+  const authFetch = async (url, options = {}) => {
+    const res = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -83,6 +82,14 @@ export function AuthProvider({ children }) {
         Authorization: `Bearer ${token}`,
       },
     });
+
+    if (res.status === 401) {
+      logout();
+      window.location.href = '/login?expired=true';
+      throw new Error('Session expired');
+    }
+
+    return res;
   };
 
   return (

@@ -12,6 +12,8 @@ import BookingResourceListPage from './pages/bookings/BookingResourceListPage';
 import BookingResourceDetailsPage from './pages/bookings/BookingResourceDetailsPage';
 import CreateBookingPage from './pages/bookings/CreateBookingPage';
 import MyBookingsPage from './pages/bookings/MyBookingsPage';
+import BookingHistoryPage from './pages/bookings/BookingHistoryPage';
+import EditBookingPage from './pages/bookings/EditBookingPage';
 import TicketsPage from './pages/tickets/TicketsPage';
 import CreateTicketPage from './pages/tickets/CreateTicketPage';
 import TicketDetailsPage from './pages/tickets/TicketDetailsPage';
@@ -22,6 +24,11 @@ import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import SystemLogs from './pages/admin/SystemLogs';
 import ResourceManagementPage from './pages/resources/ResourceManagementPage';
+import ManageBookings from './pages/admin/ManageBookings';
+import BookingReview from './pages/admin/BookingReview';
+import BookingCalendar from './pages/admin/BookingCalendar';
+import ManageTickets from './pages/admin/ManageTickets';
+import TicketReview from './pages/admin/TicketReview';
 
 export default function App() {
   return (
@@ -59,8 +66,14 @@ export default function App() {
             <Route path="/bookings/create/:id" element={
               <ProtectedRoute><CreateBookingPage /></ProtectedRoute>
             } />
+            <Route path="/bookings/edit/:id" element={
+              <ProtectedRoute><EditBookingPage /></ProtectedRoute>
+            } />
             <Route path="/my-bookings" element={
               <ProtectedRoute><MyBookingsPage /></ProtectedRoute>
+            } />
+            <Route path="/booking-history" element={
+              <ProtectedRoute><BookingHistoryPage /></ProtectedRoute>
             } />
             <Route path="/tickets" element={
               <ProtectedRoute><TicketsPage /></ProtectedRoute>
@@ -86,6 +99,31 @@ export default function App() {
             <Route path="/admin/resources" element={
               <ProtectedRoute role="ADMIN">
                 <ResourceManagementPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings" element={
+              <ProtectedRoute role="ADMIN">
+                <ManageBookings />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <BookingReview />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings/calendar" element={
+              <ProtectedRoute role="ADMIN">
+                <BookingCalendar />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/tickets" element={
+              <ProtectedRoute role="ADMIN">
+                <ManageTickets />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/tickets/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <TicketReview />
               </ProtectedRoute>
             } />
             <Route path="/admin/logs" element={
@@ -121,4 +159,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
