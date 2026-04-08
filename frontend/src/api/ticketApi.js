@@ -13,6 +13,15 @@ const ticketApi = {
   // Get a single ticket by ID
   getTicketById: (id) => api.get(`/tickets/${id}`),
 
+  // Get tickets for a specific resource
+  getTicketsByResourceId: (resourceId) => api.get(`/tickets/resource/${resourceId}`),
+
+  // Get comments for a ticket
+  getComments: (ticketId) => api.get(`/tickets/${ticketId}/comments`),
+
+  // Add a comment to a ticket
+  addComment: (ticketId, commentData) => api.post(`/tickets/${ticketId}/comments`, commentData),
+
   // Update a ticket's status (PATCH with JSON body)
   updateTicketStatus: (id, status, updatedBy, resolutionNote) => 
     api.patch(`/tickets/${id}/status`, { status, updatedBy, resolutionNote }),

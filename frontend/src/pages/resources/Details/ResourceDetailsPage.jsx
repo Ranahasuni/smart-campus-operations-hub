@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 import api from '../../../api/axiosInstance';
+import ticketApi from '../../../api/ticketApi';
 import './ResourceDetails.css';
 
 // Component Imports
@@ -15,19 +16,26 @@ import ActionButton from './components/ActionButton';
 export default function ResourceDetailsPage() {
   const { id } = useParams();
   const [resource, setResource] = useState(null);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchResource();
+    fetchData();
     window.scrollTo(0, 0);
   }, [id]);
 
-  const fetchResource = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/resources/${id}`);
-      setResource(res.data);
+      // Fetch resource and tickets in parallel
+      const [resResponse, ticketsResponse] = await Promise.all([
+        api.get(`/resources/${id}`),
+        ticketApi.getTicketsByResourceId(id)
+      ]);
+      
+      setResource(resResponse.data);
+      setTickets(ticketsResponse.data || []);
       setError(null);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -36,6 +44,11 @@ export default function ResourceDetailsPage() {
       setLoading(false);
     }
   };
+
+  // Check for critical active tickets (OPEN or IN_PROGRESS and HIGH priority)
+  const hasCriticalIssue = tickets.some(t => 
+    t.priority === 'HIGH' && (t.status === 'OPEN' || t.status === 'IN_PROGRESS')
+  );
 
   if (loading) {
     return (
@@ -67,13 +80,46 @@ export default function ResourceDetailsPage() {
       <Link to="/resources" style={{
         display: 'inline-flex', alignItems: 'center', gap: '8px',
         color: '#1e293b', textDecoration: 'none', fontWeight: '800',
-        fontSize: '0.9rem', marginBottom: '32px', padding: '10px 24px',
+        fontSize: '0.9rem', marginBottom: '24px', padding: '10px 24px',
         background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0',
         transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.03)'
       }} onMouseOver={e => { e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.color = '#6366f1'; }}
         onMouseOut={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#1e293b'; }}>
         <ArrowLeft size={16} /> Back
       </Link>
+
+      {/* CRITICAL ISSUE WARNING BANNER */}
+      {hasCriticalIssue && (
+        <div style={{
+          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+          color: 'white',
+          padding: '20px 24px',
+          borderRadius: '16px',
+          marginBottom: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          boxShadow: '0 10px 25px rgba(239, 68, 68, 0.2)',
+          border: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <div style={{ 
+            background: 'rgba(255,255,255,0.2)', 
+            padding: '10px', 
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <ShieldAlert size={28} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', letterSpacing: '0.5px' }}>MAINTENANCE ADVISORY</h4>
+            <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '0.9rem', fontWeight: '500' }}>
+              This facility has a critical issue reported. Booking has been temporarily suspended for safety.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="details-grid">
         {/* LEFT COLUMN: VISUALS AND INFO */}
@@ -97,3 +143,4 @@ export default function ResourceDetailsPage() {
     </div>
   );
 }
+
