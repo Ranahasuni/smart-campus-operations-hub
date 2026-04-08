@@ -13,6 +13,9 @@ const ticketApi = {
   // Get a single ticket by ID
   getTicketById: (id) => api.get(`/tickets/${id}`),
 
+  // Get tickets for a specific resource
+  getTicketsByResourceId: (resourceId) => api.get(`/tickets/resource/${resourceId}`),
+
   // Get comments for a ticket
   getComments: (ticketId) => api.get(`/tickets/${ticketId}/comments`),
 
