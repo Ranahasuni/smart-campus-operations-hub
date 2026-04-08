@@ -30,6 +30,7 @@ import BookingReview from './pages/admin/BookingReview';
 import BookingCalendar from './pages/admin/BookingCalendar';
 import ManageTickets from './pages/admin/ManageTickets';
 import TicketReview from './pages/admin/TicketReview';
+import ResourceAnalyticsPage from './pages/admin/Dashboard/ResourceAnalyticsPage';
 
 export default function App() {
   return (
@@ -130,6 +131,12 @@ export default function App() {
                 <TicketReview />
               </ProtectedRoute>
             } />
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute role="ADMIN">
+                <ResourceAnalyticsPage />
+              </ProtectedRoute>
+            } />
+
             <Route path="/admin/logs" element={
               <ProtectedRoute role="ADMIN">
                 <SystemLogs />
