@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, ShieldAlert, Activity, BellRing, TrendingUp, Clock, ShieldCheck, MailWarning } from 'lucide-react';
+import { Users, ShieldAlert, Activity, BellRing, TrendingUp, Clock, ShieldCheck, MailWarning, Ticket, Hammer, ArrowRight } from 'lucide-react';
+import ticketApi from '../../api/ticketApi';
 
 export default function Dashboard() {
-  const { authFetch } = useAuth();
+  const { authFetch, user } = useAuth();
   const [stats, setStats] = useState({
     totalUsers: 0,
     lockedUsers: 0,
     activeUsers: 0,
+    openTickets: 0, // NEW: Open tickets count
+    allTickets: 0,  // NEW: Total tickets count
     recentLogs: []
   });
   const [loading, setLoading] = useState(true);
@@ -35,10 +38,21 @@ export default function Dashboard() {
       const safeUsers = Array.isArray(users) ? users : [];
       const safeLogs = Array.isArray(logs) ? logs : [];
 
+      // Fetch tickets for maintenance stats
+      let ticketData = [];
+      try {
+        const ticketRes = await ticketApi.getAllTickets();
+        ticketData = Array.isArray(ticketRes.data) ? ticketRes.data : [];
+      } catch (tErr) {
+        console.error('Ticket Fetch Error:', tErr);
+      }
+
       setStats({
         totalUsers: safeUsers.length,
         lockedUsers: safeUsers.filter(u => u.status === 'LOCKED').length,
         activeUsers: safeUsers.filter(u => u.status === 'ACTIVE').length,
+        openTickets: ticketData.filter(t => t.status === 'OPEN').length,
+        allTickets: ticketData.length,
         recentLogs: safeLogs.slice(-6).reverse()
       });
     } catch (err) {
@@ -58,9 +72,10 @@ export default function Dashboard() {
       </header>
 
       {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '20px', marginBottom: '40px' }}>
         <StatCard icon={<Users color="#6366f1" />} label="Total Registered" value={stats.totalUsers} color="bg-indigo" />
         <StatCard icon={<ShieldCheck color="#22c55e" />} label="Active Accounts" value={stats.activeUsers} color="bg-green" />
+        <StatCard icon={<Ticket color="#f43f5e" />} label="Open Tickets" value={stats.openTickets} valueColor="#f43f5e" />
         <StatCard icon={<MailWarning color="#f59e0b" />} label="Locked (Failed)" value={stats.lockedUsers} valueColor="#f59e0b" color="bg-amber" />
         <StatCard icon={<TrendingUp color="#8b5cf6" />} label="System Uptime" value="99.9%" color="bg-purple" />
       </div>
@@ -96,18 +111,59 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Tips / Quick Actions */}
-        <div style={{ background: 'rgba(99, 102, 241, 0.05)', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.1)', padding: '30px' }}>
-          <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldAlert size={20} color="#fbbf24" /> Security Tips
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: '#94a3b8', fontSize: '0.875rem' }}>
-            <p>• Accounts are locked after 3 failed password attempts.</p>
-            <p>• Only Admins can permanently delete user accounts.</p>
-            <p>• System logs maintain a full history of all login/logout activities.</p>
-            <p style={{ marginTop: '20px', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', color: '#cbd5e1' }}>
-              <strong>Tip:</strong> You can unlock accounts in the "Manage Users" section.
-            </p>
+        {/* Quick Tips & Maintenance Management */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          
+          {/* NEW: Maintenance Hub Card */}
+          <div style={{ 
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))',
+            borderRadius: '24px', 
+            border: '1px solid rgba(99, 102, 241, 0.2)', 
+            padding: '30px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Hammer size={22} className="text-indigo-400" /> Maintenance Hub
+              </h2>
+              <p style={{ color: '#cbd5e1', fontSize: '0.875rem', marginBottom: '20px', lineHeight: '1.6' }}>
+                Oversee campus facility issues. Currently managing <strong>{stats.allTickets}</strong> total tickets.
+              </p>
+              <button 
+                onClick={() => window.location.href = '/tickets'}
+                style={{
+                  background: 'var(--accent-primary)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 20px',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)'
+                }}
+              >
+                Manage Maintenance <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div style={{ background: 'rgba(99, 102, 241, 0.05)', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.1)', padding: '30px' }}>
+            <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldAlert size={20} color="#fbbf24" /> Security Tips
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: '#94a3b8', fontSize: '0.875rem' }}>
+              <p>• Accounts are locked after 3 failed password attempts.</p>
+              <p>• Only Admins can permanently delete user accounts.</p>
+              <p>• System logs maintain a full history of all login/logout activities.</p>
+              <p style={{ marginTop: '20px', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', color: '#cbd5e1' }}>
+                <strong>Tip:</strong> You can unlock accounts in the "Manage Users" section.
+              </p>
+            </div>
           </div>
         </div>
       </div>
