@@ -3,6 +3,7 @@ package com.smartcampus.service;
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketStatus;
 import com.smartcampus.model.Comment;
+import com.smartcampus.model.Priority;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.CommentRepository;
 import com.smartcampus.repository.TicketImageRepository;
@@ -26,9 +27,37 @@ public class TicketService {
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
         
+        // Auto-detect priority before saving
+        Priority detectedPriority = detectPriority(ticket.getTitle(), ticket.getDescription());
+        if (detectedPriority == Priority.HIGH) {
+            ticket.setPriority(Priority.HIGH);
+        }
+        
         Ticket savedTicket = ticketRepository.save(ticket);
         auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket created with ID: " + savedTicket.getId());
         return savedTicket;
+    }
+
+    private Priority detectPriority(String title, String description) {
+        String content = (title + " " + description).toLowerCase();
+        
+        // List of critical keywords
+        String[] criticalKeywords = {
+            "fire", "smoke", "burning", 
+            "electric", "spark", "shock", "short circuit",
+            "leak", "flood", "water burst", "pipe burst",
+            "broken glass", "shattered",
+            "exam", "final", "test",
+            "emergency", "urgent", "danger", "hazard"
+        };
+        
+        for (String keyword : criticalKeywords) {
+            if (content.contains(keyword)) {
+                return Priority.HIGH;
+            }
+        }
+        
+        return null; // No critical keywords detected, keep user's choice
     }
 
     public List<Ticket> getAllTickets() {
