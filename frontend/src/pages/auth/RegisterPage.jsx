@@ -23,7 +23,6 @@ export default function Register() {
   const roles = [
     { value: 'STUDENT', label: 'Student' },
     { value: 'LECTURER', label: 'Lecturer' },
-    { value: 'STAFF',    label: 'University Staff' },
     { value: 'TECHNICIAN', label: 'Technician' }
   ];
 
