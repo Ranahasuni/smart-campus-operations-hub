@@ -92,18 +92,18 @@ export default function MyBookingsPage() {
     <div className="my-bookings-container animate-fade-in">
       <header className="bookings-dashboard-header">
         <div>
-          <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>My Reservations</h1>
-          <p style={{ color: '#94a3b8' }}>Track and manage your campus resource bookings.</p>
+          <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Active Reservations</h1>
+          <p style={{ color: '#94a3b8' }}>Manage and track your upcoming campus bookings.</p>
         </div>
 
         <div className="bookings-tabs">
-          {['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'].map(tab => (
+          {['ALL', 'PENDING', 'APPROVED'].map(tab => (
             <button 
               key={tab}
               className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab.charAt(0) + tab.slice(1).toLowerCase()}
+              {tab === 'APPROVED' ? 'Upcoming' : (tab.charAt(0) + tab.slice(1).toLowerCase())}
             </button>
           ))}
         </div>
