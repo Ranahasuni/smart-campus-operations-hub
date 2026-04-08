@@ -74,9 +74,13 @@ export default function MyBookingsPage() {
     }
   };
 
-  const filteredBookings = bookings.filter(b => 
-    activeTab === 'ALL' ? true : b.status === activeTab
-  );
+  const filteredBookings = bookings.filter(b => {
+    const today = new Date().toISOString().split('T')[0];
+    const isHistory = b.status === 'REJECTED' || b.status === 'CANCELLED' || (b.status === 'APPROVED' && b.date < today);
+    if (isHistory) return false;
+    
+    return activeTab === 'ALL' ? true : b.status === activeTab;
+  });
 
   if (loading) return (
     <div className="my-bookings-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>

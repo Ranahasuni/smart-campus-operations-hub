@@ -123,6 +123,7 @@ export default function EditBookingPage() {
     if (resource && formData.expectedAttendees > resource.capacity) return `Capacity exceeded (Max: ${resource.capacity})`;
     
     if (resource) {
+      if (resource.status !== 'ACTIVE') return `Resource is currently ${resource.status.replace(/_/g, ' ')}`;
       if (formData.startTime < resource.availableFrom) return `Starts before opening (${resource.availableFrom})`;
       if (formData.endTime > resource.availableTo) return `Ends after closing (${resource.availableTo})`;
     }
@@ -324,9 +325,9 @@ export default function EditBookingPage() {
             <button 
               type="submit" 
               className="btn-submit-booking"
-              disabled={submitting}
+              disabled={submitting || (resource && resource.status !== 'ACTIVE')}
             >
-              {submitting ? 'Updating...' : 'Save Changes'} <ArrowRight size={18} />
+              {submitting ? 'Updating...' : (resource && resource.status !== 'ACTIVE' ? 'Unavailable' : 'Save Changes')} <ArrowRight size={18} />
             </button>
           </div>
         </form>
