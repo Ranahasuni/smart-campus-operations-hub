@@ -2,10 +2,12 @@ package com.smartcampus.controller;
 
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketStatus;
+import com.smartcampus.model.Comment;
 import com.smartcampus.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +35,6 @@ public class TicketController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> getTicketById(@PathVariable String id) {
-        // Ownership check should be in service, but we gate it here first
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
@@ -72,8 +73,21 @@ public class TicketController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTicket(@PathVariable String id) {
         ticketService.deleteTicket(id);
-        return ResponseEntity.noContent().build();
+    }
+
+    // --- Comments Endpoints (Secured) ---
+    @PostMapping("/{id}/comments")
+    @PreAuthorize("isAuthenticated()")
+    public Comment addComment(@PathVariable String id, @RequestBody Comment comment) {
+        return ticketService.addComment(id, comment);
+    }
+
+    @GetMapping("/{id}/comments")
+    @PreAuthorize("isAuthenticated()")
+    public List<Comment> getComments(@PathVariable String id) {
+        return ticketService.getCommentsByTicketId(id);
     }
 }
