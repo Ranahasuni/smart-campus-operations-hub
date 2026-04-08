@@ -83,7 +83,31 @@ public class BookingController {
     }
 
     /**
-     * Delete/Withdraw a pending booking.
+     * Fetch a specific booking by ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<BookingResponseDTO> getBookingById(
+            @PathVariable String id) {
+        return ResponseEntity.ok(bookingService.getBookingById(id));
+    }
+
+    /**
+     * Update an existing pending booking.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<BookingResponseDTO> updateBooking(
+            @PathVariable String id,
+            @Valid @RequestBody BookingRequestDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        
+        return ResponseEntity.ok(bookingService.updateBooking(id, dto, user.getId()));
+    }
+
+    /**
+     * Delete/Withdraw a pending booking (Soft Delete).
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(
