@@ -83,8 +83,8 @@ export default function ResourceEditorPage() {
       };
 
       const url = isEdit 
-        ? `http://localhost:8081/api/resources/${id}` 
-        : `http://localhost:8081/api/resources`;
+        ? `http://localhost:8082/api/resources/${id}` 
+        : `http://localhost:8082/api/resources`;
       
       const res = await authFetch(url, {
         method: isEdit ? 'PUT' : 'POST',

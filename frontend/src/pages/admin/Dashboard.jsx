@@ -28,11 +28,11 @@ export default function Dashboard() {
 
     try {
       // Fetch users for counts (Using synchronized port 8082)
-      const userRes = await authFetch('http://localhost:8081/api/users');
+      const userRes = await authFetch('http://localhost:8082/api/users');
       const users = userRes.ok ? await userRes.json() : [];
       
       // Fetch logs for activity
-      const logRes = await authFetch('http://localhost:8081/api/logs');
+      const logRes = await authFetch('http://localhost:8082/api/logs');
       const logs = logRes.ok ? await logRes.json() : [];
 
       const safeUsers = Array.isArray(users) ? users : [];

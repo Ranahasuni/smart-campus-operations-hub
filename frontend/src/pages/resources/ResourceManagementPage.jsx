@@ -49,7 +49,7 @@ export default function ResourceManagementPage() {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      const res = await authFetch(`http://localhost:8081/api/resources/${id}/status?status=${newStatus}`, {
+      const res = await authFetch(`http://localhost:8082/api/resources/${id}/status?status=${newStatus}`, {
         method: 'PATCH'
       });
       if (res.ok) {
@@ -62,7 +62,7 @@ export default function ResourceManagementPage() {
 
   const handleDeleteResource = async (id) => {
     try {
-      const res = await authFetch(`http://localhost:8081/api/resources/${id}`, {
+      const res = await authFetch(`http://localhost:8082/api/resources/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
