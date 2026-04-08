@@ -14,8 +14,8 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
     const s = String(status || '').toUpperCase();
     switch (s) {
       case 'ACTIVE': return { bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', label: 'Online' };
-      case 'MAINTENANCE': return { bg: 'rgba(234, 179, 8, 0.1)', color: '#eab308', label: 'Service' };
-      case 'OUT_OF_SERVICE': return { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', label: 'Failure' };
+      case 'MAINTENANCE': return { bg: 'rgba(234, 179, 8, 0.1)', color: '#eab308', label: 'Maintenance' };
+      case 'OUT_OF_SERVICE': return { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', label: 'Offline' };
       default: return { bg: 'rgba(100, 116, 139, 0.1)', color: '#64748b', label: s || 'Unknown' };
     }
   };

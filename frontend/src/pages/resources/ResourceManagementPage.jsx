@@ -6,7 +6,7 @@ import FilterPanel from './Admin/components/FilterPanel';
 import ResourceTable from './Admin/components/ResourceTable';
 import api from '../../api/axiosInstance';
 
-export default function AdminResourcesPage() {
+export default function ResourceManagementPage() {
   const { authFetch } = useAuth();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
