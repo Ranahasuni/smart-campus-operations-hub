@@ -12,6 +12,7 @@ import BookingResourceListPage from './pages/bookings/BookingResourceListPage';
 import BookingResourceDetailsPage from './pages/bookings/BookingResourceDetailsPage';
 import CreateBookingPage from './pages/bookings/CreateBookingPage';
 import MyBookingsPage from './pages/bookings/MyBookingsPage';
+import BookingHistoryPage from './pages/bookings/BookingHistoryPage';
 import EditBookingPage from './pages/bookings/EditBookingPage';
 import TicketsPage from './pages/tickets/TicketsPage';
 import CreateTicketPage from './pages/tickets/CreateTicketPage';
@@ -70,6 +71,9 @@ export default function App() {
             } />
             <Route path="/my-bookings" element={
               <ProtectedRoute><MyBookingsPage /></ProtectedRoute>
+            } />
+            <Route path="/booking-history" element={
+              <ProtectedRoute><BookingHistoryPage /></ProtectedRoute>
             } />
             <Route path="/tickets" element={
               <ProtectedRoute><TicketsPage /></ProtectedRoute>
