@@ -14,8 +14,8 @@ const ticketApi = {
   getTicketById: (id) => api.get(`/tickets/${id}`),
 
   // Update a ticket's status (PATCH with JSON body)
-  updateTicketStatus: (id, status, updatedBy) => 
-    api.patch(`/tickets/${id}/status`, { status, updatedBy }),
+  updateTicketStatus: (id, status, updatedBy, resolutionNote) => 
+    api.patch(`/tickets/${id}/status`, { status, updatedBy, resolutionNote }),
 
   // Assign a technician to a ticket (PATCH with JSON body)
   assignTechnician: (id, technicianId, assignedBy) => 
