@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
+import api from '../../api/axiosInstance';
 import '../../styles/tickets.css';
 import { 
   AlertCircle, 
@@ -11,15 +12,21 @@ import {
   AlertTriangle, 
   ClipboardList,
   CheckCircle2,
-  X
+  X,
+  Building2,
+  Search
 } from 'lucide-react';
 
 export default function CreateTicketPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [fetchingResources, setFetchingResources] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [resources, setResources] = useState([]);
+  const [isLinked, setIsLinked] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -27,12 +34,53 @@ export default function CreateTicketPage() {
     locationDetail: '',
     issueType: 'OTHER',
     priority: 'MEDIUM',
+    resourceId: '',
     userId: user?.id || ''
   });
+
+  useEffect(() => {
+    fetchResources();
+    
+    // Check for resourceId in URL (Linked from Resource Page)
+    const rid = searchParams.get('resourceId');
+    const rname = searchParams.get('resourceName');
+    
+    if (rid) {
+      setIsLinked(true);
+      setFormData(prev => ({
+        ...prev,
+        resourceId: rid,
+        title: rname ? `Issue with ${rname}` : prev.title
+      }));
+    }
+  }, [searchParams]);
+
+  const fetchResources = async () => {
+    setFetchingResources(true);
+    try {
+      const res = await api.get('/resources');
+      setResources(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch resources:', err);
+    } finally {
+      setFetchingResources(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // If resource is selected from dropdown, update location text automatically
+    if (name === 'resourceId' && value !== '') {
+      const selected = resources.find(r => r.id === value);
+      if (selected) {
+        setFormData(prev => ({
+          ...prev,
+          locationDetail: `${selected.building}, Level ${selected.floor}, Room ${selected.roomNumber}`
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -89,6 +137,58 @@ export default function CreateTicketPage() {
             </div>
           )}
 
+          {/* TOP MARKS: SMART ASSET SELECTION */}
+          <div className="form-group" style={{ 
+            background: 'rgba(99, 102, 241, 0.1)', 
+            padding: '24px', 
+            borderRadius: '20px', 
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            marginBottom: '32px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+          }}>
+            <label style={{ color: '#818cf8', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.8rem' }}>
+              <Building2 size={18} /> 
+              {isLinked ? 'Linked Asset (Verified)' : 'Target Facility (Optional)'}
+            </label>
+            <div style={{ position: 'relative' }}>
+              <select 
+                className="form-control" 
+                name="resourceId" 
+                value={formData.resourceId} 
+                onChange={handleChange}
+                disabled={isLinked}
+                style={{ 
+                  paddingLeft: '44px',
+                  background: isLinked ? 'rgba(0,0,0,0.2)' : 'rgba(15, 23, 42, 0.6)',
+                  color: '#fff',
+                  cursor: isLinked ? 'not-allowed' : 'pointer',
+                  fontWeight: '500',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <option value="" style={{ background: '#1e293b', color: '#fff' }}>-- General / Common Area --</option>
+                {resources.map(res => (
+                  <option key={res.id} value={res.id} style={{ background: '#1e293b', color: '#fff' }}>
+                    {res.name} ({res.building})
+                  </option>
+                ))}
+              </select>
+              <Search size={18} style={{ 
+                position: 'absolute', 
+                left: '14px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: '#818cf8' 
+              }} />
+            </div>
+            {!isLinked && (
+              <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '12px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertCircle size={12} /> Tip: Linking a room directly helps technicians find the issue faster.
+              </p>
+            )}
+          </div>
+
           <div className="form-group">
             <label><Tag size={16} /> Issue Title</label>
             <input
@@ -133,6 +233,14 @@ export default function CreateTicketPage() {
               value={formData.locationDetail}
               onChange={handleChange}
               placeholder="e.g., Block B, 3rd Floor, Room 304"
+              readOnly={isLinked || formData.resourceId !== ''}
+              style={{ 
+                background: (isLinked || formData.resourceId !== '') ? 'rgba(15, 23, 42, 0.4)' : 'rgba(15, 23, 42, 0.6)',
+                color: '#fff',
+                fontWeight: '500',
+                border: '1px solid rgba(99, 102, 241, 0.2)',
+                opacity: (isLinked || formData.resourceId !== '') ? 0.8 : 1
+              }}
             />
           </div>
 
@@ -161,3 +269,4 @@ export default function CreateTicketPage() {
     </div>
   );
 }
+
