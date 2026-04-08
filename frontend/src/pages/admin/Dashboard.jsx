@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, ShieldAlert, Activity, BellRing, TrendingUp, Clock, ShieldCheck, MailWarning } from 'lucide-react';
+import { Users, ShieldAlert, Activity, BellRing, TrendingUp, Clock, ShieldCheck, MailWarning, Ticket, Hammer, ArrowRight } from 'lucide-react';
+import ticketApi from '../../api/ticketApi';
 
 export default function Dashboard() {
-  const { user, authFetch } = useAuth();
+  const { authFetch, user } = useAuth();
   const [stats, setStats] = useState({
     totalUsers: 0,
     lockedUsers: 0,
     activeUsers: 0,
+    openTickets: 0, // NEW: Open tickets count
+    allTickets: 0,  // NEW: Total tickets count
     recentLogs: []
   });
   const [loading, setLoading] = useState(true);
@@ -25,20 +28,31 @@ export default function Dashboard() {
 
     try {
       // Fetch users for counts (Using synchronized port 8082)
-      const userRes = await authFetch('http://localhost:8082/api/users');
+      const userRes = await authFetch('http://localhost:8081/api/users');
       const users = userRes.ok ? await userRes.json() : [];
       
       // Fetch logs for activity
-      const logRes = await authFetch('http://localhost:8082/api/logs');
+      const logRes = await authFetch('http://localhost:8081/api/logs');
       const logs = logRes.ok ? await logRes.json() : [];
 
       const safeUsers = Array.isArray(users) ? users : [];
       const safeLogs = Array.isArray(logs) ? logs : [];
 
+      // Fetch tickets for maintenance stats
+      let ticketData = [];
+      try {
+        const ticketRes = await ticketApi.getAllTickets();
+        ticketData = Array.isArray(ticketRes.data) ? ticketRes.data : [];
+      } catch (tErr) {
+        console.error('Ticket Fetch Error:', tErr);
+      }
+
       setStats({
         totalUsers: safeUsers.length,
         lockedUsers: safeUsers.filter(u => u.status === 'LOCKED').length,
         activeUsers: safeUsers.filter(u => u.status === 'ACTIVE').length,
+        openTickets: ticketData.filter(t => t.status === 'OPEN').length,
+        allTickets: ticketData.length,
         recentLogs: safeLogs.slice(-6).reverse()
       });
     } catch (err) {
@@ -58,9 +72,10 @@ export default function Dashboard() {
       </header>
 
       {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '20px', marginBottom: '40px' }}>
         <StatCard icon={<Users color="#6366f1" />} label="Total Registered" value={stats.totalUsers} color="bg-indigo" />
         <StatCard icon={<ShieldCheck color="#22c55e" />} label="Active Accounts" value={stats.activeUsers} color="bg-green" />
+        <StatCard icon={<Ticket color="#f43f5e" />} label="Open Tickets" value={stats.openTickets} valueColor="#f43f5e" />
         <StatCard icon={<MailWarning color="#f59e0b" />} label="Locked (Failed)" value={stats.lockedUsers} valueColor="#f59e0b" color="bg-amber" />
         <StatCard icon={<TrendingUp color="#8b5cf6" />} label="System Uptime" value="99.9%" color="bg-purple" />
       </div>
@@ -96,21 +111,65 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Actions / Security Tips */}
-        <div style={{ background: 'rgba(99, 102, 241, 0.05)', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.1)', padding: '30px' }}>
-          <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldAlert size={20} color="#fbbf24" /> Security Reminders
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: '#94a3b8', fontSize: '0.875rem' }}>
-            <p>• Review pending reservations daily to avoid scheduling overlaps.</p>
-            <p>• Accounts are locked automatically after multiple failed authentication attempts.</p>
-            <p>• Audit logs track every administrative action for accountability.</p>
-            <div style={{ marginTop: '20px', padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)' }}>
-               <h3 style={{ color: '#fff', fontSize: '0.85rem', marginBottom: '8px' }}>Quick Actions</h3>
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <a href="/admin/bookings" style={{ color: '#818cf8', textDecoration: 'none' }}>→ Moderate Bookings</a>
-                  <a href="/admin/users" style={{ color: '#818cf8', textDecoration: 'none' }}>→ Handle Locked Users</a>
-               </div>
+        {/* Quick Tips, Maintenance Management & Booking Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          
+          {/* Maintenance Hub Card */}
+          <div style={{ 
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))',
+            borderRadius: '24px', 
+            border: '1px solid rgba(99, 102, 241, 0.2)', 
+            padding: '30px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Hammer size={22} className="text-indigo-400" /> Maintenance Hub
+              </h2>
+              <p style={{ color: '#cbd5e1', fontSize: '0.875rem', marginBottom: '20px', lineHeight: '1.6' }}>
+                Oversee campus facility issues. Currently managing <strong>{stats.allTickets}</strong> total tickets.
+              </p>
+              <button 
+                onClick={() => window.location.href = '/tickets'}
+                style={{
+                  background: 'var(--accent-primary)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 20px',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)'
+                }}
+              >
+                Manage Maintenance <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Actions / Security Tips */}
+          <div style={{ background: 'rgba(99, 102, 241, 0.05)', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.1)', padding: '30px' }}>
+            <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldAlert size={20} color="#fbbf24" /> Security & Actions
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: '#94a3b8', fontSize: '0.875rem' }}>
+              <p>• Review pending reservations daily to avoid scheduling overlaps.</p>
+              <p>• Accounts are locked automatically after multiple failed attempts.</p>
+              <div style={{ marginTop: '10px', padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                 <h3 style={{ color: '#fff', fontSize: '0.85rem', marginBottom: '8px' }}>Admin Shortcuts</h3>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <a href="/admin/bookings" style={{ color: '#818cf8', textDecoration: 'none' }}>→ Moderate Bookings</a>
+                    <a href="/admin/users" style={{ color: '#818cf8', textDecoration: 'none' }}>→ Handle Locked Users</a>
+                 </div>
+              </div>
+              <p style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b' }}>
+                Tip: Only Admins can permanently delete user accounts and logs.
+              </p>
             </div>
           </div>
         </div>

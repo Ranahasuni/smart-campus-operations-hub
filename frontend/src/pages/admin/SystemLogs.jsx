@@ -19,7 +19,7 @@ export default function SystemLogs() {
 
   const fetchLogs = async () => {
     try {
-      const res = await authFetch('http://localhost:8082/api/logs');
+      const res = await authFetch('http://localhost:8081/api/logs');
       if (!res.ok) throw new Error('Failed to fetch system logs');
       const data = await res.json();
       setLogs(Array.isArray(data) ? data.reverse() : []); // Newest first
