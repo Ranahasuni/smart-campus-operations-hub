@@ -31,22 +31,18 @@ export default function Navbar() {
             <Link to="/admin/users"       className="nav-link nav-link-admin">Accounts</Link>
             <Link to="/admin/resources"     className="nav-link nav-link-admin">Facilities</Link>
             <Link to="/admin/bookings"    className="nav-link nav-link-admin">Reservations</Link>
+            <Link to="/admin/tickets"     className="nav-link nav-link-admin">Tickets</Link>
             <Link to="/admin/logs"        className="nav-link nav-link-admin">System Logs</Link>
             <Link to="/notifications"     className="nav-link nav-link-admin">Alerts</Link>
           </>
         ) : (
           /* Student / Lecturer / Staff Navigation */
           <>
-<<<<<<< HEAD
-            <Link to="/resources"  className="nav-link">Resources</Link>
-            <Link to="/bookings"   className="nav-link">Bookings</Link>
-            <Link to="/tickets"    className="nav-link">Tickets</Link>
-=======
-            <Link to="/resources" className="nav-link">Resources</Link>
-            <Link to="/bookings" className="nav-link">Bookings</Link>
+            <Link to="/resources"   className="nav-link">Resources</Link>
+            <Link to="/bookings"    className="nav-link">Bookings</Link>
             <Link to="/my-bookings" className="nav-link">My Bookings</Link>
-            <Link to="/tickets" className="nav-link">Tickets</Link>
->>>>>>> origin/main
+            <Link to="/tickets"     className="nav-link">Tickets</Link>
+            
             {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
               <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
             )}

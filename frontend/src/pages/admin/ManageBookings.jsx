@@ -135,12 +135,12 @@ export default function ManageBookings() {
                     <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '4px' }}>{new Date(b.createdAt).toLocaleDateString()}</div>
                   </td>
                   <td style={{ padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1' }}>
-                      <Users size={16} color="#64748b" /> {b.userId?.slice(-8)}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1', fontWeight: '500' }}>
+                      <Users size={16} color="#6366f1" /> {b.requesterName}
                     </div>
                   </td>
                   <td style={{ padding: '20px 24px' }}>
-                    <div style={{ color: '#f8fafc', fontSize: '0.9rem' }}>{b.resourceId}</div>
+                    <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>{b.resourceName}</div>
                     <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '4px' }}>
                       {b.date} • {b.startTime?.slice(0,5)} - {b.endTime?.slice(0,5)}
                     </div>

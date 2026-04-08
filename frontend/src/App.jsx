@@ -25,6 +25,8 @@ import SystemLogs from './pages/admin/SystemLogs';
 import ManageBookings from './pages/admin/ManageBookings';
 import BookingReview from './pages/admin/BookingReview';
 import BookingCalendar from './pages/admin/BookingCalendar';
+import ManageTickets from './pages/admin/ManageTickets';
+import TicketReview from './pages/admin/TicketReview';
 import AdminResourcesPage from './pages/resources/AdminResourcesPage';
 
 export default function App() {
@@ -108,6 +110,16 @@ export default function App() {
             <Route path="/admin/bookings/calendar" element={
               <ProtectedRoute role="ADMIN">
                 <BookingCalendar />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/tickets" element={
+              <ProtectedRoute role="ADMIN">
+                <ManageTickets />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/tickets/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <TicketReview />
               </ProtectedRoute>
             } />
             <Route path="/admin/logs" element={

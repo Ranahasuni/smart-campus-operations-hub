@@ -95,7 +95,7 @@ public class BookingController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Booking>> getAllBookingsAdmin() {
+    public ResponseEntity<List<BookingResponseDTO>> getAllBookingsAdmin() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 

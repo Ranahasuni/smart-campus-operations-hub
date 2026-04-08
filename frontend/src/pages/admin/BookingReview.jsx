@@ -103,8 +103,8 @@ export default function BookingReview() {
             <section>
               <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><Users size={18} color="#6366f1" /> Requester Profile</h3>
               <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Identified System ID:</div>
-                <div style={{ color: '#fff', fontWeight: '600', marginBottom: '12px' }}>{booking.userId}</div>
+                <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Authorized Requester:</div>
+                <div style={{ color: '#fff', fontWeight: '600', marginBottom: '12px' }}>{booking.requesterName}</div>
                 <div style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>Authorized via Campus Protocol.</div>
               </div>
             </section>
@@ -114,7 +114,8 @@ export default function BookingReview() {
               <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={18} color="#6366f1" /> Facility Allocation</h3>
               <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
                 <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Target Resource:</div>
-                <div style={{ color: '#fff', fontWeight: '600', marginBottom: '12px' }}>{booking.resourceId}</div>
+                <div style={{ color: '#fff', fontWeight: '600', marginBottom: '12px' }}>{booking.resourceName}</div>
+                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '8px' }}>Asset ID: {booking.resourceId}</div>
                 <div style={{ color: '#64748b', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Calendar size={14} /> {booking.date}
                 </div>

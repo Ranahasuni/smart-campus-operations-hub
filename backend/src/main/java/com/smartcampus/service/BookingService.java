@@ -27,6 +27,7 @@ public class BookingService {
     private final ResourceRepository resourceRepository;
     private final NotificationService notificationService;
     private final AuditService auditService;
+    private final com.smartcampus.repository.UserRepository userRepository;
 
     // ── Member Operations (DTO Based) ────────────────────────────────────────
 
@@ -129,8 +130,10 @@ public class BookingService {
 
     // ── Admin Operations (Core Models) ────────────────────────────────────────
 
-    public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
+    public List<BookingResponseDTO> getAllBookings() {
+        return bookingRepository.findAll().stream()
+                .map(this::mapToResponseDTOEnriched)
+                .collect(Collectors.toList());
     }
 
     public Booking getBookingByIdRaw(String id) {
@@ -186,9 +189,12 @@ public class BookingService {
 
     private BookingResponseDTO mapToResponseDTOEnriched(Booking booking) {
         Resource resource = resourceRepository.findById(booking.getResourceId()).orElse(null);
+        com.smartcampus.model.User user = userRepository.findById(booking.getUserId()).orElse(null);
+        
         return BookingResponseDTO.builder()
                 .id(booking.getId())
                 .userId(booking.getUserId())
+                .requesterName(user != null ? user.getFullName() : "Unknown User")
                 .resourceId(booking.getResourceId())
                 .resourceName(resource != null ? resource.getName() : "Unknown Resource")
                 .resourceType(resource != null ? resource.getType() : null)

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class BookingResponseDTO {
     private String id;
     private String userId;
+    private String requesterName;
     private String resourceId;
     
     // Resource Details (Added)
