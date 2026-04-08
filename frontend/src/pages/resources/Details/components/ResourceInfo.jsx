@@ -1,5 +1,6 @@
 import React from 'react';
-import { MapPin, Users, Building, Layers } from 'lucide-react';
+import { MapPin, Users, Building, Layers, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function ResourceInfo({ resource }) {
   const getStatusConfig = (status) => {
@@ -15,13 +16,38 @@ export default function ResourceInfo({ resource }) {
 
   return (
     <div className="info-content">
-      <div className="badge-group">
+      <div className="badge-group" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <span style={{ padding: '6px 16px', background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', borderRadius: '99px', fontSize: '0.8rem', fontWeight: '800' }}>
           {resource.type}
         </span>
         <span className="status-badge" style={{ background: statusCfg.bg, color: statusCfg.color }}>
           {statusCfg.label}
         </span>
+        
+        {/* TOP MARKS: SMART TICKET LINK */}
+        {resource.status === 'ACTIVE' && (
+          <Link 
+            to={`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`}
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              padding: '6px 16px', 
+              background: 'rgba(239, 68, 68, 0.1)', 
+              color: '#ef4444', 
+              borderRadius: '99px', 
+              fontSize: '0.8rem', 
+              fontWeight: '800',
+              textDecoration: 'none',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+          >
+            <AlertTriangle size={14} /> Report Issue?
+          </Link>
+        )}
       </div>
 
       <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a', marginBottom: '16px' }}>{resource.name}</h1>
