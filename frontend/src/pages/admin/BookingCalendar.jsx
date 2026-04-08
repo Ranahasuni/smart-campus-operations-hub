@@ -20,7 +20,7 @@ export default function BookingCalendar() {
   const fetchCalendarData = async () => {
     try {
       const [bookRes, resRes] = await Promise.all([
-        authFetch('http://localhost:8082/api/bookings'),
+        authFetch('http://localhost:8082/api/bookings/all'),
         authFetch('http://localhost:8082/api/resources')
       ]);
       

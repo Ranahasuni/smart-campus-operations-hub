@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
 import api from '../../../api/axiosInstance';
 import './ResourceForm.css';
 
@@ -14,11 +16,13 @@ import FormButtons from './FormButtons';
 export default function ResourceFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { authFetch } = useAuth();
   const isEdit = Boolean(id);
 
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(isEdit);
   const [error, setError] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -78,36 +82,25 @@ export default function ResourceFormPage() {
         floor: formData.floor ? Number(formData.floor) : null
       };
 
-      console.log('Sending Payload:', preppedData);
+      const url = isEdit 
+        ? `http://localhost:8081/api/resources/${id}` 
+        : `http://localhost:8081/api/resources`;
+      
+      const res = await authFetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preppedData)
+      });
 
-      if (isEdit) {
-        await api.put(`/resources/${id}`, preppedData);
-      } else {
-        await api.post('/resources', preppedData);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server Error (${res.status})`);
       }
-      navigate('/admin/resources');
+      
+      setShowSuccess(true);
     } catch (err) {
       console.error('Submission error:', err);
-      let errorMsg = 'Failed to save the resource. Please try again.';
-
-      if (err.response?.data) {
-        if (err.response.data.messages) {
-          // It's a Validation error format mapped from Spring Boot
-          errorMsg = 'Validation Error: ' + Object.values(err.response.data.messages).join(' | ');
-        } else if (err.response.data.message) {
-          // Our GlobalExceptionHandler format
-          errorMsg = err.response.data.message;
-        } else if (err.response.data.error) {
-          // Generic Spring Boot format (e.g. 403 Forbidden)
-          errorMsg = `Server Error (${err.response.status}): ${err.response.data.error} - Ensure you are an ADMIN.`;
-        }
-      } else if (err.response?.status) {
-        errorMsg = `Server Error (${err.response.status}): The request was rejected by the server.`;
-      } else if (err.message) {
-        errorMsg = `Connection Error: ${err.message}`;
-      }
-
-      setError(errorMsg);
+      setError(err.message || 'Failed to save the resource. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -122,9 +115,21 @@ export default function ResourceFormPage() {
   }
 
   return (
-    <div className="resource-form-container">
-      <h2 className="resource-form-title">
-        {isEdit ? 'Edit Resource' : 'Create New Resource'}
+    <div className="resource-form-container" style={{ position: 'relative' }}>
+
+      {/* ADVANCED BACK BUTTON */}
+      <Link to="/admin/resources" style={{
+        display: 'inline-flex', alignItems: 'center', gap: '8px',
+        color: '#64748b', textDecoration: 'none', fontWeight: '600',
+        fontSize: '0.9rem', marginBottom: '24px', padding: '8px 0',
+        transition: 'color 0.2s'
+      }} onMouseOver={e => e.currentTarget.style.color = '#6366f1'}
+        onMouseOut={e => e.currentTarget.style.color = '#64748b'}>
+        <ArrowLeft size={16} /> Back to Registry
+      </Link>
+
+      <h2 className="resource-form-title" style={{ textAlign: 'left', marginBottom: '40px' }}>
+        {isEdit ? 'Asset Modification' : 'New Asset Registration'}
       </h2>
 
       {error && <div className="error-banner">{error}</div>}
@@ -139,6 +144,31 @@ export default function ResourceFormPage() {
 
         <FormButtons isEdit={isEdit} loading={loading} />
       </form>
+
+      {/* PAF ADVANCED SUCCESS MODAL (ZERO BLUR STYLE) */}
+      {showSuccess && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.25)', backdropFilter: 'none !important', WebkitBackdropFilter: 'none !important', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, animation: 'fadeIn 0.3s' }}>
+          <div style={{ background: '#fff', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '420px', textAlign: 'center', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}>
+              <ShieldCheck size={40} />
+            </div>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#0f172a', margin: '0 0 12px 0' }}>
+              {isEdit ? 'Update Successful' : 'Registration Successful'}
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', margin: '0 0 32px 0' }}>
+              {isEdit
+                ? 'The facility configuration has been successfully updated in the central registry.'
+                : 'The new campus asset has been successfully registered and published to the catalogue.'}
+            </p>
+            <button
+              onClick={() => navigate('/admin/resources')}
+              style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: '#fff', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.2)' }}
+            >
+              Return to Resource Registry <Zap size={18} fill="#fff" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

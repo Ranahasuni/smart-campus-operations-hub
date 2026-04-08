@@ -1,68 +1,119 @@
 package com.smartcampus.controller;
 
+import com.smartcampus.dto.BookingRequestDTO;
+import com.smartcampus.dto.BookingResponseDTO;
 import com.smartcampus.model.Booking;
 import com.smartcampus.model.BookingStatus;
 import com.smartcampus.model.User;
+import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.BookingService;
-import com.smartcampus.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
-/**
- * BookingController — Administrative and Citizen moderate endpoints for campus resource reservations.
- * Standardized to /api/bookings for consistency with our gateway architecture.
- */
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
 public class BookingController {
 
     private final BookingService bookingService;
-    private final AuthService authService;
+    private final UserRepository userRepository;
 
-    @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Booking>> getAllBookings() {
-        return ResponseEntity.ok(bookingService.getAllBookings());
+    // ── Member Endpoints ──────────────────────────────────────────────────────
+
+    @GetMapping("/resource/{resourceId}")
+    public ResponseEntity<List<BookingResponseDTO>> getBookingsByResourceAndDate(
+            @PathVariable String resourceId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(bookingService.getBookingsByResourceAndDate(resourceId, date));
+    }
+
+    @PostMapping
+    public ResponseEntity<BookingResponseDTO> createBooking(
+            @Valid @RequestBody BookingRequestDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(dto, user.getId()));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<BookingResponseDTO>> getUserBookings(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        return ResponseEntity.ok(bookingService.getUserBookings(user.getId()));
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelBooking(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        bookingService.cancelBooking(id, user.getId());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('STUDENT') or hasRole('LECTURER')")
-    public ResponseEntity<Booking> getBookingById(@PathVariable String id) {
+    public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable String id) {
         return ResponseEntity.ok(bookingService.getBookingById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BookingResponseDTO> updateBooking(
+            @PathVariable String id,
+            @Valid @RequestBody BookingRequestDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        return ResponseEntity.ok(bookingService.updateBooking(id, dto, user.getId()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBooking(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        bookingService.deleteBooking(id, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Admin Endpoints (Moderation) ───────────────────────────────────────────
+
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Booking>> getAllBookingsAdmin() {
+        return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
     @GetMapping("/conflicts/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Booking>> getConflicts(@PathVariable String id) {
-        Booking booking = bookingService.getBookingById(id);
+        Booking booking = bookingService.getBookingByIdRaw(id);
         return ResponseEntity.ok(bookingService.findConflicts(booking));
     }
 
-    /**
-     * Moderation Endpoint: Approves or Rejects a campus reservation.
-     * Core requirement for AdminReviewPage.
-     */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Booking> updateStatus(
             @PathVariable String id,
             @RequestBody StatusUpdateDTO request) {
-        
-        // Audit: Identify which Admin is performing this moderation
         String adminId = SecurityContextHolder.getContext().getAuthentication().getName();
-        
         return ResponseEntity.ok(bookingService.updateBookingStatus(
-            id, 
-            request.getStatus(), 
-            request.getReason(), 
-            adminId
+            id, request.getStatus(), request.getReason(), adminId
         ));
     }
 

@@ -17,7 +17,7 @@ export default function ResourceCard({ resource }) {
   return (
     <div className="resource-card">
       <div className="card-image-container">
-        {imageUrl && !imgError ? (
+        {imageUrl && !imgError && (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) ? (
           <img 
             src={imageUrl} 
             alt={resource.name || 'Resource'} 
@@ -25,7 +25,10 @@ export default function ResourceCard({ resource }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="card-placeholder">No Image Available</div>
+          <div className="card-placeholder" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>
+            <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>No Facility Preview</span>
+          </div>
         )}
         <div className={`status-badge ${statusClass}`}>
           {(resource.status || 'ACTIVE').replace(/_/g, ' ')}

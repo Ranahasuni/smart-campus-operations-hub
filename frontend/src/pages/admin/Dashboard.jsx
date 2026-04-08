@@ -31,9 +31,9 @@ export default function Dashboard() {
       // Fetch logs for activity
       const logRes = await authFetch('http://localhost:8082/api/logs');
       const logs = logRes.ok ? await logRes.json() : [];
-      
+
       const safeUsers = Array.isArray(users) ? users : [];
-      const safeLogs  = Array.isArray(logs) ? logs : [];
+      const safeLogs = Array.isArray(logs) ? logs : [];
 
       setStats({
         totalUsers: safeUsers.length,

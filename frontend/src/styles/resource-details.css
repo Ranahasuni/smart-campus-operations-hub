@@ -1,0 +1,223 @@
+.resource-details-container {
+  padding: 80px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.details-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .details-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.details-main-card {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resource-type-badge {
+  padding: 6px 14px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 100px;
+  color: var(--accent-light);
+  font-weight: 600;
+  font-size: 0.8rem;
+  width: fit-content;
+}
+
+.details-header h1 {
+  font-size: 2.5rem;
+  color: white;
+  margin: 0;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-active .status-dot { background: #22c55e; box-shadow: 0 0 10px #22c55e66; }
+.status-maintenance .status-dot { background: #eab308; box-shadow: 0 0 10px #eab30866; }
+.status-failure .status-dot { background: #ef4444; box-shadow: 0 0 10px #ef444466; }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.description-section {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.description-section h3 {
+  margin-bottom: 12px;
+  color: white;
+}
+
+.equipment-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.equipment-pill {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.availability-card {
+  padding: 32px;
+  position: sticky;
+  top: 100px;
+}
+
+.availability-card h2 {
+  font-size: 1.5rem;
+  color: white;
+  margin-bottom: 24px;
+}
+
+.date-picker-wrapper {
+  margin-bottom: 32px;
+}
+
+.date-input {
+  width: 100%;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+}
+
+.slots-section h4 {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.slot-item {
+  padding: 14px 20px;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.slot-available {
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.slot-booked {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.slot-label {
+  font-weight: 600;
+}
+
+.book-now-container {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 32px;
+}
+
+.btn-proceed {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--accent-primary);
+  border: none;
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn-proceed:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  cursor: not-allowed;
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+}
+
+.btn-proceed:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+}

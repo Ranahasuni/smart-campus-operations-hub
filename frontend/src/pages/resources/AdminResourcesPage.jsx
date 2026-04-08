@@ -11,7 +11,7 @@ export default function AdminResourcesPage() {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [filters, setFilters] = useState({
     name: '',
     building: '',
@@ -34,7 +34,7 @@ export default function AdminResourcesPage() {
       Object.keys(filters).forEach(key => {
         if (filters[key]) query.append(key, filters[key]);
       });
-      
+
       const res = await api.get(`/resources?${query.toString()}`);
       setResources(Array.isArray(res.data) ? res.data : []);
       setError('');
@@ -48,36 +48,28 @@ export default function AdminResourcesPage() {
   };
 
   const handleUpdateStatus = async (id, newStatus) => {
-    if (!window.confirm(`ACTION REQUIRED: Set this resource status to ${newStatus}?`)) return;
-    
     try {
       const res = await authFetch(`http://localhost:8081/api/resources/${id}/status?status=${newStatus}`, {
         method: 'PATCH'
       });
       if (res.ok) {
         fetchResources(); // Refresh list
-      } else {
-        alert('Server rejected the status update. Check permissions.');
       }
     } catch (err) {
-      alert('Network error while updating status.');
+      console.error('Status Update error:', err);
     }
   };
 
   const handleDeleteResource = async (id) => {
-    if (!window.confirm('CRITICAL WARNING: Are you sure you want to PERMANENTLY delete this facility? This action cannot be undone.')) return;
-    
     try {
       const res = await authFetch(`http://localhost:8081/api/resources/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
         setResources(prev => prev.filter(r => r.id !== id));
-      } else {
-        alert('Deletion failed. The resource might be assigned to active bookings.');
       }
     } catch (err) {
-      alert('Network error while deleting resource.');
+      console.error('Deletion error:', err);
     }
   };
 
@@ -102,14 +94,14 @@ export default function AdminResourcesPage() {
         </div>
       )}
 
-      <FilterPanel 
-        filters={filters} 
-        setFilters={setFilters} 
-        clearFilters={clearFilters} 
+      <FilterPanel
+        filters={filters}
+        setFilters={setFilters}
+        clearFilters={clearFilters}
       />
 
-      <ResourceTable 
-        resources={resources} 
+      <ResourceTable
+        resources={resources}
         onUpdateStatus={handleUpdateStatus}
         onDeleteResource={handleDeleteResource}
       />

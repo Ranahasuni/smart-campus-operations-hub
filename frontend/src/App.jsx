@@ -8,7 +8,14 @@ import UserProfile from './pages/auth/UserProfile';
 import NotificationPage from './pages/NotificationPage';
 import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
+import BookingResourceListPage from './pages/bookings/BookingResourceListPage';
+import BookingResourceDetailsPage from './pages/bookings/BookingResourceDetailsPage';
+import CreateBookingPage from './pages/bookings/CreateBookingPage';
+import MyBookingsPage from './pages/bookings/MyBookingsPage';
+import EditBookingPage from './pages/bookings/EditBookingPage';
 import TicketsPage from './pages/tickets/TicketsPage';
+import CreateTicketPage from './pages/tickets/CreateTicketPage';
+import TicketDetailsPage from './pages/tickets/TicketDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 
@@ -47,8 +54,29 @@ export default function App() {
             <Route path="/bookings" element={
               <ProtectedRoute><BookingsPage /></ProtectedRoute>
             } />
+            <Route path="/bookings/resources/:type" element={
+              <ProtectedRoute><BookingResourceListPage /></ProtectedRoute>
+            } />
+            <Route path="/bookings/resource/:id" element={
+              <ProtectedRoute><BookingResourceDetailsPage /></ProtectedRoute>
+            } />
+            <Route path="/bookings/create/:id" element={
+              <ProtectedRoute><CreateBookingPage /></ProtectedRoute>
+            } />
+            <Route path="/bookings/edit/:id" element={
+              <ProtectedRoute><EditBookingPage /></ProtectedRoute>
+            } />
+            <Route path="/my-bookings" element={
+              <ProtectedRoute><MyBookingsPage /></ProtectedRoute>
+            } />
             <Route path="/tickets" element={
               <ProtectedRoute><TicketsPage /></ProtectedRoute>
+            } />
+            <Route path="/tickets/new" element={
+              <ProtectedRoute><CreateTicketPage /></ProtectedRoute>
+            } />
+            <Route path="/tickets/:id" element={
+              <ProtectedRoute><TicketDetailsPage /></ProtectedRoute>
             } />
 
             {/* Admin only */}
