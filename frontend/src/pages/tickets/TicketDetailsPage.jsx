@@ -14,7 +14,8 @@ import {
   MessageSquare,
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Image as ImageIcon
 } from 'lucide-react';
 import CommentSection from '../../components/tickets/CommentSection';
 import '../../styles/tickets.css';
@@ -30,9 +31,11 @@ export default function TicketDetailsPage() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [resolutionNote, setResolutionNote] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     fetchTicketDetails();
+    fetchImages();
     if (user?.role === 'ADMIN') {
       fetchTechnicians();
     }
@@ -57,6 +60,15 @@ export default function TicketDetailsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchImages = async () => {
+    try {
+      const response = await ticketApi.getTicketImages(id);
+      setImages(response.data || []);
+    } catch (err) {
+      console.error('Failed to fetch images:', err);
     }
   };
 
@@ -209,6 +221,39 @@ export default function TicketDetailsPage() {
               </div>
             </div>
           </div>
+
+            {/* Maintenance Gallery */}
+            {images.length > 0 && (
+              <div className="glass-card" style={{ padding: '32px' }}>
+                <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ImageIcon size={20} className="text-indigo-400" />
+                  Maintenance Gallery
+                </h3>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+                  gap: '20px' 
+                }}>
+                  {images.map((img, index) => (
+                    <div 
+                      key={img.id} 
+                      className="group relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl cursor-pointer"
+                      onClick={() => window.open(`http://localhost:8082${img.imageUrl}`, '_blank')}
+                    >
+                      <img 
+                        src={`http://localhost:8082${img.imageUrl}`} 
+                        alt={img.caption || `Maintenance photo ${index + 1}`} 
+                        style={{ width: '100%', height: '160px', objectFit: 'cover' }}
+                        className="transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                        <span className="text-[10px] text-zinc-300 font-medium tracking-wider uppercase">View Full Photo</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
           <CommentSection ticketId={id} />
         </div>

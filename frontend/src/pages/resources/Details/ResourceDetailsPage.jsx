@@ -57,8 +57,8 @@ export default function ResourceDetailsPage() {
     }
   };
 
-  // Check for critical active tickets (OPEN or IN_PROGRESS and HIGH priority)
-  const hasCriticalIssue = tickets.some(t => 
+  // Check if we should show the maintenance banner
+  const showMaintenanceBanner = resource?.status === 'MAINTENANCE' || tickets.some(t => 
     t.priority === 'HIGH' && (t.status === 'OPEN' || t.status === 'IN_PROGRESS')
   );
 
@@ -101,7 +101,7 @@ export default function ResourceDetailsPage() {
       </Link>
 
       {/* CRITICAL ISSUE WARNING BANNER */}
-      {hasCriticalIssue && (
+      {showMaintenanceBanner && (
         <div style={{
           background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
           color: 'white',
