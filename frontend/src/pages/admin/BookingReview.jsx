@@ -26,8 +26,8 @@ export default function BookingReview() {
   const fetchReviewData = async () => {
     try {
       const [bookRes, confRes] = await Promise.all([
-        authFetch(`http://localhost:8082/api/bookings/${id}`),
-        authFetch(`http://localhost:8082/api/bookings/conflicts/${id}`)
+        authFetch(`http://localhost:8081/api/bookings/${id}`),
+        authFetch(`http://localhost:8081/api/bookings/conflicts/${id}`)
       ]);
       
       if (!bookRes.ok) throw new Error('Could not retrieve reservation details');
@@ -56,7 +56,7 @@ export default function BookingReview() {
 
     setProcessing(true);
     try {
-      const res = await authFetch(`http://localhost:8082/api/bookings/${id}/status`, {
+      const res = await authFetch(`http://localhost:8081/api/bookings/${id}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status, reason })
       });

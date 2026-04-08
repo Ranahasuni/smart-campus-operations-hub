@@ -13,7 +13,7 @@ import ImagesSection from './ImagesSection';
 import AvailabilitySection from './AvailabilitySection';
 import FormButtons from './FormButtons';
 
-export default function ResourceFormPage() {
+export default function ResourceEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { authFetch } = useAuth();
