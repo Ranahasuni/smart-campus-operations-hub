@@ -136,6 +136,9 @@ export default function BookingHistoryPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>{booking.resourceName}</h3>
+                  <span style={{ fontSize: '0.75rem', color: '#6366f1', fontWeight: 800 }}>
+                    {booking.bookingCode || `RSV-${new Date(booking.date).getFullYear()}-${booking.id?.slice(-5).toUpperCase()}`}
+                  </span>
                   <span style={{ fontSize: '0.7rem', color: '#475569', textTransform: 'uppercase', fontWeight: 600 }}>{booking.resourceType}</span>
                 </div>
                 

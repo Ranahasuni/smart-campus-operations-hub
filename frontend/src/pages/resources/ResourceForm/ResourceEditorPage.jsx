@@ -76,10 +76,21 @@ export default function ResourceEditorPage() {
 
     try {
       // Ensure numeric fields are sent as Numbers (Integers) for Spring Boot DTO
+      // & ONLY send fields defined in ResourceRequestDTO to avoid Jackson UnrecognizedPropertyException
       const preppedData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        type: formData.type,
         capacity: formData.capacity ? Number(formData.capacity) : null,
-        floor: formData.floor ? Number(formData.floor) : null
+        building: formData.building,
+        floor: formData.floor ? Number(formData.floor) : null,
+        roomNumber: formData.roomNumber,
+        status: formData.status || 'ACTIVE',
+        equipment: formData.equipment || [],
+        imageUrls: formData.imageUrls || [],
+        availableFrom: formData.availableFrom,
+        availableTo: formData.availableTo,
+        availableDays: formData.availableDays || []
       };
 
       const url = isEdit 
@@ -94,7 +105,16 @@ export default function ResourceEditorPage() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `Server Error (${res.status})`);
+        
+        // Handle Spring Boot validation errors (messages is a map)
+        if (errorData.messages && typeof errorData.messages === 'object') {
+          const fieldErrors = Object.entries(errorData.messages)
+            .map(([field, msg]) => `${field}: ${msg}`)
+            .join(', ');
+          throw new Error(`Validation Failed: ${fieldErrors}`);
+        }
+        
+        throw new Error(errorData.message || errorData.error || `Server Error (${res.status})`);
       }
       
       setShowSuccess(true);

@@ -28,5 +28,9 @@ public class BookingResponseDTO {
     private String purpose;
     private Integer expectedAttendees;
     private String rejectionReason;
+    
+    // Professional ID
+    private String bookingCode;
+    
     private LocalDateTime createdAt;
 }

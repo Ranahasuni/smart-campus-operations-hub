@@ -39,6 +39,8 @@ public class Booking {
     /** Only filled if status = REJECTED */
     private String rejectionReason;
 
+    private String bookingCode;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

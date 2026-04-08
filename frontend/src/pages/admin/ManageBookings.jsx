@@ -131,7 +131,9 @@ export default function ManageBookings() {
               return (
                 <tr key={b.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }}>
                   <td style={{ padding: '20px 24px' }}>
-                    <div style={{ color: '#fff', fontWeight: '600', fontSize: '0.9rem' }}>#{b.id?.slice(-8)}</div>
+                    <div style={{ color: '#fff', fontWeight: '800', fontSize: '0.85rem', letterSpacing: '0.5px' }}>
+                      {b.bookingCode || `RSV-${new Date(b.date).getFullYear()}-${b.id?.slice(-5).toUpperCase()}`}
+                    </div>
                     <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '4px' }}>{new Date(b.createdAt).toLocaleDateString()}</div>
                   </td>
                   <td style={{ padding: '20px 24px' }}>

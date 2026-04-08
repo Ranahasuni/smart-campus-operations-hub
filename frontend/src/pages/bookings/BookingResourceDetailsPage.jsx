@@ -89,13 +89,13 @@ export default function BookingResourceDetailsPage() {
   }, [resource]);
 
   if (loading) return (
-    <div className="resource-details-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <div className="booking-details-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
       <Loader2 className="animate-spin" size={48} style={{ color: '#6366f1' }} />
     </div>
   );
 
   if (error || !resource) return (
-    <div className="resource-details-container">
+    <div className="booking-details-container">
       <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
         <XCircle size={48} color="#f87171" style={{ marginBottom: '16px' }} />
         <h1>Facility Unreachable</h1>
@@ -108,7 +108,7 @@ export default function BookingResourceDetailsPage() {
   );
 
   return (
-    <div className="resource-details-container animate-fade-in">
+    <div className="booking-details-container animate-fade-in">
       <div className="breadcrumb" style={{ marginBottom: '32px' }}>
         <Link to={`/bookings/resources/${resource.type}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', textDecoration: 'none' }}>
           <ChevronLeft size={16} /> Back to List
@@ -117,7 +117,7 @@ export default function BookingResourceDetailsPage() {
 
       <div className="details-layout">
         <main className="details-main">
-          <div className="glass-card details-main-card">
+          <div className="glass-card booking-details-main">
             <header className="details-header">
               <div className="resource-type-badge">
                 {CATEGORY_MAP[resource.type]?.icon} {CATEGORY_MAP[resource.type]?.name || resource.type}
