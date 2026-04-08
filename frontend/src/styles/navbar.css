@@ -8,7 +8,7 @@
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -27,7 +27,10 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
-.navbar-logo { font-size: 1.4rem; }
+
+.navbar-logo {
+  font-size: 1.4rem;
+}
 
 /* Nav links */
 .navbar-links {
@@ -46,9 +49,19 @@
   font-weight: 500;
   transition: color 0.2s, background 0.2s;
 }
-.nav-link:hover { color: #f1f5f9; background: rgba(255,255,255,0.06); }
-.nav-link-admin { color: #f59e0b !important; }
-.nav-link-admin:hover { background: rgba(245,158,11,0.12) !important; }
+
+.nav-link:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-link-admin {
+  color: #f59e0b !important;
+}
+
+.nav-link-admin:hover {
+  background: rgba(245, 158, 11, 0.12) !important;
+}
 
 /* Right section */
 .navbar-right {
@@ -68,7 +81,10 @@
   border-radius: 10px;
   transition: background 0.2s;
 }
-.navbar-user:hover { background: rgba(255,255,255,0.06); }
+
+.navbar-user:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
 
 .navbar-avatar {
   width: 32px;
@@ -93,7 +109,8 @@
 
 .navbar-role-badge {
   font-size: 0.65rem;
-  color: #6366f1; /* Indigo color */
+  color: #6366f1;
+  /* Indigo color */
   font-weight: bold;
   letter-spacing: 0.05em;
   opacity: 0.8;
@@ -118,11 +135,15 @@
   color: #94a3b8;
   font-size: 0.875rem;
   font-weight: 600;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
   transition: all 0.2s;
 }
-.navbar-btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+
+.navbar-btn-ghost:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
 
 .navbar-btn-primary {
   padding: 7px 16px;
@@ -133,27 +154,29 @@
   font-weight: 600;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   transition: box-shadow 0.2s, transform 0.15s;
-  box-shadow: 0 2px 12px rgba(99,102,241,0.35);
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.35);
 }
+
 .navbar-btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(99,102,241,0.5);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
 }
 
 /* Logout button */
 .navbar-logout {
   padding: 7px 14px;
   border-radius: 9px;
-  border: 1px solid rgba(239,68,68,0.35);
-  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
   color: #fca5a5;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .navbar-logout:hover {
-  background: rgba(239,68,68,0.2);
-  border-color: rgba(239,68,68,0.6);
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.6);
   color: #fff;
 }

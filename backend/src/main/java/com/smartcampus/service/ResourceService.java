@@ -3,19 +3,22 @@ package com.smartcampus.service;
 import com.smartcampus.dto.ResourceRequestDTO;
 import com.smartcampus.dto.ResourceResponseDTO;
 import com.smartcampus.exception.ResourceNotFoundException;
-import com.smartcampus.model.*;
-import com.smartcampus.repository.ResourceRepository;
-import com.smartcampus.service.NotificationService;
+import com.smartcampus.model.Resource;
+import com.smartcampus.model.ResourceType;
+import com.smartcampus.model.ResourceStatus;
+import com.smartcampus.model.Booking;
 import com.smartcampus.model.NotificationType;
 import com.smartcampus.model.NotificationPriority;
+import com.smartcampus.repository.ResourceRepository;
+import com.smartcampus.repository.BookingRepository;
+import com.smartcampus.service.NotificationService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,11 +27,13 @@ import java.util.stream.Collectors;
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
+    private final BookingRepository bookingRepository;
     private final NotificationService notificationService;
 
     // ── HELPER — Build location string ─────────────────
     private String sanitize(String html) {
-        if (html == null) return null;
+        if (html == null)
+            return null;
         return html.replaceAll("<[^>]*>", ""); // Basic XSS protection
     }
 
@@ -40,9 +45,7 @@ public class ResourceService {
 
     // ── HELPER — Generate QR Code URL ──────────────────
     private String generateQRCode(String resourceId) {
-        String resourceUrl =
-                "https://smartcampus.com/resources/"
-                + resourceId;
+        String resourceUrl = "https://smartcampus.com/resources/" + resourceId;
         return "https://api.qrserver.com/v1/create-qr-code/"
                 + "?size=200x200&data=" + resourceUrl;
     }
@@ -93,8 +96,7 @@ public class ResourceService {
     // ── GET SINGLE RESOURCE ─────────────────────────────
     public ResourceResponseDTO getResourceById(String id) {
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
         return toDTO(resource);
     }
 
@@ -121,8 +123,7 @@ public class ResourceService {
     // ── GET QR CODE ─────────────────────────────────────
     public String getQRCode(String id) {
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
         return resource.getQrCodeUrl();
     }
 
@@ -137,17 +138,51 @@ public class ResourceService {
     // ── ANALYTICS SUMMARY ───────────────────────────────
     public Map<String, Object> getAnalyticsSummary() {
         List<Resource> all = resourceRepository.findAll();
+        List<Booking> allBookings = bookingRepository.findAll();
 
         long active = all.stream().filter(r -> r.getStatus() == ResourceStatus.ACTIVE).count();
         long maintenance = all.stream().filter(r -> r.getStatus() == ResourceStatus.MAINTENANCE).count();
         long outOfService = all.stream().filter(r -> r.getStatus() == ResourceStatus.OUT_OF_SERVICE).count();
 
-        return Map.of(
-                "totalResources", all.size(),
-                "activeResources", active,
-                "maintenanceResources", maintenance,
-                "outOfServiceResources", outOfService
-        );
+        // Distribution by Type
+        Map<ResourceType, Long> byType = all.stream()
+                .collect(Collectors.groupingBy(Resource::getType, Collectors.counting()));
+
+        // Distribution by Building
+        Map<String, Long> byBuilding = all.stream()
+                .collect(Collectors.groupingBy(Resource::getBuilding, Collectors.counting()));
+
+        // Top 5 Most Booked Resources
+        Map<String, Long> bookingCounts = allBookings.stream()
+                .collect(Collectors.groupingBy(Booking::getResourceId, Collectors.counting()));
+
+        List<Map<String, Object>> mostBooked = bookingCounts.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .limit(5)
+                .map(entry -> {
+                    Optional<Resource> rOpt = resourceRepository.findById(entry.getKey());
+                    if (rOpt.isEmpty())
+                        return null;
+                    Resource r = rOpt.get();
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("name", r.getName());
+                    item.put("type", r.getType().toString());
+                    item.put("building", r.getBuilding());
+                    item.put("count", entry.getValue());
+                    return item;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalResources", all.size());
+        summary.put("activeResources", active);
+        summary.put("maintenanceResources", maintenance);
+        summary.put("outOfServiceResources", outOfService);
+        summary.put("distributionByType", byType);
+        summary.put("distributionByBuilding", byBuilding);
+        summary.put("mostBooked", mostBooked);
+        return summary;
     }
 
     // ── CREATE ──────────────────────────────────────────
@@ -175,12 +210,12 @@ public class ResourceService {
 
         try {
             notificationService.notifyAdmins(
-                "Facility Added: " + finalSaved.getName(),
-                "Location: " + finalSaved.getLocation(),
-                NotificationType.SYSTEM,
-                NotificationPriority.MEDIUM
-            );
-        } catch (Exception e) {}
+                    "Facility Added: " + finalSaved.getName(),
+                    "Location: " + finalSaved.getLocation(),
+                    NotificationType.SYSTEM,
+                    NotificationPriority.MEDIUM);
+        } catch (Exception e) {
+        }
 
         return toDTO(finalSaved);
     }
@@ -201,21 +236,22 @@ public class ResourceService {
         resource.setLocation(buildLocation(dto.getBuilding(), dto.getFloor(), dto.getRoomNumber()));
         resource.setEquipment(dto.getEquipment());
         resource.setImageUrls(dto.getImageUrls());
+        resource.setStatus(dto.getStatus());
         resource.setAvailableFrom(dto.getAvailableFrom());
         resource.setAvailableTo(dto.getAvailableTo());
         resource.setAvailableDays(dto.getAvailableDays());
         resource.setUpdatedAt(LocalDateTime.now());
-        
+
         Resource updated = resourceRepository.save(resource);
 
         try {
             notificationService.notifyAdmins(
-                "Facility Updated: " + updated.getName(),
-                "Details for " + updated.getName() + " modified.",
-                NotificationType.SYSTEM,
-                NotificationPriority.MEDIUM
-            );
-        } catch (Exception e) {}
+                    "Facility Updated: " + updated.getName(),
+                    "Details for " + updated.getName() + " modified.",
+                    NotificationType.SYSTEM,
+                    NotificationPriority.MEDIUM);
+        } catch (Exception e) {
+        }
 
         return toDTO(updated);
     }
@@ -231,12 +267,12 @@ public class ResourceService {
 
         try {
             notificationService.notifyAdmins(
-                "Status Alert: " + resource.getName(),
-                "Marked as " + newStatus,
-                NotificationType.SYSTEM,
-                NotificationPriority.HIGH
-            );
-        } catch (Exception e) {}
+                    "Status Alert: " + resource.getName(),
+                    "Marked as " + newStatus,
+                    NotificationType.SYSTEM,
+                    NotificationPriority.HIGH);
+        } catch (Exception e) {
+        }
 
         return toDTO(updated);
     }
@@ -252,13 +288,14 @@ public class ResourceService {
     public void syncFacilitiesOnStartup() {
         try {
             List<Resource> all = resourceRepository.findAll();
-            if (all.isEmpty()) return;
+            if (all.isEmpty())
+                return;
             notificationService.notifyAdmins(
-                "Sync Complete",
-                all.size() + " resources indexed.",
-                NotificationType.SYSTEM,
-                NotificationPriority.LOW
-            );
-        } catch (Exception e) {}
+                    "Sync Complete",
+                    all.size() + " resources indexed.",
+                    NotificationType.SYSTEM,
+                    NotificationPriority.LOW);
+        } catch (Exception e) {
+        }
     }
 }
