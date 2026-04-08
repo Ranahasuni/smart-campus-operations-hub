@@ -5,11 +5,14 @@ import com.smartcampus.model.TicketStatus;
 import com.smartcampus.model.Comment;
 import com.smartcampus.model.Priority;
 import com.smartcampus.model.ResourceStatus;
+import com.smartcampus.model.TicketImage;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.CommentRepository;
 import com.smartcampus.repository.TicketImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.smartcampus.service.AuditService;
+import com.smartcampus.service.ResourceService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,13 +41,13 @@ public class TicketService {
         Ticket savedTicket = ticketRepository.save(ticket);
         auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket created with ID: " + savedTicket.getId());
 
-        // Impact Booking: If priority is HIGH, set resource to MAINTENANCE
-        if (savedTicket.getPriority() == Priority.HIGH && savedTicket.getResourceId() != null) {
+        // Impact Booking: If a ticket is created for a specific resource, set it to MAINTENANCE
+        if (savedTicket.getResourceId() != null) {
             try {
                 resourceService.updateStatus(savedTicket.getResourceId(), ResourceStatus.MAINTENANCE);
             } catch (Exception e) {
                 // Log and continue if resource service fails
-                System.err.println("Failed to update resource status: " + e.getMessage());
+                System.err.println("Failed to update resource status to MAINTENANCE: " + e.getMessage());
             }
         }
 
@@ -106,19 +109,19 @@ public class TicketService {
         Ticket updatedTicket = ticketRepository.save(ticket);
         auditService.log(updatedBy, "TICKET_STATUS_UPDATED", "Ticket " + ticketId + " status changed to " + newStatus);
 
-        // Impact Booking: If a HIGH priority ticket is resolved, check if we can set resource back to ACTIVE
-        if (newStatus == TicketStatus.RESOLVED && ticket.getPriority() == Priority.HIGH && ticket.getResourceId() != null) {
-            long openHighPriorityCount = ticketRepository.countByResourceIdAndStatusInAndPriority(
+        // Impact Booking: If a ticket is resolved, check if we can set resource back to ACTIVE
+        if (newStatus == TicketStatus.RESOLVED && ticket.getResourceId() != null) {
+            // Check if there are ANY other OPEN or IN_PROGRESS tickets for this resource
+            long openTicketsCount = ticketRepository.countByResourceIdAndStatusIn(
                 ticket.getResourceId(), 
-                List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS), 
-                Priority.HIGH
+                List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS)
             );
             
-            if (openHighPriorityCount == 0) {
+            if (openTicketsCount == 0) {
                 try {
                     resourceService.updateStatus(ticket.getResourceId(), ResourceStatus.ACTIVE);
                 } catch (Exception e) {
-                    System.err.println("Failed to reset resource status: " + e.getMessage());
+                    System.err.println("Failed to reset resource status to ACTIVE: " + e.getMessage());
                 }
             }
         }
@@ -155,5 +158,27 @@ public class TicketService {
 
     public List<Comment> getCommentsByTicketId(String ticketId) {
         return commentRepository.findByTicketId(ticketId);
+    }
+
+    // --- Images Logic ---
+    public List<TicketImage> saveImages(String ticketId, List<String> fileNames, String uploadedBy) {
+        Ticket ticket = getTicketById(ticketId);
+        java.util.List<TicketImage> savedImages = new java.util.ArrayList<>();
+        
+        for (String fileName : fileNames) {
+            TicketImage img = new TicketImage();
+            img.setTicketId(ticketId);
+            img.setImageUrl("/api/uploads/" + fileName);
+            img.setUploadedBy(uploadedBy);
+            img.setUploadedAt(LocalDateTime.now());
+            savedImages.add(ticketImageRepository.save(img));
+        }
+
+        auditService.log(uploadedBy, "TICKET_IMAGES_UPLOADED", "Uploaded " + fileNames.size() + " images to ticket " + ticketId);
+        return savedImages;
+    }
+
+    public List<TicketImage> getImagesByTicketId(String ticketId) {
+        return ticketImageRepository.findByTicketId(ticketId);
     }
 }

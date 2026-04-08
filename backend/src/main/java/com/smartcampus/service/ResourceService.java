@@ -12,7 +12,8 @@ import com.smartcampus.model.NotificationPriority;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.service.NotificationService;
-import jakarta.annotation.PostConstruct;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -284,7 +285,7 @@ public class ResourceService {
         resourceRepository.delete(resource);
     }
 
-    @PostConstruct
+    @EventListener(ContextRefreshedEvent.class)
     public void syncFacilitiesOnStartup() {
         try {
             List<Resource> all = resourceRepository.findAll();

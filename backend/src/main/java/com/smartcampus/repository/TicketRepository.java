@@ -15,4 +15,5 @@ public interface TicketRepository extends MongoRepository<Ticket, String> {
     List<Ticket> findByPriority(Priority priority);
     List<Ticket> findByResourceId(String resourceId);
     long countByResourceIdAndStatusInAndPriority(String resourceId, List<TicketStatus> statuses, Priority priority);
+    long countByResourceIdAndStatusIn(String resourceId, List<TicketStatus> statuses);
 }
