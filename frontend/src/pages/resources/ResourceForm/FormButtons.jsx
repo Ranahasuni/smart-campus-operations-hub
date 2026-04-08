@@ -5,16 +5,16 @@ export default function FormButtons({ isEdit, loading }) {
 
   return (
     <div className="form-actions">
-      <button 
-        type="button" 
+      <button
+        type="button"
         className="btn-secondary"
         onClick={() => navigate('/admin/resources')}
         disabled={loading}
       >
         Cancel
       </button>
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         className="btn-primary"
         disabled={loading}
       >

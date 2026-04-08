@@ -23,7 +23,7 @@ export default function ManageBookings() {
 
   const fetchBookings = async () => {
     try {
-      const res = await authFetch('http://localhost:8082/api/bookings/all');
+      const res = await authFetch('http://localhost:8081/api/bookings/all');
       if (!res.ok) throw new Error('System failed to retrieve reservation records');
       const data = await res.json();
       setBookings(Array.isArray(data) ? data : []);
@@ -36,7 +36,7 @@ export default function ManageBookings() {
 
   const updateStatus = async (id, status, reason = '') => {
     try {
-      const res = await authFetch(`http://localhost:8082/api/bookings/${id}/status`, {
+      const res = await authFetch(`http://localhost:8081/api/bookings/${id}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status, reason })
       });

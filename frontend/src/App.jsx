@@ -18,17 +18,17 @@ import TicketsPage from './pages/tickets/TicketsPage';
 import CreateTicketPage from './pages/tickets/CreateTicketPage';
 import TicketDetailsPage from './pages/tickets/TicketDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
+import ResourceEditorPage from './pages/resources/ResourceForm/ResourceEditorPage';
 
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import SystemLogs from './pages/admin/SystemLogs';
+import ResourceManagementPage from './pages/resources/ResourceManagementPage';
 import ManageBookings from './pages/admin/ManageBookings';
 import BookingReview from './pages/admin/BookingReview';
 import BookingCalendar from './pages/admin/BookingCalendar';
 import ManageTickets from './pages/admin/ManageTickets';
 import TicketReview from './pages/admin/TicketReview';
-import AdminResourcesPage from './pages/resources/AdminResourcesPage';
 
 export default function App() {
   return (
@@ -98,7 +98,7 @@ export default function App() {
             } />
             <Route path="/admin/resources" element={
               <ProtectedRoute role="ADMIN">
-                <AdminResourcesPage />
+                <ResourceManagementPage />
               </ProtectedRoute>
             } />
             <Route path="/admin/bookings" element={
@@ -134,13 +134,13 @@ export default function App() {
 
             <Route path="/admin/resources/new" element={
               <ProtectedRoute role="ADMIN">
-                <ResourceFormPage />
+                <ResourceEditorPage />
               </ProtectedRoute>
             } />
 
             <Route path="/admin/resources/edit/:id" element={
               <ProtectedRoute role="ADMIN">
-                <ResourceFormPage />
+                <ResourceEditorPage />
               </ProtectedRoute>
             } />
 

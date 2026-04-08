@@ -26,7 +26,7 @@ export default function NotificationPage() {
       let endpoint = '/api/notifications';
       if (filter === 'UNREAD') endpoint = '/api/notifications/unread';
       
-      const res = await authFetch(`http://localhost:8082${endpoint}?userId=${user.id}`);
+      const res = await authFetch(`http://localhost:8081${endpoint}?userId=${user.id}`);
       if (!res.ok) throw new Error('Failed to fetch notifications');
       
       let data = await res.json();
@@ -45,7 +45,7 @@ export default function NotificationPage() {
 
   const markRead = async (id) => {
     try {
-      const res = await authFetch(`http://localhost:8082/api/notifications/${id}/read`, { method: 'PUT' });
+      const res = await authFetch(`http://localhost:8081/api/notifications/${id}/read`, { method: 'PUT' });
       if (res.ok) {
         setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
       }
@@ -57,7 +57,7 @@ export default function NotificationPage() {
   const markAllRead = async () => {
     if (notifications.filter(n => !n.read).length === 0) return;
     try {
-      const res = await authFetch(`http://localhost:8082/api/notifications/mark-all-read?userId=${user.id}`, { method: 'PUT' });
+      const res = await authFetch(`http://localhost:8081/api/notifications/mark-all-read?userId=${user.id}`, { method: 'PUT' });
       if (res.ok) {
         setNotifications(notifications.map(n => ({ ...n, read: true })));
       }
@@ -68,7 +68,7 @@ export default function NotificationPage() {
 
   const deleteNotification = async (id) => {
     try {
-      const res = await authFetch(`http://localhost:8082/api/notifications/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`http://localhost:8081/api/notifications/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setNotifications(notifications.filter(n => n.id !== id));
       }
