@@ -54,4 +54,9 @@ public class Ticket {
     // --- SLA Timer Features ---
     private LocalDateTime assignedAt;
     private LocalDateTime resolvedAt;
+    
+    /** Helper to check if ticker is finalized */
+    public boolean isResolved() {
+        return this.status == TicketStatus.RESOLVED;
+    }
 }

@@ -49,7 +49,8 @@ public class TicketController {
             @RequestBody java.util.Map<String, String> request) {
         TicketStatus status = TicketStatus.valueOf(request.get("status"));
         String updatedBy = request.getOrDefault("updatedBy", "SYSTEM");
-        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, updatedBy));
+        String resolutionNote = request.get("resolutionNote");
+        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, updatedBy, resolutionNote));
     }
 
     @PatchMapping("/{id}/assign")
