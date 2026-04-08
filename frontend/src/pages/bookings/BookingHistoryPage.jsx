@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Calendar, Clock, Users, History,
-  Search, Loader2, CheckCircle2, XCircle, Clock4, Filter
+  Search, Loader2, CheckCircle2, XCircle, Clock4, Filter,
+  FileText, ArrowDownRight, Tag
 } from 'lucide-react';
-import '../../styles/my-bookings.css'; // Reusing established styles
+import '../../styles/my-bookings.css'; 
 
 const CATEGORY_MAP = {
   LAB: { name: 'Lab', icon: '🧪' },
   LECTURE_HALL: { name: 'Lecture Hall', icon: '🏛️' },
   MEETING_ROOM: { name: 'Meeting Room', icon: '🤝' },
   AUDITORIUM: { name: 'Auditorium', icon: '🎭' },
-  SPORTS_FACILITY: { name: 'Sports Facility', icon: '篮球' },
+  SPORTS_FACILITY: { name: 'Sports Facility', icon: '🏀' },
   EQUIPMENT: { name: 'Equipment', icon: '📽️' },
 };
 
@@ -21,10 +22,8 @@ export default function BookingHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [typeFilter, setTypeFilter] = useState('ALL');
 
   useEffect(() => {
     fetchHistory();
@@ -38,7 +37,6 @@ export default function BookingHistoryPage() {
         const data = await res.json();
         const today = new Date().toISOString().split('T')[0];
         
-        // Filter for history: REJECTED, CANCELLED, or APPROVED in the past
         const historyData = data.filter(b => 
           b.status === 'REJECTED' || 
           b.status === 'CANCELLED' || 
@@ -58,123 +56,139 @@ export default function BookingHistoryPage() {
     const matchesSearch = b.resourceName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          b.purpose.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' ? true : b.status === statusFilter;
-    const matchesType = typeFilter === 'ALL' ? true : b.resourceType === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    return matchesSearch && matchesStatus;
   });
 
   if (loading) return (
     <div className="my-bookings-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <Loader2 className="animate-spin" size={48} style={{ color: '#6366f1' }} />
+      <Loader2 className="animate-spin" size={48} style={{ color: '#94a3b8' }} />
     </div>
   );
 
   return (
-    <div className="my-bookings-container animate-fade-in">
-      <header className="bookings-dashboard-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '24px' }}>
+    <div className="my-bookings-container animate-fade-in" style={{ backgroundColor: '#0f172a' }}>
+      <header className="bookings-dashboard-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '32px' }}>
         <div>
-          <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Booking History</h1>
-          <p style={{ color: '#94a3b8' }}>Review your past and processed reservations.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#64748b', marginBottom: '8px' }}>
+            <History size={20} />
+            <span style={{ fontWeight: 600, letterSpacing: '1px', fontSize: '0.8rem', textTransform: 'uppercase' }}>Records Archive</span>
+          </div>
+          <h1 style={{ color: '#e2e8f0', fontSize: '2.5rem', fontWeight: 800 }}>Booking History</h1>
+          <p style={{ color: '#64748b' }}>A complete log of your processed and past reservations.</p>
         </div>
 
-        {/* Filters Row */}
-        <div className="glass-card" style={{ width: '100%', padding: '20px', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ flex: 1, minWidth: '250px', position: 'relative' }}>
-            <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={18} />
+        <div className="glass-card" style={{ padding: '12px 20px', display: 'flex', gap: '16px', alignItems: 'center', background: 'rgba(30, 41, 59, 0.5)' }}>
+          <div style={{ position: 'relative' }}>
+            <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#475569' }} size={16} />
             <input 
               type="text"
-              placeholder="Search by resource or purpose..."
+              placeholder="Search archive..."
               className="glass-input"
-              style={{ paddingLeft: '40px', width: '100%' }}
+              style={{ paddingLeft: '36px', width: '250px', fontSize: '0.9rem', height: '40px' }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.9rem' }}>
-              <Filter size={16} /> Filter:
-            </div>
-            
-            <select 
-              className="glass-input" 
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={{ padding: '8px 12px' }}
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="APPROVED">Completed (Approved)</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-
-            <select 
-              className="glass-input" 
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              style={{ padding: '8px 12px' }}
-            >
-              <option value="ALL">All Resource Types</option>
-              {Object.keys(CATEGORY_MAP).map(type => (
-                <option key={type} value={type}>{CATEGORY_MAP[type].name}</option>
-              ))}
-            </select>
-          </div>
+          
+          <select 
+            className="glass-input" 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{ padding: '0 12px', height: '40px', fontSize: '0.9rem' }}
+          >
+            <option value="ALL">All Outcomes</option>
+            <option value="APPROVED">Completed</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
         </div>
       </header>
 
       {error && <div className="error-banner">{error}</div>}
 
-      <div className="bookings-grid" style={{ marginTop: '24px' }}>
+      <div className="history-list" style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {filteredBookings.length > 0 ? (
           filteredBookings.map(booking => (
-            <div key={booking.id} className="glass-card booking-card" style={{ opacity: 0.85 }}>
-              <div className="resource-icon-box">
+            <div key={booking.id} className="glass-card" style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'auto 1fr auto', 
+              gap: '24px', 
+              alignItems: 'center',
+              padding: '20px 24px',
+              background: 'rgba(30, 41, 59, 0.3)',
+              border: '1px solid rgba(255,255,255,0.03)',
+              opacity: 0.8
+            }}>
+              <div style={{ 
+                width: '48px', 
+                height: '48px', 
+                borderRadius: '12px', 
+                background: 'rgba(148, 163, 184, 0.1)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                fontSize: '1.2rem',
+                color: '#94a3b8'
+              }}>
                 {CATEGORY_MAP[booking.resourceType]?.icon || '📍'}
               </div>
 
-              <div className="booking-info-main">
-                <div className="resource-name-row">
-                  <h3>{booking.resourceName}</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                    {booking.resourceType}
-                  </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>{booking.resourceName}</h3>
+                  <span style={{ fontSize: '0.7rem', color: '#475569', textTransform: 'uppercase', fontWeight: 600 }}>{booking.resourceType}</span>
                 </div>
                 
-                <div className="booking-meta-row">
-                  <div className="meta-item"><Calendar size={14} /> {booking.date}</div>
-                  <div className="meta-item"><Clock size={14} /> {booking.startTime.substring(0, 5)} - {booking.endTime.substring(0, 5)}</div>
-                  <div className="meta-item"><Users size={14} /> {booking.expectedAttendees} Attendees</div>
+                <div style={{ display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {booking.date}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {booking.startTime.substring(0, 5)} - {booking.endTime.substring(0, 5)}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={14} /> {booking.expectedAttendees}</span>
                 </div>
 
-                <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-                  <strong>Purpose:</strong> {booking.purpose}
+                <div style={{ color: '#475569', fontSize: '0.8rem', italic: 'true', marginTop: '4px' }}>
+                  " {booking.purpose} "
                 </div>
 
-                {booking.status === 'REJECTED' && booking.rejectionReason && (
-                  <div className="rejection-reason-box">
-                    <strong>Rejection Reason:</strong> {booking.rejectionReason}
+                {booking.status === 'REJECTED' && (
+                  <div style={{ 
+                    marginTop: '8px', 
+                    padding: '8px 12px', 
+                    background: 'rgba(239, 68, 68, 0.05)', 
+                    borderRadius: '6px',
+                    borderLeft: '3px solid #ef4444',
+                    fontSize: '0.8rem',
+                    color: '#f87171'
+                  }}>
+                    <strong>Reason for Rejection:</strong> {booking.rejectionReason}
                   </div>
                 )}
               </div>
 
-              <div className="booking-status-box" style={{ justifyContent: 'center' }}>
-                <span className={`status-badge status-${booking.status}`}>
+              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                <span style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: 700, 
+                  padding: '4px 10px', 
+                  borderRadius: '20px',
+                  letterSpacing: '0.5px',
+                  backgroundColor: booking.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.1)' : 
+                                  booking.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(148, 163, 184, 0.1)',
+                  color: booking.status === 'APPROVED' ? '#4ade80' : 
+                         booking.status === 'REJECTED' ? '#f87171' : '#94a3b8'
+                }}>
                   {booking.status === 'APPROVED' ? 'COMPLETED' : booking.status}
                 </span>
-                
-                {/* Visual indicator of flow */}
-                <div style={{ marginTop: '12px', color: '#64748b', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {booking.status === 'APPROVED' ? <CheckCircle2 size={12} color="#22c55e" /> : <XCircle size={12} color="#ef4444" />}
-                  {booking.status === 'APPROVED' ? 'Admin Approved' : 'Request Terminated'}
+                <div style={{ color: '#334155', fontSize: '0.7rem' }}>
+                  Processed Request
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="glass-card empty-state">
-            <History size={64} className="empty-state-icon" />
-            <h3>No history records</h3>
-            <p>Your previous reservation records will appear here.</p>
+          <div className="glass-card empty-state" style={{ padding: '80px 40px', opacity: 0.5 }}>
+            <FileText size={64} style={{ color: '#1e293b', marginBottom: '20px' }} />
+            <h3 style={{ color: '#475569' }}>Archive Empty</h3>
+            <p style={{ color: '#334155' }}>No historical records found for the selected filter.</p>
           </div>
         )}
       </div>
