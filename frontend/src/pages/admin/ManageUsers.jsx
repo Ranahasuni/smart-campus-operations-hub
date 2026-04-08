@@ -4,7 +4,7 @@ import { User, Shield, Search, Trash2, Edit2, Lock, Unlock, Loader2, AlertCircle
 import { Link } from 'react-router-dom';
 
 export default function ManageUsers() {
-  const { user: currentUser, authFetch } = useAuth();
+  const { user: currentUser, authFetch, API } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,7 +26,7 @@ export default function ManageUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await authFetch('http://localhost:8082/api/users');
+      const res = await authFetch(`${API}/api/users`);
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
@@ -42,7 +42,7 @@ export default function ManageUsers() {
     setError('');
     
     try {
-      const res = await authFetch('http://localhost:8082/api/users', {
+      const res = await authFetch(`${API}/api/users`, {
         method: 'POST',
         body: JSON.stringify(formData)
       });

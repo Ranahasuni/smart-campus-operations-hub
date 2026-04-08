@@ -74,6 +74,13 @@ export function AuthProvider({ children }) {
 
   /** Authenticated fetch helper — auto-attaches Bearer token and handles expiration */
   const authFetch = async (url, options = {}) => {
+    // Proactive check: if token is null/empty, session is effectively gone
+    if (!token) {
+      logout();
+      window.location.href = '/login?expired=true';
+      throw new Error('No authentication token found');
+    }
+
     const res = await fetch(url, {
       ...options,
       headers: {
@@ -83,10 +90,13 @@ export function AuthProvider({ children }) {
       },
     });
 
-    if (res.status === 401) {
+    // 401: Unauthorized (token expired/invalid)
+    // 403: Forbidden (session mismatch)
+    // 400: Bad Request (can often happen with malformed 'Bearer null' headers)
+    if (res.status === 401 || res.status === 403 || (res.status === 400 && url.includes('/api/'))) {
       logout();
       window.location.href = '/login?expired=true';
-      throw new Error('Session expired');
+      throw new Error('Session expired or security mismatch');
     }
 
     return res;

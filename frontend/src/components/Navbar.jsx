@@ -28,7 +28,7 @@ export default function Navbar() {
         {user?.role === 'ADMIN' ? (
           <>
             <Link to="/admin" className="nav-link nav-link-admin">Overview</Link>
-            <Link to="/admin/dashboard" className="nav-link nav-link-admin">Analytics</Link>
+
             <Link to="/admin/users" className="nav-link nav-link-admin">Accounts</Link>
             <Link to="/admin/resources" className="nav-link nav-link-admin">Facilities</Link>
             <Link to="/admin/bookings" className="nav-link nav-link-admin">Reservations</Link>

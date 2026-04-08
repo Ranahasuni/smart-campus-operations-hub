@@ -91,7 +91,7 @@ public class ResourceController {
 
         // POST /api/resources
         @PostMapping
-        @PreAuthorize("isAuthenticated()")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ResourceResponseDTO> createResource(
                         @Valid @RequestBody ResourceRequestDTO dto) {
                 return ResponseEntity
@@ -101,7 +101,7 @@ public class ResourceController {
 
         // PUT /api/resources/{id}
         @PutMapping("/{id}")
-        @PreAuthorize("isAuthenticated()")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ResourceResponseDTO> updateResource(
                         @PathVariable String id,
                         @Valid @RequestBody ResourceRequestDTO dto) {
@@ -111,7 +111,7 @@ public class ResourceController {
 
         // PATCH /api/resources/{id}/status
         @PatchMapping("/{id}/status")
-        @PreAuthorize("isAuthenticated()")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
         public ResponseEntity<ResourceResponseDTO> updateStatus(
                         @PathVariable String id,
                         @RequestParam ResourceStatus status) {
@@ -121,7 +121,7 @@ public class ResourceController {
 
         // DELETE /api/resources/{id}
         @DeleteMapping("/{id}")
-        @PreAuthorize("isAuthenticated()")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<Void> deleteResource(
                         @PathVariable String id) {
                 resourceService.deleteResource(id);

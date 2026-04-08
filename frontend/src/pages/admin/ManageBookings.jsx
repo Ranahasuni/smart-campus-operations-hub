@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Calendar, Search, Filter, CheckCircle, XCircle, 
-  Eye, Loader2, ArrowRight, Building, Users 
+  Calendar, Search, CheckCircle, XCircle, 
+  Loader2, Users 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ManageBookings() {
-  const { authFetch } = useAuth();
+  const { authFetch, API } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,7 +15,6 @@ export default function ManageBookings() {
   // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [typeFilter, setTypeFilter] = useState('ALL');
 
   useEffect(() => {
     fetchBookings();
@@ -23,7 +22,7 @@ export default function ManageBookings() {
 
   const fetchBookings = async () => {
     try {
-      const res = await authFetch('http://localhost:8082/api/bookings/all');
+      const res = await authFetch(`${API}/api/bookings/all`);
       if (!res.ok) throw new Error('System failed to retrieve reservation records');
       const data = await res.json();
       setBookings(Array.isArray(data) ? data : []);
@@ -36,7 +35,7 @@ export default function ManageBookings() {
 
   const updateStatus = async (id, status, reason = '') => {
     try {
-      const res = await authFetch(`http://localhost:8082/api/bookings/${id}/status`, {
+      const res = await authFetch(`${API}/api/bookings/${id}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status, reason })
       });
@@ -61,7 +60,11 @@ export default function ManageBookings() {
   };
 
   const filtered = (Array.isArray(bookings) ? bookings : []).filter(b => {
-    const matchesSearch = b.id?.includes(search) || b.userId?.includes(search) || b.resourceId?.includes(search);
+    const term = search.toLowerCase();
+    const matchesSearch = b.id?.toLowerCase().includes(term) || 
+                         b.requesterName?.toLowerCase().includes(term) || 
+                         b.resourceName?.toLowerCase().includes(term) ||
+                         b.bookingCode?.toLowerCase().includes(term);
     const matchesStatus = statusFilter === 'ALL' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -111,8 +114,11 @@ export default function ManageBookings() {
           <option value="PENDING">Pending</option>
           <option value="APPROVED">Authorized</option>
           <option value="REJECTED">Declined</option>
+          <option value="CANCELLED">Withdrawn</option>
         </select>
       </div>
+
+      {error && <div style={{ color: '#ef4444', marginBottom: '20px' }}>{error}</div>}
 
       <div style={{ background: 'rgba(15, 23, 42, 0.6)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -157,33 +163,37 @@ export default function ManageBookings() {
                     </span>
                   </td>
                   <td style={{ padding: '20px 24px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      <Link 
-                        to={`/admin/bookings/${b.id}`}
-                        style={{ padding: '8px', borderRadius: '10px', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)' }}
+                    {b.status === 'PENDING' ? (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button 
+                          onClick={() => updateStatus(b.id, 'APPROVED')}
+                          style={{ padding: '8px', borderRadius: '10px', color: '#22c55e', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.1)', cursor: 'pointer' }}
+                        >
+                          <CheckCircle size={18} />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            const reason = prompt('Please provide reason for rejection:');
+                            if (reason) updateStatus(b.id, 'REJECTED', reason);
+                          }}
+                          style={{ padding: '8px', borderRadius: '10px', color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.1)', cursor: 'pointer' }}
+                        >
+                          <XCircle size={18} />
+                        </button>
+                      </div>
+                    ) : b.status === 'APPROVED' ? (
+                      <button 
+                        onClick={() => {
+                          const reason = prompt('CRITICAL: Enter reason for REVOKING this authorized booking (Student will be notified):');
+                          if (reason) updateStatus(b.id, 'CANCELLED', reason);
+                        }}
+                        style={{ padding: '8px 16px', borderRadius: '10px', color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.1)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
                       >
-                        <Eye size={18} />
-                      </Link>
-                      {b.status === 'PENDING' && (
-                        <>
-                          <button 
-                            onClick={() => updateStatus(b.id, 'APPROVED')}
-                            style={{ padding: '8px', borderRadius: '10px', color: '#22c55e', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.1)', cursor: 'pointer' }}
-                          >
-                            <CheckCircle size={18} />
-                          </button>
-                          <button 
-                            onClick={() => {
-                              const reason = prompt('Please provide reason for rejection:');
-                              if (reason) updateStatus(b.id, 'REJECTED', reason);
-                            }}
-                            style={{ padding: '8px', borderRadius: '10px', color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.1)', cursor: 'pointer' }}
-                          >
-                            <XCircle size={18} />
-                          </button>
-                        </>
-                      )}
-                    </div>
+                        REVOKE SLOT
+                      </button>
+                    ) : (
+                      <span style={{ color: '#475569', fontSize: '0.75rem', fontStyle: 'italic' }}>Archived</span>
+                    )}
                   </td>
                 </tr>
               );

@@ -113,6 +113,17 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
     }
 
+    public BookingResponseDTO getBookingByIdSecure(String id, String userId, boolean isAdmin) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+        
+        if (!isAdmin && !booking.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to unauthorized reservation record.");
+        }
+        
+        return mapToResponseDTOEnriched(booking);
+    }
+
     public List<BookingResponseDTO> getUserBookings(String userId) {
         return bookingRepository.findByUserId(userId)
                 .stream()

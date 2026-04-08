@@ -19,31 +19,38 @@ public class TicketController {
     private final TicketService ticketService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> createTicket(@RequestBody Ticket ticket) {
         return new ResponseEntity<>(ticketService.createTicket(ticket), HttpStatus.CREATED);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
     public ResponseEntity<List<Ticket>> getAllTickets() {
         return ResponseEntity.ok(ticketService.getAllTickets());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> getTicketById(@PathVariable String id) {
+        // Ownership check should be in service, but we gate it here first
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
     @GetMapping("/resource/{resourceId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
     public ResponseEntity<List<Ticket>> getByResource(@PathVariable String resourceId) {
         return ResponseEntity.ok(ticketService.getTicketsByResourceId(resourceId));
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Ticket>> getTicketsByUser(@PathVariable String userId) {
         return ResponseEntity.ok(ticketService.getTicketsByUserId(userId));
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
     public ResponseEntity<Ticket> updateStatus(
             @PathVariable String id,
             @RequestBody java.util.Map<String, String> request) {
@@ -54,6 +61,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Ticket> assignTechnician(
             @PathVariable String id,
             @RequestBody java.util.Map<String, String> request) {
@@ -63,6 +71,7 @@ public class TicketController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         ticketService.deleteTicket(id);
         return ResponseEntity.noContent().build();
