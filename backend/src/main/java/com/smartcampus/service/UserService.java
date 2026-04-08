@@ -47,6 +47,10 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public List<User> getUsersByRole(com.smartcampus.model.Role role) {
+        return userRepository.findByRole(role);
+    }
+
     public User getUserById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));

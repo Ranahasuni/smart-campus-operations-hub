@@ -64,6 +64,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    /** List users by role — ADMIN only */
+    @GetMapping("/role/{role}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<User>> getUsersByRole(@PathVariable com.smartcampus.model.Role role) {
+        return ResponseEntity.ok(userService.getUsersByRole(role));
+    }
+
     /** Get user details — ADMIN only */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
