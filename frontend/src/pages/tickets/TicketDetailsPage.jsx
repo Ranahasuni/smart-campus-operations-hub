@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
+import userApi from '../../api/userApi';
 import { 
   ArrowLeft, 
   Clock, 
@@ -12,7 +13,8 @@ import {
   User,
   MessageSquare,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 import '../../styles/tickets.css';
 
@@ -23,10 +25,24 @@ export default function TicketDetailsPage() {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [technicians, setTechnicians] = useState([]);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     fetchTicketDetails();
-  }, [id]);
+    if (user?.role === 'ADMIN') {
+      fetchTechnicians();
+    }
+  }, [id, user]);
+
+  const fetchTechnicians = async () => {
+    try {
+      const response = await userApi.getUsersByRole('TECHNICIAN');
+      setTechnicians(response.data);
+    } catch (err) {
+      console.error('Failed to fetch technicians', err);
+    }
+  };
 
   const fetchTicketDetails = async () => {
     try {
@@ -58,6 +74,21 @@ export default function TicketDetailsPage() {
       alert(`Failed to update status: ${msg} (Status: ${err.response?.status})`);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleAssign = async (technicianId) => {
+    if (!technicianId) return;
+    try {
+      setIsAssigning(true);
+      await ticketApi.assignTechnician(id, technicianId, user.id);
+      await fetchTicketDetails();
+      alert('Technician assigned successfully!');
+    } catch (err) {
+      console.error('Assignment failed:', err);
+      alert('Failed to assign technician');
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -185,18 +216,59 @@ export default function TicketDetailsPage() {
           <div className="glass-card" style={{ padding: '24px', background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
             <h4 style={{ marginBottom: '12px', fontSize: '1rem' }}>Staff Portal Update</h4>
             {isAdmin ? (
-              <>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                  Select the current progress of this maintenance request.
-                </p>
-                <button 
-                  onClick={() => setShowStatusModal(true)} 
-                  className="btn-primary" 
-                  style={{ width: '100%', fontSize: '0.85rem' }}
-                >
-                  Update Ticket Status
-                </button>
-              </>
+              <div className="space-y-4">
+                <div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                    Current Status: <strong className="text-white">{ticket.status.replace('_', ' ')}</strong>
+                  </p>
+                  <button 
+                    onClick={() => setShowStatusModal(true)} 
+                    className="btn-primary" 
+                    style={{ width: '100%', fontSize: '0.85rem' }}
+                    disabled={updating}
+                  >
+                    {updating ? 'Updating...' : 'Update Ticket Status'}
+                  </button>
+                </div>
+
+                {user.role === 'ADMIN' && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '700' }}>
+                      ASSIGN TECHNICIAN
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <select 
+                        className="glass-input"
+                        style={{ width: '100%', padding: '10px', fontSize: '0.85rem', marginBottom: '12px' }}
+                        value={ticket.technicianId || ''}
+                        onChange={(e) => handleAssign(e.target.value)}
+                        disabled={isAssigning}
+                      >
+                        <option value="">Unassigned</option>
+                        {technicians.map(tech => (
+                          <option key={tech.id} value={tech.id}>
+                            {tech.fullName} ({tech.campusId})
+                          </option>
+                        ))}
+                      </select>
+                      {isAssigning && (
+                        <div style={{ position: 'absolute', right: '10px', top: '10px' }}>
+                          <Loader2 className="animate-spin" size={16} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {ticket.technicianId && user.role !== 'ADMIN' && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>ASSIGNED TO</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--accent-primary)' }}>
+                      Staff Member: {ticket.technicianId}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                 Status updates are managed by the physical facilities department.
