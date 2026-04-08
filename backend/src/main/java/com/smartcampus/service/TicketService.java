@@ -4,6 +4,7 @@ import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketStatus;
 import com.smartcampus.model.Comment;
 import com.smartcampus.model.Priority;
+import com.smartcampus.model.ResourceStatus;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.CommentRepository;
 import com.smartcampus.repository.TicketImageRepository;
@@ -21,6 +22,7 @@ public class TicketService {
     private final CommentRepository commentRepository;
     private final TicketImageRepository ticketImageRepository;
     private final AuditService auditService;
+    private final ResourceService resourceService;
 
     public Ticket createTicket(Ticket ticket) {
         ticket.setStatus(TicketStatus.OPEN);
@@ -35,6 +37,17 @@ public class TicketService {
         
         Ticket savedTicket = ticketRepository.save(ticket);
         auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket created with ID: " + savedTicket.getId());
+
+        // Impact Booking: If priority is HIGH, set resource to MAINTENANCE
+        if (savedTicket.getPriority() == Priority.HIGH && savedTicket.getResourceId() != null) {
+            try {
+                resourceService.updateStatus(savedTicket.getResourceId(), ResourceStatus.MAINTENANCE);
+            } catch (Exception e) {
+                // Log and continue if resource service fails
+                System.err.println("Failed to update resource status: " + e.getMessage());
+            }
+        }
+
         return savedTicket;
     }
 
@@ -74,13 +87,12 @@ public class TicketService {
     }
 
     public List<Ticket> getTicketsByResourceId(String resourceId) {
-        return ticketRepository.findAll().stream()
-                .filter(t -> t.getResourceId() != null && t.getResourceId().equals(resourceId))
-                .toList();
+        return ticketRepository.findByResourceId(resourceId);
     }
 
     public Ticket updateTicketStatus(String ticketId, TicketStatus newStatus, String updatedBy, String resolutionNote) {
         Ticket ticket = getTicketById(ticketId);
+        TicketStatus oldStatus = ticket.getStatus();
         ticket.setStatus(newStatus);
         ticket.setUpdatedAt(LocalDateTime.now());
 
@@ -93,6 +105,24 @@ public class TicketService {
 
         Ticket updatedTicket = ticketRepository.save(ticket);
         auditService.log(updatedBy, "TICKET_STATUS_UPDATED", "Ticket " + ticketId + " status changed to " + newStatus);
+
+        // Impact Booking: If a HIGH priority ticket is resolved, check if we can set resource back to ACTIVE
+        if (newStatus == TicketStatus.RESOLVED && ticket.getPriority() == Priority.HIGH && ticket.getResourceId() != null) {
+            long openHighPriorityCount = ticketRepository.countByResourceIdAndStatusInAndPriority(
+                ticket.getResourceId(), 
+                List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS), 
+                Priority.HIGH
+            );
+            
+            if (openHighPriorityCount == 0) {
+                try {
+                    resourceService.updateStatus(ticket.getResourceId(), ResourceStatus.ACTIVE);
+                } catch (Exception e) {
+                    System.err.println("Failed to reset resource status: " + e.getMessage());
+                }
+            }
+        }
+
         return updatedTicket;
     }
 
