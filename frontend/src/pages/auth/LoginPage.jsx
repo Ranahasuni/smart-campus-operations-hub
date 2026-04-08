@@ -13,6 +13,10 @@ export default function Login() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Check for expiration msg in URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const isExpired = searchParams.get('expired') === 'true';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,6 +50,13 @@ export default function Login() {
           <h1>Smart Campus</h1>
           <p>Sign in with your Campus ID</p>
         </div>
+
+        {isExpired && !error && (
+          <div className="auth-alert auth-alert-warning" style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.2)', color: '#fbbf24', padding: '12px', borderRadius: '10px', marginBottom: '1.5rem', display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.875rem' }}>
+            <AlertCircle size={18} />
+            <span>Session expired for security. Please sign in again.</span>
+          </div>
+        )}
 
         {error && (
           <div className="auth-alert auth-alert-error">

@@ -19,4 +19,17 @@ api.interceptors.request.use(
   }
 );
 
+// Interceptor to handle session expiration (401 Unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('sc_token');
+      localStorage.removeItem('sc_user');
+      window.location.href = '/login?expired=true';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
