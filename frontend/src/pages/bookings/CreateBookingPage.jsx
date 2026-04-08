@@ -107,14 +107,37 @@ export default function CreateBookingPage() {
     const selectedDate = new Date(formData.date);
     
     if (selectedDate < now.setHours(0,0,0,0)) return "Date cannot be in the past";
-    if (formData.startTime >= formData.endTime) return "Start time must be before end time";
-    if (resource && formData.expectedAttendees > resource.capacity) return `Capacity exceeded (Max: ${resource.capacity})`;
     
     if (resource) {
       if (resource.status !== 'ACTIVE') return `Resource is currently ${resource.status.replace(/_/g, ' ')}`;
+      
+      // Check if it's TODAY and the current time is already past resource closing hours
+      const isToday = formData.date === getLocalDate();
+      if (isToday) {
+        const [closeH, closeM] = resource.availableTo.split(':').map(Number);
+        const closeTime = new Date();
+        closeTime.setHours(closeH, closeM, 0, 0);
+        
+        if (new Date() > closeTime) {
+          return `Resource is closed for today (Closed at ${resource.availableTo}). Please select a future date.`;
+        }
+        
+        // Also check if selected start time is in the past
+        const [startH, startM] = formData.startTime.split(':').map(Number);
+        const selectedStart = new Date();
+        selectedStart.setHours(startH, startM, 0, 0);
+        
+        if (selectedStart < new Date()) {
+          return "Start time cannot be in the past for current day bookings";
+        }
+      }
+
       if (formData.startTime < resource.availableFrom) return `Starts before opening (${resource.availableFrom})`;
       if (formData.endTime > resource.availableTo) return `Ends after closing (${resource.availableTo})`;
     }
+
+    if (formData.startTime >= formData.endTime) return "Start time must be before end time";
+    if (resource && formData.expectedAttendees > resource.capacity) return `Capacity exceeded (Max: ${resource.capacity})`;
 
     // Conflict Check (Client Side)
     const hasConflict = bookedSlots.some(b => 
@@ -285,7 +308,7 @@ export default function CreateBookingPage() {
               <p className="no-bookings-hint">Full day available! All slots are currently open.</p>
             )}
             <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '12px' }}>
-              Resource Hours: {resource?.availableFrom} AM to {resource?.availableTo} PM
+              Resource Hours: {resource?.availableFrom} to {resource?.availableTo}
             </p>
           </div>
 
