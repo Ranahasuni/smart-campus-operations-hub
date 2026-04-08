@@ -13,13 +13,13 @@ const ticketApi = {
   // Get a single ticket by ID
   getTicketById: (id) => api.get(`/tickets/${id}`),
 
-  // Update a ticket's status (using patch with request params)
+  // Update a ticket's status (PATCH with JSON body)
   updateTicketStatus: (id, status, updatedBy) => 
-    api.patch(`/tickets/${id}/status`, null, { params: { status, updatedBy } }),
+    api.patch(`/tickets/${id}/status`, { status, updatedBy }),
 
-  // Assign a technician to a ticket
+  // Assign a technician to a ticket (PATCH with JSON body)
   assignTechnician: (id, technicianId, assignedBy) => 
-    api.patch(`/tickets/${id}/assign`, null, { params: { technicianId, assignedBy } })
+    api.patch(`/tickets/${id}/assign`, { technicianId, assignedBy })
 };
 
 export default ticketApi;
