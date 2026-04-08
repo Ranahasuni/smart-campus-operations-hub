@@ -176,6 +176,22 @@ export default function TicketDetailsPage() {
             </p>
           </div>
 
+          {ticket.status === 'RESOLVED' && ticket.resolutionNotes && (
+            <div className="glass-card animate-slide-up" style={{ 
+              padding: '32px', 
+              background: 'rgba(16, 185, 129, 0.05)', 
+              border: '1px solid rgba(16, 185, 129, 0.2)' 
+            }}>
+              <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981' }}>
+                <CheckCircle2 size={20} />
+                Resolution Details
+              </h3>
+              <p style={{ fontSize: '1.1rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.8', fontStyle: 'italic' }}>
+                "{ticket.resolutionNotes}"
+              </p>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
             <div className="glass-card" style={{ padding: '24px' }}>
               <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '700' }}>CATEGORY</label>
