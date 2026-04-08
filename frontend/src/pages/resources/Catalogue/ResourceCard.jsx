@@ -11,8 +11,17 @@ export default function ResourceCard({ resource }) {
     ? resource.imageUrls[0] 
     : null;
 
-  // Converts ACTIVE to status-active
-  const statusClass = `status-${(resource.status || 'ACTIVE').toLowerCase().replace('_', '')}`;
+  // Converts OUT_OF_SERVICE to status-outofservice
+  const statusClass = `status-${(resource.status || 'ACTIVE').toLowerCase().replace(/_/g, '')}`;
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'ACTIVE': return 'Online';
+      case 'MAINTENANCE': return 'Maintenance';
+      case 'OUT_OF_SERVICE': return 'Offline';
+      default: return status;
+    }
+  };
 
   return (
     <div className="resource-card">
@@ -31,7 +40,7 @@ export default function ResourceCard({ resource }) {
           </div>
         )}
         <div className={`status-badge ${statusClass}`}>
-          {(resource.status || 'ACTIVE').replace(/_/g, ' ')}
+          {getStatusLabel(resource.status || 'ACTIVE')}
         </div>
       </div>
 
