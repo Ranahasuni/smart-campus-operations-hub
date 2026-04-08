@@ -7,6 +7,7 @@ import com.smartcampus.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,31 +21,37 @@ public class TicketController {
     private final TicketService ticketService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> createTicket(@RequestBody Ticket ticket) {
         return new ResponseEntity<>(ticketService.createTicket(ticket), HttpStatus.CREATED);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
     public ResponseEntity<List<Ticket>> getAllTickets() {
         return ResponseEntity.ok(ticketService.getAllTickets());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> getTicketById(@PathVariable String id) {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
     @GetMapping("/resource/{resourceId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
     public ResponseEntity<List<Ticket>> getByResource(@PathVariable String resourceId) {
         return ResponseEntity.ok(ticketService.getTicketsByResourceId(resourceId));
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Ticket>> getTicketsByUser(@PathVariable String userId) {
         return ResponseEntity.ok(ticketService.getTicketsByUserId(userId));
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
     public ResponseEntity<Ticket> updateStatus(
             @PathVariable String id,
             @RequestBody java.util.Map<String, String> request) {
@@ -55,6 +62,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Ticket> assignTechnician(
             @PathVariable String id,
             @RequestBody java.util.Map<String, String> request) {
@@ -64,18 +72,21 @@ public class TicketController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTicket(@PathVariable String id) {
         ticketService.deleteTicket(id);
     }
 
-    // --- Comments Endpoints ---
+    // --- Comments Endpoints (Secured) ---
     @PostMapping("/{id}/comments")
+    @PreAuthorize("isAuthenticated()")
     public Comment addComment(@PathVariable String id, @RequestBody Comment comment) {
         return ticketService.addComment(id, comment);
     }
 
     @GetMapping("/{id}/comments")
+    @PreAuthorize("isAuthenticated()")
     public List<Comment> getComments(@PathVariable String id) {
         return ticketService.getCommentsByTicketId(id);
     }

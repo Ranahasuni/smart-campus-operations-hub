@@ -63,8 +63,13 @@ public class BookingService {
                 .expectedAttendees(dto.getExpectedAttendees())
                 .status(BookingStatus.PENDING)
                 .build();
-
-        return mapToResponseDTO(bookingRepository.save(booking));
+        
+        Booking saved = bookingRepository.save(booking);
+        // Generate professional code: RSV-[YEAR]-[LAST 5 OF ID]
+        String code = "RSV-" + saved.getDate().getYear() + "-" + saved.getId().substring(saved.getId().length() - 5).toUpperCase();
+        saved.setBookingCode(code);
+        
+        return mapToResponseDTO(bookingRepository.save(saved));
     }
 
     public BookingResponseDTO updateBooking(String id, BookingRequestDTO dto, String userId) {
@@ -108,6 +113,17 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
     }
 
+    public BookingResponseDTO getBookingByIdSecure(String id, String userId, boolean isAdmin) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+        
+        if (!isAdmin && !booking.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to unauthorized reservation record.");
+        }
+        
+        return mapToResponseDTOEnriched(booking);
+    }
+
     public List<BookingResponseDTO> getUserBookings(String userId) {
         return bookingRepository.findByUserId(userId)
                 .stream()
@@ -145,6 +161,11 @@ public class BookingService {
         Booking booking = getBookingByIdRaw(id);
         
         if (status == BookingStatus.APPROVED) {
+            // Check if resource still exists
+            if (!resourceRepository.existsById(booking.getResourceId())) {
+                throw new IllegalStateException("RESOURCE_MISSING: The associated facility has been decommissioned.");
+            }
+
             List<Booking> conflicts = findConflicts(booking);
             if (!conflicts.isEmpty()) {
                 throw new IllegalStateException("CONFLICT: Slot already occupied.");
@@ -194,9 +215,9 @@ public class BookingService {
         return BookingResponseDTO.builder()
                 .id(booking.getId())
                 .userId(booking.getUserId())
-                .requesterName(user != null ? user.getFullName() : "Unknown User")
+                .requesterName(user != null ? user.getFullName() : "Unknown User (" + booking.getUserId() + ")")
                 .resourceId(booking.getResourceId())
-                .resourceName(resource != null ? resource.getName() : "Unknown Resource")
+                .resourceName(resource != null ? resource.getName() : "Unknown Resource [" + booking.getResourceId() + "]")
                 .resourceType(resource != null ? resource.getType() : null)
                 .date(booking.getDate())
                 .startTime(booking.getStartTime())
@@ -205,6 +226,7 @@ public class BookingService {
                 .purpose(booking.getPurpose())
                 .expectedAttendees(booking.getExpectedAttendees())
                 .rejectionReason(booking.getRejectionReason())
+                .bookingCode(booking.getBookingCode() != null ? booking.getBookingCode() : "RSV-" + booking.getDate().getYear() + "-" + booking.getId().substring(Math.max(0, booking.getId().length() - 5)).toUpperCase())
                 .createdAt(booking.getCreatedAt())
                 .build();
     }

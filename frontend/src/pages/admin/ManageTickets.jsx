@@ -25,7 +25,7 @@ export default function ManageTickets() {
 
   const fetchTickets = async () => {
     try {
-      const res = await authFetch('http://localhost:8081/api/tickets');
+      const res = await authFetch('http://localhost:8082/api/tickets');
       if (!res.ok) throw new Error('Failed to retrieve system tickets');
       const data = await res.json();
       setTickets(Array.isArray(data) ? data.reverse() : []);

@@ -4,7 +4,7 @@ import { User, Shield, Search, Trash2, Edit2, Lock, Unlock, Loader2, AlertCircle
 import { Link } from 'react-router-dom';
 
 export default function ManageUsers() {
-  const { user: currentUser, authFetch } = useAuth();
+  const { user: currentUser, authFetch, API } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,7 +26,7 @@ export default function ManageUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await authFetch('http://localhost:8081/api/users');
+      const res = await authFetch(`${API}/api/users`);
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
@@ -42,7 +42,7 @@ export default function ManageUsers() {
     setError('');
     
     try {
-      const res = await authFetch('http://localhost:8081/api/users', {
+      const res = await authFetch(`${API}/api/users`, {
         method: 'POST',
         body: JSON.stringify(formData)
       });
@@ -64,7 +64,7 @@ export default function ManageUsers() {
     const newStatus = currentStatus === 'LOCKED' || currentStatus === 'DISABLED' ? 'ACTIVE' : 'LOCKED';
     if (!window.confirm(`Are you sure you want to change this user's status to ${newStatus}?`)) return;
     try {
-      const res = await authFetch(`http://localhost:8081/api/users/${id}/status`, {
+      const res = await authFetch(`http://localhost:8082/api/users/${id}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status: newStatus })
       });
@@ -79,7 +79,7 @@ export default function ManageUsers() {
   const deleteUser = async (id, name) => {
     if (!window.confirm(`CRITICAL: Are you sure you want to PERMANENTLY delete user "${name}"? This action cannot be undone.`)) return;
     try {
-      const res = await authFetch(`http://localhost:8081/api/users/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`http://localhost:8082/api/users/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setUsers(users.filter(u => u.id !== id));
       } else {
@@ -93,7 +93,7 @@ export default function ManageUsers() {
 
   const changeRole = async (id, newRole) => {
     try {
-      const res = await authFetch(`http://localhost:8081/api/users/${id}`, {
+      const res = await authFetch(`http://localhost:8082/api/users/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ role: newRole })
       });

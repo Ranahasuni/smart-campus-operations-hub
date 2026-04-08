@@ -121,10 +121,13 @@ export default function MyBookingsPage() {
 
               <div className="booking-info-main">
                 <div className="resource-name-row">
-                  <h3>{booking.resourceName}</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                    {booking.resourceType}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>{booking.resourceName}</h3>
+                    <span style={{ fontSize: '0.75rem', color: '#6366f1', fontWeight: 800 }}>
+                      {booking.bookingCode || `RSV-${new Date(booking.date).getFullYear()}-${booking.id?.slice(-5).toUpperCase()}`}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: '#475569', textTransform: 'uppercase', fontWeight: 600 }}>{booking.resourceType}</span>
+                  </div>
                 </div>
                 
                 <div className="booking-meta-row">

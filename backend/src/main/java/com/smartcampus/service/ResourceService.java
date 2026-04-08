@@ -232,6 +232,7 @@ public class ResourceService {
         resource.setBuilding(dto.getBuilding());
         resource.setFloor(dto.getFloor());
         resource.setRoomNumber(dto.getRoomNumber());
+        resource.setStatus(dto.getStatus() != null ? dto.getStatus() : resource.getStatus());
         resource.setLocation(buildLocation(dto.getBuilding(), dto.getFloor(), dto.getRoomNumber()));
         resource.setEquipment(dto.getEquipment());
         resource.setImageUrls(dto.getImageUrls());

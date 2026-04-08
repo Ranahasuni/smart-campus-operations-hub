@@ -7,7 +7,7 @@ import { Clock, ShieldAlert, CheckCircle, Trash2, Search, Filter, Loader2, Info 
  * Retrieves comprehensive history of system events.
  */
 export default function SystemLogs() {
-  const { authFetch } = useAuth();
+  const { authFetch, API } = useAuth();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,7 +19,7 @@ export default function SystemLogs() {
 
   const fetchLogs = async () => {
     try {
-      const res = await authFetch('http://localhost:8081/api/logs');
+      const res = await authFetch(`${API}/api/logs`);
       if (!res.ok) throw new Error('Failed to fetch system logs');
       const data = await res.json();
       setLogs(Array.isArray(data) ? data.reverse() : []); // Newest first

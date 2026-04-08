@@ -67,8 +67,16 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable String id) {
-        return ResponseEntity.ok(bookingService.getBookingById(id));
+    public ResponseEntity<BookingResponseDTO> getBookingById(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+        
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                
+        return ResponseEntity.ok(bookingService.getBookingByIdSecure(id, user.getId(), isAdmin));
     }
 
     @PutMapping("/{id}")
