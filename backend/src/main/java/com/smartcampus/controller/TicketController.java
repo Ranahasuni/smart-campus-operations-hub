@@ -39,7 +39,7 @@ public class TicketController {
     }
 
     @GetMapping("/resource/{resourceId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Ticket>> getByResource(@PathVariable String resourceId) {
         return ResponseEntity.ok(ticketService.getTicketsByResourceId(resourceId));
     }

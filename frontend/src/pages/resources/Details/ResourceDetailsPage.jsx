@@ -28,18 +28,30 @@ export default function ResourceDetailsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch resource and tickets in parallel
-      const [resResponse, ticketsResponse] = await Promise.all([
-        api.get(`/resources/${id}`),
-        ticketApi.getTicketsByResourceId(id)
-      ]);
+      // Fetch resource details first (essential)
+      try {
+        const resResponse = await api.get(`/resources/${id}`);
+        setResource(resResponse.data);
+        setError(null);
+      } catch (err) {
+        console.error('Resource fetch error:', err);
+        setError('The requested resource could not be found or connection was lost.');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch tickets separately (optional, don't crash if it fails)
+      try {
+        const ticketsResponse = await ticketApi.getTicketsByResourceId(id);
+        setTickets(ticketsResponse.data || []);
+      } catch (err) {
+        console.warn('Tickets fetch error (non-critical):', err);
+        setTickets([]);
+      }
       
-      setResource(resResponse.data);
-      setTickets(ticketsResponse.data || []);
-      setError(null);
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError('The requested resource could not be synchronized. It may have been decommissioned.');
+      console.error('Unexpected fetch error:', err);
+      setError('An unexpected synchronization error occurred.');
     } finally {
       setLoading(false);
     }
