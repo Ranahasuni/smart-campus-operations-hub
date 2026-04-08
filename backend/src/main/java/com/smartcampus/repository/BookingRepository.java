@@ -10,6 +10,9 @@ import java.util.List;
 
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
+    List<Booking> findByUserId(String userId);
+    List<Booking> findByResourceId(String resourceId);
+    List<Booking> findByStatus(BookingStatus status);
     
     /**
      * Find bookings for a specific resource on a specific date that are not rejected or cancelled.
@@ -19,8 +22,4 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
         LocalDate date, 
         List<BookingStatus> statuses
     );
-
-    List<Booking> findByResourceId(String resourceId);
-    
-    List<Booking> findByUserId(String userId);
 }

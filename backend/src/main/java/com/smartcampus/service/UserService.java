@@ -29,6 +29,11 @@ public class UserService {
             throw new IllegalArgumentException("Email already exists: " + user.getCampusEmail());
         }
 
+        // 0. Privilege Escalation / Deprecated Role Prevention
+        if (user.getRole() == com.smartcampus.model.Role.ADMIN || user.getRole() == com.smartcampus.model.Role.STAFF) {
+            throw new IllegalArgumentException("Security Violation: Assignment of ADMIN or STAFF roles is restricted in this dashboard.");
+        }
+
         // Set default values for admin-created accounts
         user.setStatus(UserStatus.ACTIVE);
         user.setFailedAttempts(0);
@@ -59,12 +64,13 @@ public class UserService {
     public User updateUser(String id, User updatedUser, String adminId) {
         User existing = getUserById(id);
         
-        // 1. Self-Demotion Prevention
-        if (id.equals(adminId) && updatedUser.getRole() != null && updatedUser.getRole() != com.smartcampus.model.Role.ADMIN) {
-            throw new IllegalStateException("Security Violation: You cannot demote yourself. Another Administrator must perform this action.");
+        // 2. Privilege Escalation / Deprecated Role Prevention
+        if ((updatedUser.getRole() == com.smartcampus.model.Role.ADMIN || updatedUser.getRole() == com.smartcampus.model.Role.STAFF) 
+             && existing.getRole() != updatedUser.getRole()) {
+            throw new IllegalArgumentException("Security Violation: Promotion to ADMIN or STAFF is restricted.");
         }
 
-        // 2. Last Admin Protection (for Role changes)
+        // 3. Last Admin Protection (for Role changes)
         if (existing.getRole() == com.smartcampus.model.Role.ADMIN && updatedUser.getRole() != null && updatedUser.getRole() != com.smartcampus.model.Role.ADMIN) {
             long adminCount = userRepository.findAll().stream()
                     .filter(u -> u.getRole() == com.smartcampus.model.Role.ADMIN).count();

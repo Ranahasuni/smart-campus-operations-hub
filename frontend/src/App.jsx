@@ -23,6 +23,11 @@ import ResourceFormPage from './pages/resources/ResourceForm/ResourceFormPage';
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import SystemLogs from './pages/admin/SystemLogs';
+import ManageBookings from './pages/admin/ManageBookings';
+import BookingReview from './pages/admin/BookingReview';
+import BookingCalendar from './pages/admin/BookingCalendar';
+import ManageTickets from './pages/admin/ManageTickets';
+import TicketReview from './pages/admin/TicketReview';
 import AdminResourcesPage from './pages/resources/AdminResourcesPage';
 
 export default function App() {
@@ -96,6 +101,31 @@ export default function App() {
                 <AdminResourcesPage />
               </ProtectedRoute>
             } />
+            <Route path="/admin/bookings" element={
+              <ProtectedRoute role="ADMIN">
+                <ManageBookings />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <BookingReview />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings/calendar" element={
+              <ProtectedRoute role="ADMIN">
+                <BookingCalendar />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/tickets" element={
+              <ProtectedRoute role="ADMIN">
+                <ManageTickets />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/tickets/:id" element={
+              <ProtectedRoute role="ADMIN">
+                <TicketReview />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/logs" element={
               <ProtectedRoute role="ADMIN">
                 <SystemLogs />
@@ -129,4 +159,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-

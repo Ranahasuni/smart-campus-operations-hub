@@ -17,7 +17,7 @@ export default function Navbar() {
       {/* Brand */}
       <Link to="/" className="navbar-brand">
         <span className="navbar-logo">🏫</span>
-        Smart Campus
+        Smart Campus Hub
       </Link>
 
       {/* Role-Specific Navigation */}
@@ -27,21 +27,23 @@ export default function Navbar() {
         {/* Admin Navigation */}
         {user?.role === 'ADMIN' ? (
           <>
-            <Link to="/admin" className="nav-link nav-link-admin">Overview</Link>
-            <Link to="/admin/users" className="nav-link nav-link-admin">Accounts</Link>
-            <Link to="/admin/resources" className="nav-link nav-link-admin">Facilities</Link>
-            <Link to="/tickets" className="nav-link nav-link-admin">Tickets</Link>
-            <Link to="/admin/logs" className="nav-link nav-link-admin">System Logs</Link>
-            <Link to="/notifications" className="nav-link nav-link-admin">Alerts</Link>
+            <Link to="/admin"             className="nav-link nav-link-admin">Overview</Link>
+            <Link to="/admin/users"       className="nav-link nav-link-admin">Accounts</Link>
+            <Link to="/admin/resources"   className="nav-link nav-link-admin">Facilities</Link>
+            <Link to="/admin/bookings"    className="nav-link nav-link-admin">Reservations</Link>
+            <Link to="/tickets"           className="nav-link nav-link-admin">Tickets</Link>
+            <Link to="/admin/logs"        className="nav-link nav-link-admin">System Logs</Link>
+            <Link to="/notifications"     className="nav-link nav-link-admin">Alerts</Link>
           </>
         ) : (
           /* Student / Lecturer / Staff Navigation */
           <>
-            <Link to="/resources" className="nav-link">Resources</Link>
-            <Link to="/bookings" className="nav-link">Bookings</Link>
-            <Link to="/my-bookings" className="nav-link">My Bookings</Link>
+            <Link to="/resources"       className="nav-link">Resources</Link>
+            <Link to="/bookings"        className="nav-link">Bookings</Link>
+            <Link to="/my-bookings"     className="nav-link">My Bookings</Link>
             <Link to="/booking-history" className="nav-link">Booking History</Link>
-            <Link to="/tickets" className="nav-link">Tickets</Link>
+            <Link to="/tickets"         className="nav-link">Tickets</Link>
+            
             {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
               <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
             )}
@@ -73,7 +75,7 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/login" className="navbar-btn-ghost">Sign In</Link>
+            <Link to="/login"    className="navbar-btn-ghost">Sign In</Link>
             <Link to="/register" className="navbar-btn-primary">Register</Link>
           </>
         )}

@@ -36,19 +36,37 @@ public class NotificationService {
 
     /**
      * Create and persist a notification.
-     * Called by Booking / Ticket services after status changes.
+     * Includes a 5-second idempotency check to prevent rapid duplicate alerts.
      */
     public NotificationResponse send(CreateNotificationRequest req) {
         // userId should be a string ObjectID
         User recipient = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + req.getUserId()));
 
+        // Prevent exact duplicates within a short time window (5 seconds)
+        // This stops identical notifications from firing multiple times due to rapid retries or double clicks
+        java.time.LocalDateTime fiveSecondsAgo = java.time.LocalDateTime.now().minusSeconds(5);
+        List<Notification> existing = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(recipient.getId());
+        
+        boolean isDuplicate = existing.stream().anyMatch(n -> 
+            n.getCreatedAt().isAfter(fiveSecondsAgo) &&
+            n.getTitle().equals(req.getTitle()) &&
+            n.getMessage().equals(req.getMessage()) &&
+            ((n.getReferenceId() == null && req.getReferenceId() == null) || 
+             (n.getReferenceId() != null && n.getReferenceId().equals(req.getReferenceId())))
+        );
+
+        if (isDuplicate) {
+            // Log and skip if it's a recent duplicate
+            return toResponse(existing.get(0));
+        }
+
         NotificationPriority priority = req.getPriority() != null
                 ? req.getPriority()
                 : derivePriority(req.getType());
 
         Notification notification = Notification.builder()
-                .recipientId(recipient.getId()) // Store ID string directly
+                .recipientId(recipient.getId())
                 .title(req.getTitle())
                 .message(req.getMessage())
                 .type(req.getType())
