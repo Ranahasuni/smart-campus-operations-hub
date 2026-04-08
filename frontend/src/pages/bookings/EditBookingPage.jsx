@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, MapPin, Users, Calendar, Clock, 
@@ -17,24 +17,12 @@ const CATEGORY_MAP = {
   EQUIPMENT: { name: 'Equipment', icon: '📽️' },
 };
 
-export default function CreateBookingPage() {
-  const { id } = useParams();
+export default function EditBookingPage() {
+  const { id } = useParams(); // This is the bookingId
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user, authFetch, API } = useAuth();
+  const { authFetch, API } = useAuth();
 
-  // Parse date from URL if passed from Details page
-  const queryParams = new URLSearchParams(location.search);
-  
-  // Get local date in YYYY-MM-DD format
-  const getLocalDate = () => {
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    return new Date(now - offset).toISOString().split('T')[0];
-  };
-
-  const initialDate = queryParams.get('date') || getLocalDate();
-
+  const [booking, setBooking] = useState(null);
   const [resource, setResource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -42,41 +30,58 @@ export default function CreateBookingPage() {
   const [success, setSuccess] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
+  const [formData, setFormData] = useState({
+    date: '',
+    startTime: '',
+    endTime: '',
+    purpose: '',
+    expectedAttendees: 1
+  });
+
+  const [bookedSlots, setBookedSlots] = useState([]);
+
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  // Form State
-  const [formData, setFormData] = useState({
-    date: initialDate,
-    startTime: '09:00',
-    endTime: '10:00',
-    purpose: '',
-    expectedAttendees: 1
-  });
-
-  // Availability State
-  const [bookedSlots, setBookedSlots] = useState([]);
-
   useEffect(() => {
-    fetchResource();
+    fetchInitialData();
   }, [id]);
 
   useEffect(() => {
-    if (id && formData.date) {
+    if (booking?.resourceId && formData.date) {
       fetchAvailability();
     }
-  }, [id, formData.date]);
+  }, [booking?.resourceId, formData.date]);
 
-  const fetchResource = async () => {
+  const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${API}/api/resources/${id}`);
-      if (!res.ok) throw new Error('Resource not found');
-      const data = await res.json();
-      setResource(data);
-      setFormData(prev => ({ ...prev, expectedAttendees: Math.min(prev.expectedAttendees, data.capacity) }));
+      // 1. Fetch Booking
+      const bRes = await authFetch(`${API}/api/bookings/${id}`);
+      if (!bRes.ok) throw new Error('Booking not found');
+      const bData = await bRes.json();
+      
+      if (bData.status !== 'PENDING') {
+          throw new Error('Only pending bookings can be edited');
+      }
+
+      setBooking(bData);
+      setFormData({
+        date: bData.date,
+        startTime: bData.startTime.substring(0, 5),
+        endTime: bData.endTime.substring(0, 5),
+        purpose: bData.purpose,
+        expectedAttendees: bData.expectedAttendees,
+        resourceId: bData.resourceId
+      });
+
+      // 2. Fetch Resource
+      const rRes = await authFetch(`${API}/api/resources/${bData.resourceId}`);
+      if (rRes.ok) {
+        setResource(await rRes.json());
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -86,10 +91,11 @@ export default function CreateBookingPage() {
 
   const fetchAvailability = async () => {
     try {
-      const res = await authFetch(`${API}/api/bookings/resource/${id}?date=${formData.date}`);
+      const res = await authFetch(`${API}/api/bookings/resource/${booking.resourceId}?date=${formData.date}`);
       if (res.ok) {
         const data = await res.json();
-        setBookedSlots(data);
+        // Exclude current booking from conflict checks
+        setBookedSlots(data.filter(b => b.id !== id));
       }
     } catch (err) {
       console.error('Error fetching availability:', err);
@@ -100,6 +106,12 @@ export default function CreateBookingPage() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setError('');
+  };
+
+  const getLocalDate = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now - offset).toISOString().split('T')[0];
   };
 
   const validateForm = () => {
@@ -116,12 +128,11 @@ export default function CreateBookingPage() {
       if (formData.endTime > resource.availableTo) return `Ends after closing (${resource.availableTo})`;
     }
 
-    // Conflict Check (Client Side)
     const hasConflict = bookedSlots.some(b => 
       formData.startTime < b.endTime.substring(0, 5) && 
       formData.endTime > b.startTime.substring(0, 5)
     );
-    if (hasConflict) return "Selected time slot overlaps with an existing booking";
+    if (hasConflict) return "Selected time slot overlaps with another reservation";
 
     return null;
   };
@@ -136,20 +147,17 @@ export default function CreateBookingPage() {
 
     setSubmitting(true);
     try {
-      const res = await authFetch(`${API}/api/bookings`, {
-        method: 'POST',
-        body: JSON.stringify({
-          resourceId: id,
-          ...formData
-        })
+      const res = await authFetch(`${API}/api/bookings/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(formData)
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Submission failed');
+        throw new Error(data.message || 'Update failed');
       }
 
-      showToast('Booking submitted successfully!', 'success');
+      showToast('Reservation updated successfully!', 'success');
       setSuccess(true);
       setTimeout(() => navigate('/my-bookings'), 1500);
     } catch (err) {
@@ -165,57 +173,46 @@ export default function CreateBookingPage() {
     </div>
   );
 
+  if (error && !booking) return (
+    <div className="booking-form-container">
+      <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
+        <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '16px' }} />
+        <h2>Access Denied</h2>
+        <p>{error}</p>
+        <Link to="/my-bookings" className="btn-submit-booking" style={{ marginTop: '24px', display: 'inline-flex' }}>
+          Back to My Bookings
+        </Link>
+      </div>
+    </div>
+  );
+
   if (success) return (
     <div className="booking-form-container animate-fade-in">
       <div className="glass-card" style={{ padding: '60px', textAlign: 'center' }}>
         <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', margin: '0 auto 24px' }}>
           <CheckCircle2 size={48} />
         </div>
-        <h1 className="gradient-text">Reservation Submitted!</h1>
+        <h1 className="gradient-text">Reservation Updated!</h1>
         <p style={{ color: '#94a3b8', fontSize: '1.2rem', marginTop: '16px' }}>
-          Your booking for <strong>{resource?.name}</strong> is now <strong>PENDING</strong> approval.
+          Your changes for <strong>{resource?.name}</strong> have been saved.
         </p>
-        <p style={{ color: '#64748b', marginTop: '8px' }}>Redirecting to your bookings...</p>
+        <p style={{ color: '#64748b', marginTop: '8px' }}>Redirecting to dashboard...</p>
       </div>
-      {toast.show && (
-        <div 
-          className={`toast animate-slide-up ${toast.type}`}
-          style={{
-            position: 'fixed',
-            bottom: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '12px 24px',
-            borderRadius: '12px',
-            background: toast.type === 'success' ? '#22c55e' : '#ef4444',
-            color: 'white',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontWeight: '600'
-          }}
-        >
-          {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-          {toast.message}
-        </div>
-      )}
     </div>
   );
 
   return (
     <div className="booking-form-container animate-fade-in">
       <div className="breadcrumb" style={{ marginBottom: '32px' }}>
-        <Link to={`/bookings/resource/${id}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', textDecoration: 'none' }}>
-          <ChevronLeft size={16} /> Back to Resource
+        <Link to="/my-bookings" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', textDecoration: 'none' }}>
+          <ChevronLeft size={16} /> Cancel Editing
         </Link>
       </div>
 
       <div className="glass-card booking-form-card">
         <header className="form-header">
-          <h1 className="gradient-text">Complete Your Reservation</h1>
-          <p style={{ color: '#94a3b8' }}>Please provide the event details to secure your slot.</p>
+          <h1 className="gradient-text">Modify Reservation</h1>
+          <p style={{ color: '#94a3b8' }}>Update your booking details while it's still pending.</p>
           
           {resource && (
             <div className="resource-summary-box">
@@ -224,11 +221,10 @@ export default function CreateBookingPage() {
               </div>
               <div className="resource-summary-info">
                 <h4>{resource.name}</h4>
-                <p>{resource.building} • Floor {resource.floor} • Room {resource.roomNumber}</p>
+                <p>{resource.building} • Floor {resource.floor}</p>
               </div>
               <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>CAPACITY</span>
-                <span style={{ fontWeight: 'bold', color: '#818cf8' }}>{resource.capacity} People</span>
+                <span className={`status-badge status-PENDING`}>PENDING</span>
               </div>
             </div>
           )}
@@ -241,7 +237,6 @@ export default function CreateBookingPage() {
         )}
 
         <form className="booking-main-form" onSubmit={handleSubmit}>
-          {/* Date Picker */}
           <div className="form-group">
             <label><Calendar size={16} /> Booking Date</label>
             <input 
@@ -255,7 +250,6 @@ export default function CreateBookingPage() {
             />
           </div>
 
-          {/* Expected Attendees */}
           <div className="form-group">
             <label><Users size={16} /> Expected Attendees</label>
             <input 
@@ -270,26 +264,24 @@ export default function CreateBookingPage() {
             />
           </div>
 
-          {/* Availability Info */}
           <div className="availability-snapshot">
             <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> Availability on {formData.date}</h5>
             {bookedSlots.length > 0 ? (
               <div className="booked-slots-mini">
                 {bookedSlots.map(b => (
                   <div key={b.id} className="mini-slot">
-                    {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)} (Booked)
+                    {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)} (Taken)
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="no-bookings-hint">Full day available! All slots are currently open.</p>
+              <p className="no-bookings-hint">No other conflicts found for this day!</p>
             )}
             <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '12px' }}>
-              Resource Hours: {resource?.availableFrom} AM to {resource?.availableTo} PM
+              Note: Your current slot is hidden from this list.
             </p>
           </div>
 
-          {/* Time Picker - Start */}
           <div className="form-group">
             <label><Clock size={16} /> Start Time</label>
             <input 
@@ -302,7 +294,6 @@ export default function CreateBookingPage() {
             />
           </div>
 
-          {/* Time Picker - End */}
           <div className="form-group">
             <label><Clock size={16} /> End Time</label>
             <input 
@@ -315,59 +306,41 @@ export default function CreateBookingPage() {
             />
           </div>
 
-          {/* Purpose */}
           <div className="form-group full-width">
             <label><HelpCircle size={16} /> Purpose of Booking</label>
             <textarea 
               name="purpose"
               className="form-input"
               style={{ minHeight: '100px', resize: 'vertical' }}
-              placeholder="Briefly describe your event or research session..."
               value={formData.purpose}
               onChange={handleInputChange}
               required
             />
           </div>
 
-          {/* Actions */}
           <div className="form-actions">
-            <Link to={`/bookings/resource/${id}`} className="btn-cancel-booking">
-              Discard
+            <Link to="/my-bookings" className="btn-cancel-booking">
+              Discard Changes
             </Link>
             <button 
               type="submit" 
               className="btn-submit-booking"
               disabled={submitting || (resource && resource.status !== 'ACTIVE')}
             >
-              {submitting ? 'Confirming...' : (resource && resource.status !== 'ACTIVE' ? 'Unavailable' : 'Place Reservation')} <ArrowRight size={18} />
+              {submitting ? 'Updating...' : (resource && resource.status !== 'ACTIVE' ? 'Unavailable' : 'Save Changes')} <ArrowRight size={18} />
             </button>
           </div>
         </form>
       </div>
 
-      <div style={{ marginTop: '32px', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>
-        <p>By submitting this request, you agree to comply with the Smart Campus Resource Usage Policy.</p>
-      </div>
-
-      {/* Toast Notification */}
       {toast.show && (
         <div 
           className={`toast animate-slide-up ${toast.type}`}
           style={{
-            position: 'fixed',
-            bottom: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '12px 24px',
-            borderRadius: '12px',
-            background: toast.type === 'success' ? '#22c55e' : '#ef4444',
-            color: 'white',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontWeight: '600'
+            position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+            padding: '12px 24px', borderRadius: '12px', background: toast.type === 'success' ? '#22c55e' : '#ef4444',
+            color: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600'
           }}
         >
           {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
