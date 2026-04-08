@@ -27,6 +27,8 @@ export default function TicketDetailsPage() {
   const [error, setError] = useState('');
   const [technicians, setTechnicians] = useState([]);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [resolutionNote, setResolutionNote] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
     fetchTicketDetails();
@@ -62,16 +64,19 @@ export default function TicketDetailsPage() {
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
 
-  const handleStatusUpdate = async (newStatus) => {
+  const handleStatusUpdate = async () => {
+    if (!selectedStatus) return;
     try {
       setUpdating(true);
-      await ticketApi.updateTicketStatus(id, newStatus, user.id);
+      await ticketApi.updateTicketStatus(id, selectedStatus, user.id, resolutionNote);
       await fetchTicketDetails(); // Refresh data
       setShowStatusModal(false);
+      setSelectedStatus('');
+      setResolutionNote('');
     } catch (err) {
       console.error('Update failed:', err);
       const msg = err.response?.data?.message || err.message || 'Unknown error';
-      alert(`Failed to update status: ${msg} (Status: ${err.response?.status})`);
+      alert(`Failed to update status: ${msg}`);
     } finally {
       setUpdating(false);
     }
@@ -296,28 +301,55 @@ export default function TicketDetailsPage() {
                 <button
                   key={status}
                   disabled={updating || ticket.status === status}
-                  onClick={() => handleStatusUpdate(status)}
+                  onClick={() => setSelectedStatus(status)}
                   className="btn-secondary"
                   style={{ 
                     width: '100%', 
                     justifyContent: 'space-between', 
                     opacity: ticket.status === status ? 0.5 : 1,
-                    border: ticket.status === status ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)'
+                    border: selectedStatus === status ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)',
+                    background: selectedStatus === status ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)'
                   }}
                 >
                   {status.replace('_', ' ')}
-                  {ticket.status === status && <CheckCircle2 size={16} className="text-emerald-400" />}
+                  {(selectedStatus === status || ticket.status === status) && <CheckCircle2 size={16} className="text-emerald-400" />}
                 </button>
               ))}
             </div>
 
-            <button 
-              onClick={() => setShowStatusModal(false)}
-              className="btn-ghost" 
-              style={{ width: '100%', marginTop: '24px' }}
-            >
-              Cancel
-            </button>
+            {selectedStatus === 'RESOLVED' && (
+              <div className="animate-fade-in" style={{ marginTop: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '700' }}>
+                  RESOLUTION NOTES
+                </label>
+                <textarea 
+                  className="glass-input"
+                  placeholder="Describe how the issue was fixed..."
+                  style={{ width: '100%', minHeight: '100px', fontSize: '0.9rem', padding: '12px' }}
+                  value={resolutionNote}
+                  onChange={(e) => setResolutionNote(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button 
+                onClick={() => { setShowStatusModal(false); setSelectedStatus(''); }}
+                className="btn-ghost" 
+                style={{ flex: 1 }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleStatusUpdate}
+                disabled={updating || !selectedStatus}
+                className="btn-primary" 
+                style={{ flex: 1.5 }}
+              >
+                {updating ? 'Saving...' : 'Confirm Update'}
+              </button>
+            </div>
           </div>
         </div>
       )}
