@@ -1,6 +1,7 @@
 package com.smartcampus.dto;
 
 import com.smartcampus.model.BookingStatus;
+import com.smartcampus.model.ResourceType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,6 +15,11 @@ public class BookingResponseDTO {
     private String id;
     private String userId;
     private String resourceId;
+    
+    // Resource Details (Added)
+    private String resourceName;
+    private ResourceType resourceType;
+
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;

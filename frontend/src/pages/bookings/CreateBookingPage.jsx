@@ -25,13 +25,27 @@ export default function CreateBookingPage() {
 
   // Parse date from URL if passed from Details page
   const queryParams = new URLSearchParams(location.search);
-  const initialDate = queryParams.get('date') || new Date().toISOString().split('T')[0];
+  
+  // Get local date in YYYY-MM-DD format
+  const getLocalDate = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now - offset).toISOString().split('T')[0];
+  };
+
+  const initialDate = queryParams.get('date') || getLocalDate();
 
   const [resource, setResource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -134,8 +148,9 @@ export default function CreateBookingPage() {
         throw new Error(data.message || 'Submission failed');
       }
 
+      showToast('Booking submitted successfully!', 'success');
       setSuccess(true);
-      setTimeout(() => navigate('/profile'), 2000);
+      setTimeout(() => navigate('/my-bookings'), 1500);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -159,8 +174,32 @@ export default function CreateBookingPage() {
         <p style={{ color: '#94a3b8', fontSize: '1.2rem', marginTop: '16px' }}>
           Your booking for <strong>{resource?.name}</strong> is now <strong>PENDING</strong> approval.
         </p>
-        <p style={{ color: '#64748b', marginTop: '8px' }}>Redirecting to your profile...</p>
+        <p style={{ color: '#64748b', marginTop: '8px' }}>Redirecting to your bookings...</p>
       </div>
+      {toast.show && (
+        <div 
+          className={`toast animate-slide-up ${toast.type}`}
+          style={{
+            position: 'fixed',
+            bottom: '40px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '12px 24px',
+            borderRadius: '12px',
+            background: toast.type === 'success' ? '#22c55e' : '#ef4444',
+            color: 'white',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontWeight: '600'
+          }}
+        >
+          {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 
@@ -210,7 +249,7 @@ export default function CreateBookingPage() {
               className="form-input"
               value={formData.date}
               onChange={handleInputChange}
-              min={new Date().toISOString().split('T')[0]}
+              min={getLocalDate()}
               required
             />
           </div>
@@ -308,6 +347,32 @@ export default function CreateBookingPage() {
       <div style={{ marginTop: '32px', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>
         <p>By submitting this request, you agree to comply with the Smart Campus Resource Usage Policy.</p>
       </div>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div 
+          className={`toast animate-slide-up ${toast.type}`}
+          style={{
+            position: 'fixed',
+            bottom: '40px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '12px 24px',
+            borderRadius: '12px',
+            background: toast.type === 'success' ? '#22c55e' : '#ef4444',
+            color: 'white',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontWeight: '600'
+          }}
+        >
+          {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
