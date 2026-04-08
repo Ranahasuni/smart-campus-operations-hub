@@ -19,6 +19,7 @@ import CreateTicketPage from './pages/tickets/CreateTicketPage';
 import TicketDetailsPage from './pages/tickets/TicketDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResourceEditorPage from './pages/resources/ResourceForm/ResourceEditorPage';
+import ResourceDetailsPage from './pages/resources/Details/ResourceDetailsPage';
 
 import Dashboard from './pages/admin/Dashboard';
 import ManageUsers from './pages/admin/ManageUsers';
@@ -53,6 +54,9 @@ export default function App() {
             {/* Member Module Routes */}
             <Route path="/resources" element={
               <ProtectedRoute><ResourcesPage /></ProtectedRoute>
+            } />
+            <Route path="/resources/:id" element={
+              <ProtectedRoute><ResourceDetailsPage /></ProtectedRoute>
             } />
             <Route path="/bookings" element={
               <ProtectedRoute><BookingsPage /></ProtectedRoute>
