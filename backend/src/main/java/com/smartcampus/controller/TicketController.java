@@ -2,6 +2,7 @@ package com.smartcampus.controller;
 
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketStatus;
+import com.smartcampus.model.Comment;
 import com.smartcampus.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -63,8 +64,19 @@ public class TicketController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTicket(@PathVariable String id) {
         ticketService.deleteTicket(id);
-        return ResponseEntity.noContent().build();
+    }
+
+    // --- Comments Endpoints ---
+    @PostMapping("/{id}/comments")
+    public Comment addComment(@PathVariable String id, @RequestBody Comment comment) {
+        return ticketService.addComment(id, comment);
+    }
+
+    @GetMapping("/{id}/comments")
+    public List<Comment> getComments(@PathVariable String id) {
+        return ticketService.getCommentsByTicketId(id);
     }
 }

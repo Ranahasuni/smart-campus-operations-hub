@@ -2,6 +2,7 @@ package com.smartcampus.service;
 
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketStatus;
+import com.smartcampus.model.Comment;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.CommentRepository;
 import com.smartcampus.repository.TicketImageRepository;
@@ -80,5 +81,20 @@ public class TicketService {
 
     public void deleteTicket(String id) {
         ticketRepository.deleteById(id);
+    }
+
+    // --- Comments Logic ---
+    public Comment addComment(String ticketId, Comment comment) {
+        comment.setTicketId(ticketId);
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(LocalDateTime.now());
+        Comment savedComment = commentRepository.save(comment);
+        
+        auditService.log(comment.getUserId(), "TICKET_COMMENT_ADDED", "New comment added to ticket " + ticketId);
+        return savedComment;
+    }
+
+    public List<Comment> getCommentsByTicketId(String ticketId) {
+        return commentRepository.findByTicketId(ticketId);
     }
 }
