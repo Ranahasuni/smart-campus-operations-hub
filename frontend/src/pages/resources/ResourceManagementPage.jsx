@@ -7,7 +7,7 @@ import ResourceTable from './Admin/components/ResourceTable';
 import api from '../../api/axiosInstance';
 
 export default function ResourceManagementPage() {
-  const { authFetch } = useAuth();
+  const { authFetch, API } = useAuth();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,7 +49,7 @@ export default function ResourceManagementPage() {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      const res = await authFetch(`http://localhost:8081/api/resources/${id}/status?status=${newStatus}`, {
+      const res = await authFetch(`${API}/api/resources/${id}/status?status=${newStatus}`, {
         method: 'PATCH'
       });
       if (res.ok) {
@@ -62,7 +62,7 @@ export default function ResourceManagementPage() {
 
   const handleDeleteResource = async (id) => {
     try {
-      const res = await authFetch(`http://localhost:8081/api/resources/${id}`, {
+      const res = await authFetch(`${API}/api/resources/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {

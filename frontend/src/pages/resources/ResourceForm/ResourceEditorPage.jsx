@@ -16,7 +16,7 @@ import FormButtons from './FormButtons';
 export default function ResourceEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { authFetch } = useAuth();
+  const { authFetch, API } = useAuth();
   const isEdit = Boolean(id);
 
   const [loading, setLoading] = useState(false);
@@ -83,8 +83,8 @@ export default function ResourceEditorPage() {
       };
 
       const url = isEdit 
-        ? `http://localhost:8081/api/resources/${id}` 
-        : `http://localhost:8081/api/resources`;
+        ? `${API}/api/resources/${id}` 
+        : `${API}/api/resources`;
       
       const res = await authFetch(url, {
         method: isEdit ? 'PUT' : 'POST',
