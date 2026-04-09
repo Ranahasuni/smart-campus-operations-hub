@@ -164,7 +164,7 @@ export default function TicketDetailsPage() {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
             {getStatusBadge(ticket.status)}
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>ID: {ticket.id.toUpperCase()}</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>ID: {ticket.displayId || ticket.id.toUpperCase()}</span>
           </div>
           <h1 className="gradient-text" style={{ fontSize: '2.8rem', lineHeight: '1.1' }}>{ticket.title}</h1>
         </div>

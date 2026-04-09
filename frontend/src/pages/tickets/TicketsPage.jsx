@@ -109,7 +109,7 @@ export default function TicketsPage() {
                       {ticket.userFullName || 'Anonymous'} ({ticket.userCampusId || 'N/A'})
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Tag size={12} /> {ticket.id.substring(ticket.id.length - 8).toUpperCase()}
+                      <Tag size={12} /> {ticket.displayId || ticket.id.substring(ticket.id.length - 8).toUpperCase()}
                     </div>
                   </td>
                   <td style={{ padding: '24px' }}>
