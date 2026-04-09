@@ -21,6 +21,8 @@ public class Ticket {
     private String id;
 
     private String userId; // User who created the ticket
+    private String userFullName;
+    private String userCampusId;
     private String resourceId; // The broken resource
 
     private String title;

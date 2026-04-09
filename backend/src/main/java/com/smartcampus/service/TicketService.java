@@ -28,6 +28,10 @@ public class TicketService {
     private final ResourceService resourceService;
 
     public Ticket createTicket(Ticket ticket) {
+        System.out.println("DEBUG: Creating ticket for user: " + ticket.getUserId());
+        System.out.println("DEBUG: User Full Name: " + ticket.getUserFullName());
+        System.out.println("DEBUG: User Campus ID: " + ticket.getUserCampusId());
+        
         ticket.setStatus(TicketStatus.OPEN);
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
