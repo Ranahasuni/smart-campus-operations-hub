@@ -43,6 +43,8 @@ public class Ticket {
     private Priority priority;
 
     private String technicianId; // Assigned technician
+    private String technicianFullName;
+    private String technicianCampusId;
 
     // --- Top Marks Feature ---
     private String resolutionNotes;

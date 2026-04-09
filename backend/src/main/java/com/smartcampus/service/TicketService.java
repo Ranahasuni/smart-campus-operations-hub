@@ -11,6 +11,8 @@ import com.smartcampus.repository.CommentRepository;
 import com.smartcampus.model.DatabaseSequence;
 import com.smartcampus.repository.DatabaseSequenceRepository;
 import com.smartcampus.repository.TicketImageRepository;
+import com.smartcampus.repository.UserRepository;
+import com.smartcampus.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.smartcampus.service.AuditService;
@@ -29,6 +31,7 @@ public class TicketService {
     private final DatabaseSequenceRepository sequenceRepository;
     private final AuditService auditService;
     private final ResourceService resourceService;
+    private final UserRepository userRepository;
 
     public Ticket createTicket(Ticket ticket) {
         System.out.println("DEBUG: Creating ticket for user: " + ticket.getUserId());
@@ -50,10 +53,10 @@ public class TicketService {
         }
         
         Ticket savedTicket = ticketRepository.save(ticket);
-        auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket created with ID: " + savedTicket.getId());
+        auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket " + savedTicket.getDisplayId() + " created");
 
-        // Impact Booking: If a ticket is created for a specific resource, set it to MAINTENANCE
-        if (savedTicket.getResourceId() != null) {
+        // Impact Booking: If a ticket is HIGH priority, set associated resource to MAINTENANCE
+        if (savedTicket.getResourceId() != null && savedTicket.getPriority() == Priority.HIGH) {
             try {
                 resourceService.updateStatus(savedTicket.getResourceId(), ResourceStatus.MAINTENANCE);
             } catch (Exception e) {
@@ -118,17 +121,18 @@ public class TicketService {
         }
 
         Ticket updatedTicket = ticketRepository.save(ticket);
-        auditService.log(updatedBy, "TICKET_STATUS_UPDATED", "Ticket " + ticketId + " status changed to " + newStatus);
+        auditService.log(updatedBy, "TICKET_STATUS_UPDATED", "Ticket " + ticket.getDisplayId() + " status changed to " + newStatus);
 
         // Impact Booking: If a ticket is resolved or closed, check if we can set resource back to ACTIVE
         if ((newStatus == TicketStatus.RESOLVED || newStatus == TicketStatus.CLOSED) && ticket.getResourceId() != null) {
-            // Check if there are ANY other OPEN or IN_PROGRESS tickets for this resource
-            long openTicketsCount = ticketRepository.countByResourceIdAndStatusIn(
+            // Check if there are ANY other HIGH priority OPEN or IN_PROGRESS tickets for this resource
+            long openHighPriorityCount = ticketRepository.countByResourceIdAndStatusInAndPriority(
                 ticket.getResourceId(), 
-                List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS)
+                List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS),
+                Priority.HIGH
             );
             
-            if (openTicketsCount == 0) {
+            if (openHighPriorityCount == 0) {
                 try {
                     resourceService.updateStatus(ticket.getResourceId(), ResourceStatus.ACTIVE);
                 } catch (Exception e) {
@@ -147,8 +151,20 @@ public class TicketService {
         ticket.setStatus(TicketStatus.IN_PROGRESS);
         ticket.setUpdatedAt(LocalDateTime.now());
 
+        // Fetch technician details for professional identity enrichment
+        User technician = userRepository.findById(technicianId).orElse(null);
+        if (technician != null) {
+            ticket.setTechnicianFullName(technician.getFullName());
+            ticket.setTechnicianCampusId(technician.getCampusId());
+        }
+
         Ticket updatedTicket = ticketRepository.save(ticket);
-        auditService.log(assignedBy, "TICKET_ASSIGNED", "Ticket " + ticketId + " assigned to technician " + technicianId);
+        
+        String techLabel = (technician != null) 
+            ? technician.getFullName() + " (" + technician.getCampusId() + ")" 
+            : technicianId;
+            
+        auditService.log(assignedBy, "TICKET_ASSIGNED", "Ticket " + ticket.getDisplayId() + " assigned to technician " + techLabel);
         return updatedTicket;
     }
 
@@ -161,9 +177,18 @@ public class TicketService {
         comment.setTicketId(ticketId);
         comment.setCreatedAt(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
+        
+        // Identity Enrichment: Capture commenter identity at save time
+        User commenter = userRepository.findById(comment.getUserId()).orElse(null);
+        if (commenter != null) {
+            comment.setUserFullName(commenter.getFullName());
+            comment.setUserCampusId(commenter.getCampusId());
+        }
+
         Comment savedComment = commentRepository.save(comment);
         
-        auditService.log(comment.getUserId(), "TICKET_COMMENT_ADDED", "New comment added to ticket " + ticketId);
+        Ticket ticket = getTicketById(ticketId);
+        auditService.log(comment.getUserId(), "TICKET_COMMENT_ADDED", "New comment added to ticket " + ticket.getDisplayId());
         return savedComment;
     }
 
@@ -185,7 +210,7 @@ public class TicketService {
             savedImages.add(ticketImageRepository.save(img));
         }
 
-        auditService.log(uploadedBy, "TICKET_IMAGES_UPLOADED", "Uploaded " + fileNames.size() + " images to ticket " + ticketId);
+        auditService.log(uploadedBy, "TICKET_IMAGES_UPLOADED", "Uploaded " + fileNames.size() + " images to ticket " + ticket.getDisplayId());
         return savedImages;
     }
 

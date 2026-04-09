@@ -72,7 +72,9 @@ export default function CommentSection({ ticketId }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
                 <span style={{ fontWeight: '700', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <User size={14} />
-                  {comment.userId === user.id ? 'You' : `User ID: ${comment.userId.substring(0, 8)}...`}
+                  {comment.userId === user.id 
+                    ? `You (${user.campusId})` 
+                    : (comment.userFullName ? `${comment.userFullName} (${comment.userCampusId})` : `User ID: ${comment.userId.substring(0, 8)}...`)}
                 </span>
                 <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Clock size={14} />

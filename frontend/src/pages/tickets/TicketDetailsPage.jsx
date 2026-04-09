@@ -370,7 +370,7 @@ export default function TicketDetailsPage() {
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>ASSIGNED TO</div>
                     <div style={{ fontSize: '0.9rem', color: 'var(--accent-primary)' }}>
-                      Staff Member: {ticket.technicianId}
+                      {ticket.technicianFullName || 'Staff Member'}: {ticket.technicianCampusId || ticket.technicianId}
                     </div>
                   </div>
                 )}
