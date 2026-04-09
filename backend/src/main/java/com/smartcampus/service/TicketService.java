@@ -109,8 +109,8 @@ public class TicketService {
         Ticket updatedTicket = ticketRepository.save(ticket);
         auditService.log(updatedBy, "TICKET_STATUS_UPDATED", "Ticket " + ticketId + " status changed to " + newStatus);
 
-        // Impact Booking: If a ticket is resolved, check if we can set resource back to ACTIVE
-        if (newStatus == TicketStatus.RESOLVED && ticket.getResourceId() != null) {
+        // Impact Booking: If a ticket is resolved or closed, check if we can set resource back to ACTIVE
+        if ((newStatus == TicketStatus.RESOLVED || newStatus == TicketStatus.CLOSED) && ticket.getResourceId() != null) {
             // Check if there are ANY other OPEN or IN_PROGRESS tickets for this resource
             long openTicketsCount = ticketRepository.countByResourceIdAndStatusIn(
                 ticket.getResourceId(), 
