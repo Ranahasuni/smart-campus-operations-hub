@@ -8,6 +8,8 @@ import com.smartcampus.model.ResourceStatus;
 import com.smartcampus.model.TicketImage;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.CommentRepository;
+import com.smartcampus.model.DatabaseSequence;
+import com.smartcampus.repository.DatabaseSequenceRepository;
 import com.smartcampus.repository.TicketImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final CommentRepository commentRepository;
     private final TicketImageRepository ticketImageRepository;
+    private final DatabaseSequenceRepository sequenceRepository;
     private final AuditService auditService;
     private final ResourceService resourceService;
 
@@ -31,6 +34,10 @@ public class TicketService {
         System.out.println("DEBUG: Creating ticket for user: " + ticket.getUserId());
         System.out.println("DEBUG: User Full Name: " + ticket.getUserFullName());
         System.out.println("DEBUG: User Campus ID: " + ticket.getUserCampusId());
+        
+        // Generate Professional Short ID (e.g. TKT-1001)
+        long seq = generateSequence("tickets_sequence");
+        ticket.setDisplayId("TKT-" + (1000 + seq));
         
         ticket.setStatus(TicketStatus.OPEN);
         ticket.setCreatedAt(LocalDateTime.now());
@@ -184,5 +191,16 @@ public class TicketService {
 
     public List<TicketImage> getImagesByTicketId(String ticketId) {
         return ticketImageRepository.findByTicketId(ticketId);
+    }
+
+    private long generateSequence(String seqName) {
+        DatabaseSequence counter = sequenceRepository.findById(seqName).orElse(null);
+        if (counter == null) {
+            counter = new DatabaseSequence(seqName, 1);
+        } else {
+            counter.setSeq(counter.getSeq() + 1);
+        }
+        sequenceRepository.save(counter);
+        return counter.getSeq();
     }
 }
