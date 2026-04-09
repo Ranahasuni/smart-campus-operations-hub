@@ -278,7 +278,7 @@ export default function TicketDetailsPage() {
                 <User size={18} className="text-slate-500" />
                 <div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>SUBMITTED BY</div>
-                  <div style={{ fontSize: '0.9rem' }}>Campus User ID: {ticket.userId}</div>
+                  <div style={{ fontSize: '0.9rem' }}>{ticket.userFullName || 'Anonymous User'} ({ticket.userCampusId || 'N/A'})</div>
                 </div>
               </div>
 

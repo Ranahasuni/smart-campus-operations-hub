@@ -104,7 +104,9 @@ export default function CreateTicketPage() {
     try {
       const finalTicketData = {
         ...formData,
-        userId: user?.id || ''
+        userId: user?.id || '',
+        userFullName: user?.fullName || 'Anonymous User',
+        userCampusId: user?.campusId || 'N/A'
       };
       
       const response = await ticketApi.createTicket(finalTicketData);

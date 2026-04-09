@@ -104,7 +104,10 @@ export default function TicketsPage() {
               {tickets.map((ticket) => (
                 <tr key={ticket.id} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }} className="hover:bg-white/5">
                   <td style={{ padding: '24px' }}>
-                    <div style={{ fontWeight: '600', color: 'white', marginBottom: '4px' }}>{ticket.title}</div>
+                    <div style={{ fontWeight: '600', color: 'white', marginBottom: '2px' }}>{ticket.title}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginBottom: '4px' }}>
+                      {ticket.userFullName || 'Anonymous'} ({ticket.userCampusId || 'N/A'})
+                    </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Tag size={12} /> {ticket.id.substring(ticket.id.length - 8).toUpperCase()}
                     </div>
