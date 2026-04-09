@@ -15,6 +15,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.TextStyle;
+import java.util.Locale;
+import java.util.Optional;
+import com.smartcampus.model.DayAvailability;
+
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,7 +58,9 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Capacity exceeded");
         }
 
+        validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
         checkForConflicts(dto.getResourceId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), null);
+
 
         Booking booking = Booking.builder()
                 .userId(userId)
@@ -83,7 +92,9 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending bookings can be modified");
         }
 
+        validateAvailability(resourceRepository.findById(dto.getResourceId()).orElseThrow(), dto.getDate(), dto.getStartTime(), dto.getEndTime());
         checkForConflicts(dto.getResourceId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id);
+
 
         booking.setDate(dto.getDate());
         booking.setStartTime(dto.getStartTime());
@@ -106,6 +117,44 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Time slot overlap detected.");
         }
     }
+
+    private void validateAvailability(Resource resource, LocalDate date, LocalTime start, LocalTime end) {
+        if (resource.getAvailability() == null || resource.getAvailability().isEmpty()) {
+            return; // Assume always available if not specified (or should we throw error?)
+        }
+
+        String dayOfWeek = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH); // "Mon", "Tue", etc.
+        
+        Optional<DayAvailability> availabilityOpt = resource.getAvailability().stream()
+                .filter(a -> a.getDay().equalsIgnoreCase(dayOfWeek))
+                .findFirst();
+
+        if (availabilityOpt.isEmpty() || !availabilityOpt.get().isAvailable()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resource is not available on " + dayOfWeek);
+        }
+
+        DayAvailability availability = availabilityOpt.get();
+        if (availability.getSlots() == null || availability.getSlots().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No time slots defined for " + dayOfWeek);
+        }
+
+        boolean fitsInAnySlot = availability.getSlots().stream().anyMatch(slot -> {
+            LocalTime slotStart = LocalTime.parse(slot.getStartTime());
+            LocalTime slotEnd = LocalTime.parse(slot.getEndTime());
+            return !start.isBefore(slotStart) && !end.isAfter(slotEnd);
+        });
+
+        if (!fitsInAnySlot) {
+            String slotsStr = availability.getSlots().stream()
+                .map(s -> s.getStartTime() + "-" + s.getEndTime())
+                .collect(java.util.stream.Collectors.joining(", "));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                String.format("Requested time is outside operational hours. Available slots for %s: %s", 
+                    dayOfWeek, slotsStr));
+        }
+    }
+
+
 
     public BookingResponseDTO getBookingById(String id) {
         return bookingRepository.findById(id)

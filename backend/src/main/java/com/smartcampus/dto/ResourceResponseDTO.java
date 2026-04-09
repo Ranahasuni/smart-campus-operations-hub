@@ -24,9 +24,8 @@ public class ResourceResponseDTO {
     private ResourceStatus status;
     private List<String> equipment;
     private List<String> imageUrls;
-    private String availableFrom;
-    private String availableTo;
-    private List<String> availableDays;
+    private List<com.smartcampus.model.DayAvailability> availability;
+
 
     // Innovation
     private String qrCodeUrl;

@@ -40,11 +40,6 @@ public class ResourceRequestDTO {
 
     private List<String> imageUrls;
 
-    @NotBlank(message = "Available from is required")
-    private String availableFrom;
+    private List<com.smartcampus.model.DayAvailability> availability;
 
-    @NotBlank(message = "Available to is required")
-    private String availableTo;
-
-    private List<String> availableDays;
 }
