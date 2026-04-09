@@ -3,14 +3,19 @@ package com.smartcampus.controller;
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketStatus;
 import com.smartcampus.model.Comment;
+import com.smartcampus.model.TicketImage;
 import com.smartcampus.service.TicketService;
+import com.smartcampus.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -19,6 +24,7 @@ import java.util.List;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final FileService fileService;
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
@@ -89,5 +95,26 @@ public class TicketController {
     @PreAuthorize("isAuthenticated()")
     public List<Comment> getComments(@PathVariable String id) {
         return ticketService.getCommentsByTicketId(id);
+    }
+
+    // --- Images Endpoints ---
+    @PostMapping("/{id}/images")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<TicketImage>> uploadImages(
+            @PathVariable String id,
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam("userId") String userId) {
+        
+        List<String> storedFileNames = Arrays.stream(files)
+                .map(fileService::storeFile)
+                .collect(Collectors.toList());
+                
+        return ResponseEntity.ok(ticketService.saveImages(id, storedFileNames, userId));
+    }
+
+    @GetMapping("/{id}/images")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<TicketImage>> getImages(@PathVariable String id) {
+        return ResponseEntity.ok(ticketService.getImagesByTicketId(id));
     }
 }
