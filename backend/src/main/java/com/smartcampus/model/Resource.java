@@ -43,9 +43,8 @@ public class Resource {
 
     private List<String> imageUrls;
 
-    private String availableFrom;
-    private String availableTo;
-    private List<String> availableDays;
+    private List<DayAvailability> availability;
+
     private String qrCodeUrl;
 
     @Builder.Default

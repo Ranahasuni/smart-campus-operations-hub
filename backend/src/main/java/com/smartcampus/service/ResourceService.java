@@ -65,9 +65,8 @@ public class ResourceService {
                 .status(resource.getStatus())
                 .equipment(resource.getEquipment())
                 .imageUrls(resource.getImageUrls())
-                .availableFrom(resource.getAvailableFrom())
-                .availableTo(resource.getAvailableTo())
-                .availableDays(resource.getAvailableDays())
+                .availability(resource.getAvailability())
+
                 .qrCodeUrl(resource.getQrCodeUrl())
                 .createdAt(resource.getCreatedAt())
                 .updatedAt(resource.getUpdatedAt())
@@ -199,9 +198,8 @@ public class ResourceService {
                 .status(dto.getStatus() != null ? dto.getStatus() : ResourceStatus.ACTIVE)
                 .equipment(dto.getEquipment())
                 .imageUrls(dto.getImageUrls())
-                .availableFrom(dto.getAvailableFrom())
-                .availableTo(dto.getAvailableTo())
-                .availableDays(dto.getAvailableDays())
+                .availability(dto.getAvailability())
+
                 .build();
 
         Resource saved = resourceRepository.save(resource);
@@ -237,9 +235,8 @@ public class ResourceService {
         resource.setEquipment(dto.getEquipment());
         resource.setImageUrls(dto.getImageUrls());
         resource.setStatus(dto.getStatus());
-        resource.setAvailableFrom(dto.getAvailableFrom());
-        resource.setAvailableTo(dto.getAvailableTo());
-        resource.setAvailableDays(dto.getAvailableDays());
+        resource.setAvailability(dto.getAvailability());
+
         resource.setUpdatedAt(LocalDateTime.now());
 
         Resource updated = resourceRepository.save(resource);
