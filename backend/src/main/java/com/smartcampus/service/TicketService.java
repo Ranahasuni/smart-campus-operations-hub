@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.smartcampus.service.AuditService;
 import com.smartcampus.service.ResourceService;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -169,6 +170,10 @@ public class TicketService {
     }
 
     public void deleteTicket(String id) {
+        Ticket ticket = getTicketById(id);
+        String adminId = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        auditService.log(adminId, "TICKET_DELETED", "Ticket " + ticket.getDisplayId() + " was permanently purged from the system");
         ticketRepository.deleteById(id);
     }
 

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { 
   Ticket, Clock, CheckCircle, AlertCircle, 
   Search, Filter, Loader2, User, Hammer,
-  ArrowUpRight, ChevronRight
+  ArrowUpRight, ChevronRight, Trash2
 } from 'lucide-react';
 
 /**
@@ -33,6 +33,32 @@ export default function ManageTickets() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (ticketId, status) => {
+    // Safety Lock check
+    if (status !== 'RESOLVED' && status !== 'CLOSED') {
+      alert("Safety Lock: Only Resolved or Closed tickets can be deleted to maintain system accountability.");
+      return;
+    }
+
+    if (window.confirm("ARE YOU SURE? This action will permanently remove this ticket from the campus records. This cannot be undone.")) {
+      try {
+        const res = await authFetch(`http://localhost:8082/api/tickets/${ticketId}`, {
+          method: 'DELETE'
+        });
+        
+        if (res.ok) {
+          // Refresh local state to reflect deletion
+          setTickets(prev => prev.filter(t => t.id !== ticketId));
+          alert("Ticket successfully purged from the system.");
+        } else {
+          throw new Error('Failed to delete ticket. You may not have administrative permissions.');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
@@ -153,7 +179,7 @@ export default function ManageTickets() {
                   ) }
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
+                <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                   <Link 
                     to={`/admin/tickets/${t.id}`}
                     style={{ 
@@ -164,6 +190,23 @@ export default function ManageTickets() {
                   >
                     <ChevronRight size={20} />
                   </Link>
+
+                  {/* Safely Guarded Delete Button */}
+                  <button
+                    onClick={() => handleDelete(t.id, t.status)}
+                    title={t.status === 'RESOLVED' || t.status === 'CLOSED' ? "Delete Ticket" : "Cannot delete active tickets"}
+                    style={{ 
+                      padding: '10px', borderRadius: '12px', 
+                      background: t.status === 'RESOLVED' || t.status === 'CLOSED' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.02)', 
+                      border: '1px solid rgba(255,255,255,0.05)', 
+                      color: t.status === 'RESOLVED' || t.status === 'CLOSED' ? '#ef4444' : '#475569', 
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: t.status === 'RESOLVED' || t.status === 'CLOSED' ? 'pointer' : 'not-allowed',
+                      opacity: t.status === 'RESOLVED' || t.status === 'CLOSED' ? 1 : 0.5
+                    }}
+                  >
+                    <Trash2 size={20} />
+                  </button>
                 </div>
               </div>
             );

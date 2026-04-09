@@ -176,7 +176,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <DashboardLink to="/admin/bookings" label="Manage Bookings" />
                   <DashboardLink to="/admin/users" label="Account Security" />
-                  <DashboardLink to="/tickets" label="Maintenance Tickets" />
+                  <DashboardLink to="/admin/tickets" label="Maintenance Tickets" />
                 </div>
               </div>
             </div>
