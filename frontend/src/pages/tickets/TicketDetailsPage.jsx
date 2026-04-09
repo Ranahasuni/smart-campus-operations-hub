@@ -18,6 +18,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import CommentSection from '../../components/tickets/CommentSection';
+import { formatDuration } from '../../utils/TimeUtils';
 import '../../styles/tickets.css';
 
 export default function TicketDetailsPage() {
@@ -114,7 +115,8 @@ export default function TicketDetailsPage() {
     const styles = {
       OPEN: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', icon: <AlertCircle size={14} /> },
       IN_PROGRESS: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: <Clock size={14} /> },
-      RESOLVED: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', icon: <CheckCircle2 size={14} /> }
+      RESOLVED: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', icon: <CheckCircle2 size={14} /> },
+      CLOSED: { bg: 'rgba(236, 72, 153, 0.1)', color: '#ec4899', icon: <CheckCircle2 size={14} /> }
     };
     const s = styles[status] || styles.OPEN;
     return (
@@ -279,6 +281,41 @@ export default function TicketDetailsPage() {
                   <div style={{ fontSize: '0.9rem' }}>Campus User ID: {ticket.userId}</div>
                 </div>
               </div>
+
+              {ticket.assignedAt && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} className="animate-fade-in">
+                  <Clock size={18} className="text-slate-500" />
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ASSIGNED ON</div>
+                    <div style={{ fontSize: '0.9rem' }}>{new Date(ticket.assignedAt).toLocaleString()}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', marginTop: '2px' }}>
+                      Wait time: {formatDuration(ticket.createdAt, ticket.assignedAt)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(ticket.resolvedAt || ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} className="animate-fade-in">
+                  <CheckCircle2 size={18} className="text-emerald-500" />
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>RESOLVED ON</div>
+                    <div style={{ fontSize: '0.9rem' }}>{ticket.resolvedAt ? new Date(ticket.resolvedAt).toLocaleString() : 'Just now'}</div>
+                    <div style={{ 
+                      fontSize: '0.85rem', 
+                      color: '#10b981', 
+                      marginTop: '6px', 
+                      background: 'rgba(16, 185, 129, 0.1)', 
+                      padding: '4px 10px', 
+                      borderRadius: '6px',
+                      fontWeight: '700',
+                      display: 'inline-block'
+                    }}>
+                      Resolution: {formatDuration(ticket.createdAt, ticket.resolvedAt || new Date())}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -361,7 +398,7 @@ export default function TicketDetailsPage() {
             </p>
             
             <div className="space-y-3">
-              {['OPEN', 'IN_PROGRESS', 'RESOLVED'].map((status) => (
+              {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map((status) => (
                 <button
                   key={status}
                   disabled={updating || ticket.status === status}
