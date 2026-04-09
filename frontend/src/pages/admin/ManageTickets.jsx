@@ -125,7 +125,7 @@ export default function ManageTickets() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#6366f1', background: 'rgba(99, 102, 241, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
-                      #{t.id?.slice(-6)}
+                      {t.displayId || t.id?.slice(-6).toUpperCase()}
                     </span>
                     <span style={{ color: '#fff', fontWeight: '600' }}>{t.title}</span>
                   </div>
@@ -140,7 +140,10 @@ export default function ManageTickets() {
                   {t.technicianId ? (
                     <>
                       <User size={14} color="#22c55e" />
-                      <span style={{ color: '#cbd5e1' }}>Assigned</span>
+                      <span style={{ color: '#cbd5e1' }}>
+                        {t.technicianFullName || 'Assigned'} 
+                        {t.technicianCampusId && <span style={{ opacity: 0.6, marginLeft: '4px' }}>({t.technicianCampusId})</span>}
+                      </span>
                     </>
                   ) : (
                     <>

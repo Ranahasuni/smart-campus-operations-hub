@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
 import api from '../../api/axiosInstance';
 import '../../styles/tickets.css';
+import ImageUpload from '../../components/tickets/ImageUpload';
 import { 
   AlertCircle, 
   Send, 
@@ -25,6 +26,7 @@ export default function CreateTicketPage() {
   const [fetchingResources, setFetchingResources] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [resources, setResources] = useState([]);
   const [isLinked, setIsLinked] = useState(false);
 
@@ -52,6 +54,17 @@ export default function CreateTicketPage() {
         resourceId: rid,
         title: rname ? `Issue with ${rname}` : prev.title
       }));
+      
+      // Also fetch and set location if possible
+      api.get(`/resources/${rid}`).then(res => {
+        const r = res.data;
+        if (r) {
+          setFormData(prev => ({
+            ...prev,
+            locationDetail: `${r.building}, Level ${r.floor}, Room ${r.roomNumber}`
+          }));
+        }
+      }).catch(err => console.error("Failed to pre-fill location", err));
     }
   }, [searchParams]);
 
@@ -89,10 +102,25 @@ export default function CreateTicketPage() {
     setError('');
 
     try {
-      await ticketApi.createTicket({
+      const finalTicketData = {
         ...formData,
-        userId: user?.id || ''
-      });
+        userId: user?.id || '',
+        userFullName: user?.fullName || 'Anonymous User',
+        userCampusId: user?.campusId || 'N/A'
+      };
+      
+      const response = await ticketApi.createTicket(finalTicketData);
+      const createdTicket = response.data;
+      
+      // Upload images if any
+      if (selectedFiles.length > 0) {
+        try {
+          await ticketApi.uploadTicketImages(createdTicket.id, selectedFiles, user.id);
+        } catch (imgErr) {
+          console.error('Image upload failed but ticket was created:', imgErr);
+        }
+      }
+
       setSuccess(true);
       setTimeout(() => navigate('/tickets'), 2000);
     } catch (err) {
@@ -233,13 +261,11 @@ export default function CreateTicketPage() {
               value={formData.locationDetail}
               onChange={handleChange}
               placeholder="e.g., Block B, 3rd Floor, Room 304"
-              readOnly={isLinked || formData.resourceId !== ''}
               style={{ 
-                background: (isLinked || formData.resourceId !== '') ? 'rgba(15, 23, 42, 0.4)' : 'rgba(15, 23, 42, 0.6)',
+                background: 'rgba(15, 23, 42, 0.6)',
                 color: '#fff',
                 fontWeight: '500',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
-                opacity: (isLinked || formData.resourceId !== '') ? 0.8 : 1
+                border: '1px solid rgba(99, 102, 241, 0.2)'
               }}
             />
           </div>
@@ -256,6 +282,15 @@ export default function CreateTicketPage() {
               placeholder="What seems to be the problem?"
               style={{ resize: 'none' }}
             />
+          </div>
+
+
+          {/* Image Upload Section */}
+          <div className="form-group" style={{ marginBottom: '32px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <Building2 size={16} /> Attach Photos (Maximum 3)
+            </label>
+            <ImageUpload onFilesSelected={setSelectedFiles} />
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>

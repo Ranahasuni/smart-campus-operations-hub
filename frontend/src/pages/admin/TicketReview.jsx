@@ -87,7 +87,7 @@ export default function TicketReview() {
         <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '32px', overflow: 'hidden' }}>
           <header style={{ padding: '32px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-               <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff', margin: 0 }}>Ticket #{ticket.id?.slice(-8)}</h1>
+               <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff', margin: 0 }}>Ticket {ticket.displayId || ticket.id?.slice(-8).toUpperCase()}</h1>
                <span style={{ padding: '4px 12px', background: 'rgba(99, 102, 241, 0.1)', color: '#818cf8', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800' }}>
                  {ticket.status}
                </span>

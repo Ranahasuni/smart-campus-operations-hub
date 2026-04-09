@@ -21,6 +21,8 @@ public class Comment {
 
     private String ticketId;
     private String userId;
+    private String userFullName;
+    private String userCampusId;
 
     private String message;
 

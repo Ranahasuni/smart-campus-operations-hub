@@ -21,6 +21,9 @@ public class Ticket {
     private String id;
 
     private String userId; // User who created the ticket
+    private String userFullName;
+    private String userCampusId;
+    private String displayId; // Human-readable sequential ID (e.g. #TKT-1001)
     private String resourceId; // The broken resource
 
     private String title;
@@ -40,6 +43,8 @@ public class Ticket {
     private Priority priority;
 
     private String technicianId; // Assigned technician
+    private String technicianFullName;
+    private String technicianCampusId;
 
     // --- Top Marks Feature ---
     private String resolutionNotes;

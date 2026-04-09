@@ -28,7 +28,19 @@ const ticketApi = {
 
   // Assign a technician to a ticket (PATCH with JSON body)
   assignTechnician: (id, technicianId, assignedBy) => 
-    api.patch(`/tickets/${id}/assign`, { technicianId, assignedBy })
+    api.patch(`/tickets/${id}/assign`, { technicianId, assignedBy }),
+  // --- Image Handling ---
+  uploadTicketImages: (ticketId, files, userId) => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    formData.append('userId', userId);
+    
+    return api.post(`/tickets/${ticketId}/images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  getTicketImages: (ticketId) => api.get(`/tickets/${ticketId}/images`)
 };
 
 export default ticketApi;
