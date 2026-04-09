@@ -35,9 +35,17 @@ export default function ResourceEditorPage() {
     status: 'ACTIVE',
     equipment: [],
     imageUrls: [],
-    availableFrom: '',
-    availableTo: '',
-    availableDays: []
+    availability: [
+      { day: 'Mon', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+      { day: 'Tue', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+      { day: 'Wed', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+      { day: 'Thu', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+      { day: 'Fri', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+      { day: 'Sat', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+      { day: 'Sun', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+    ]
+
+
   });
 
   useEffect(() => {
@@ -88,9 +96,8 @@ export default function ResourceEditorPage() {
         status: formData.status || 'ACTIVE',
         equipment: formData.equipment || [],
         imageUrls: formData.imageUrls || [],
-        availableFrom: formData.availableFrom,
-        availableTo: formData.availableTo,
-        availableDays: formData.availableDays || []
+        availability: formData.availability || []
+
       };
 
       const url = isEdit 

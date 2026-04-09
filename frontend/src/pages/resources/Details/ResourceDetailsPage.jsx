@@ -132,10 +132,9 @@ export default function ResourceDetailsPage() {
         {/* RIGHT COLUMN: SIDEBAR (ACTION & AVAILABILITY) */}
         <div className="details-sidebar">
           <AvailabilityInfo
-            days={resource.availableDays}
-            from={resource.availableFrom}
-            to={resource.availableTo}
+            availability={resource.availability}
           />
+
           <QRCodeDisplay resourceId={resource.id} />
           <ActionButton status={resource.status} resourceId={resource.id} />
         </div>
