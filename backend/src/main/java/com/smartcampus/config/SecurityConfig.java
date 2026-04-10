@@ -33,12 +33,20 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // ── MASTER KEY: ALL API ENDPOINTS UNLOCKED ───────────────
-                        .requestMatchers("/api/**").permitAll()
+                        // ── Public Endpoints ───────────────
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/admin/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").permitAll()
+                        
+                        // ── Private Endpoints ────────────────
+                        .requestMatchers("/api/bookings/**").authenticated()
+                        .requestMatchers("/api/resources/**").hasRole("ADMIN")
+                        .requestMatchers("/api/tickets/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        
+                        // ── Remaining ────────────────────────
                         .requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().permitAll())
+                        .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
