@@ -103,13 +103,13 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
         style={{ 
           display: 'flex', alignItems: 'center', gap: '8px', padding: '0 24px', 
           borderRadius: '14px', background: '#fff', border: '1px solid #e2e8f0', 
-          color: '#64748b', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem',
+          color: '#6366f1', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem',
           transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
         }}
-        onMouseOver={e => e.currentTarget.style.borderColor = '#cbd5e1'}
-        onMouseOut={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+        onMouseOver={e => { e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.background = '#fcfdff'; }}
+        onMouseOut={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}
       >
-        <RotateCcw size={16} /> Clear Filters
+        <RotateCcw size={16} /> Reset Filters
       </button>
     </div>
   );

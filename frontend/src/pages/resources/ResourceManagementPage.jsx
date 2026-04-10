@@ -20,11 +20,20 @@ export default function ResourceManagementPage() {
     status: '',
   });
 
+  const isInitialMount = React.useRef(true);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (isInitialMount.current) {
+      // First load happens instantly
       fetchResources();
-    }, 300); // 300ms debounce for smoother typing
-    return () => clearTimeout(timer);
+      isInitialMount.current = false;
+    } else {
+      // Subsequent filter changes are debounced for performance
+      const timer = setTimeout(() => {
+        fetchResources();
+      }, 300); 
+      return () => clearTimeout(timer);
+    }
   }, [filters]);
 
   const fetchResources = async () => {

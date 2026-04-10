@@ -36,9 +36,9 @@ export default function SummaryCards({ stats }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
       {cards.map((card, i) => (
-        <div key={i} style={{ 
-          background: '#fff', 
-          padding: '24px', 
+        <div key={i} style={{
+          background: '#fff',
+          padding: '24px',
           borderRadius: '24px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
@@ -48,8 +48,8 @@ export default function SummaryCards({ stats }) {
               <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>{card.title}</p>
               <h3 style={{ fontSize: '2rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>{card.value}</h3>
             </div>
-            <div style={{ 
-              width: '48px', height: '48px', borderRadius: '14px', 
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '14px',
               background: card.bg, color: card.color,
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>

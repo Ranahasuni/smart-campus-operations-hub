@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
@@ -21,7 +21,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ResourceEditorPage from './pages/resources/ResourceForm/ResourceEditorPage';
 import ResourceDetailsPage from './pages/resources/Details/ResourceDetailsPage';
 
-import Dashboard from './pages/admin/Dashboard';
+import Dashboard from './pages/admin/Dashboard.jsx';
 import ManageUsers from './pages/admin/ManageUsers';
 import SystemLogs from './pages/admin/SystemLogs';
 import ResourceManagementPage from './pages/resources/ResourceManagementPage';
@@ -30,7 +30,7 @@ import BookingReview from './pages/admin/BookingReview';
 import BookingCalendar from './pages/admin/BookingCalendar';
 import ManageTickets from './pages/admin/ManageTickets';
 import TicketReview from './pages/admin/TicketReview';
-import ResourceAnalyticsPage from './pages/admin/Dashboard/ResourceAnalyticsPage';
+import ResourceAnalyticsPage from './pages/admin/DashboardComponents/ResourceAnalyticsPage';
 
 export default function App() {
   return (
@@ -90,10 +90,14 @@ export default function App() {
               <ProtectedRoute><TicketDetailsPage /></ProtectedRoute>
             } />
 
-            {/* Admin only */}
             <Route path="/admin" element={
               <ProtectedRoute role="ADMIN">
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute role="ADMIN">
+                <ResourceAnalyticsPage />
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
@@ -131,12 +135,6 @@ export default function App() {
                 <TicketReview />
               </ProtectedRoute>
             } />
-            <Route path="/admin/dashboard" element={
-              <ProtectedRoute role="ADMIN">
-                <ResourceAnalyticsPage />
-              </ProtectedRoute>
-            } />
-
             <Route path="/admin/logs" element={
               <ProtectedRoute role="ADMIN">
                 <SystemLogs />

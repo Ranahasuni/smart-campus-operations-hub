@@ -45,7 +45,7 @@ export default function EquipmentSection({ formData, setFormValue }) {
         <input
           type="text"
           className="tag-input"
-          placeholder="e.g., Projector, AC, WiFi..."
+          placeholder="e.g., Projector Cluster, Audio Matrix, High-Density Wi-Fi..."
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
