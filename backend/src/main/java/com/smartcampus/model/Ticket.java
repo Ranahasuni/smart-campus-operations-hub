@@ -45,6 +45,7 @@ public class Ticket {
     private String technicianId; // Assigned technician
     private String technicianFullName;
     private String technicianCampusId;
+    private String assignmentMethod; // e.g. "ADMIN_ASSIGNED", "SELF_CLAIMED"
 
     // --- Top Marks Feature ---
     private String resolutionNotes;

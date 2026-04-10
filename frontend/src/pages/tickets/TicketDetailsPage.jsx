@@ -111,7 +111,13 @@ export default function TicketDetailsPage() {
     }
   };
 
-  const getStatusBadge = (status) => {
+    const getTechnicianDisplay = (fullName, campusId) => {
+        if (!fullName) return 'Unassigned';
+        const isStaff = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
+        return isStaff ? `${fullName} (${campusId || 'Staff'})` : `${fullName} (Technician)`;
+    };
+
+    const getStatusBadge = (status) => {
     const styles = {
       OPEN: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', icon: <AlertCircle size={14} /> },
       IN_PROGRESS: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: <Clock size={14} /> },
@@ -204,6 +210,10 @@ export default function TicketDetailsPage() {
               <p style={{ fontSize: '1.1rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.8', fontStyle: 'italic' }}>
                 "{ticket.resolutionNotes}"
               </p>
+              <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#10b981', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <User size={14} /> 
+                Resolved by: {getTechnicianDisplay(ticket.technicianFullName, ticket.technicianCampusId)}
+              </div>
             </div>
           )}
 
@@ -363,6 +373,11 @@ export default function TicketDetailsPage() {
                         </div>
                       )}
                     </div>
+                    {ticket.technicianId && ticket.assignmentMethod && (
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
+                        Source: {ticket.assignmentMethod === 'ADMIN_ASSIGNED' ? 'Assigned by Admin' : 'Self-Claimed'}
+                      </div>
+                    )}
                   </div>
                 )}
                 
@@ -370,8 +385,13 @@ export default function TicketDetailsPage() {
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>ASSIGNED TO</div>
                     <div style={{ fontSize: '0.9rem', color: 'var(--accent-primary)' }}>
-                      {ticket.technicianFullName || 'Staff Member'}: {ticket.technicianCampusId || ticket.technicianId}
+                      {getTechnicianDisplay(ticket.technicianFullName, ticket.technicianCampusId)}
                     </div>
+                    {ticket.assignmentMethod && (
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
+                        Source: {ticket.assignmentMethod === 'ADMIN_ASSIGNED' ? 'Assigned by Admin' : 'Self-Claimed'}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

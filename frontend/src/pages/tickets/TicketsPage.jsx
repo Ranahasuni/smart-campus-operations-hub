@@ -40,6 +40,12 @@ export default function TicketsPage() {
     }
   };
 
+  const getTechnicianDisplay = (fullName, campusId) => {
+    if (!fullName) return null;
+    const isStaff = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
+    return isStaff ? `${fullName} (${campusId || 'Staff'})` : `${fullName} (Technician)`;
+  };
+
   const getStatusBadge = (status) => {
     const styles = {
       OPEN: { bg: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', color: '#f59e0b', icon: <AlertCircle size={14} /> },
@@ -108,8 +114,15 @@ export default function TicketsPage() {
                     <div style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginBottom: '4px' }}>
                       {ticket.userFullName || 'Anonymous'} ({ticket.userCampusId || 'N/A'})
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Tag size={12} /> {ticket.displayId || ticket.id.substring(ticket.id.length - 8).toUpperCase()}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.75rem' }}>
+                      <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Tag size={12} /> {ticket.displayId || ticket.id.substring(ticket.id.length - 8).toUpperCase()}
+                      </div>
+                      {ticket.technicianFullName && (
+                        <div style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                          <User size={12} /> {getTechnicianDisplay(ticket.technicianFullName, ticket.technicianCampusId)}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td style={{ padding: '24px' }}>

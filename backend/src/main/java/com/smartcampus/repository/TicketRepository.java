@@ -6,11 +6,12 @@ import com.smartcampus.model.TicketStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Sort;
 import java.util.List;
 
 @Repository
 public interface TicketRepository extends MongoRepository<Ticket, String> {
-    List<Ticket> findByUserId(String userId);
+    List<Ticket> findByUserId(String userId, Sort sort);
     List<Ticket> findByStatus(TicketStatus status);
     List<Ticket> findByPriority(Priority priority);
     List<Ticket> findByResourceId(String resourceId);
