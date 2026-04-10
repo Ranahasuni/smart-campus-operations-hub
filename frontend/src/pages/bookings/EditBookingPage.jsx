@@ -220,8 +220,12 @@ export default function EditBookingPage() {
           
           {resource && (
             <div className="resource-summary-box">
-              <div className="resource-summary-icon">
-                {CATEGORY_MAP[resource.type]?.icon || '📍'}
+              <div className="resource-summary-thumb">
+                {resource.imageUrls && resource.imageUrls.length > 0 ? (
+                  <img src={resource.imageUrls[0]} alt={resource.name} />
+                ) : (
+                  <span>{CATEGORY_MAP[resource.type]?.icon || '📍'}</span>
+                )}
               </div>
               <div className="resource-summary-info">
                 <h4>{resource.name}</h4>

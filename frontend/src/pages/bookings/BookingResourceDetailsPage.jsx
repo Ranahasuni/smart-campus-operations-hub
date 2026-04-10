@@ -117,8 +117,33 @@ export default function BookingResourceDetailsPage() {
 
       <div className="details-layout">
         <main className="details-main">
-          <div className="glass-card booking-details-main">
-            <header className="details-header">
+          <div className="glass-card booking-details-main" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="resource-hero-section">
+              {resource.imageUrls && resource.imageUrls.length > 0 ? (
+                <div className="hero-image-container">
+                  <img src={resource.imageUrls[0]} alt={resource.name} className="hero-main-img" />
+                  {resource.imageUrls.length > 1 && (
+                    <div className="hero-gallery-preview">
+                      {resource.imageUrls.slice(1, 4).map((url, i) => (
+                        <img key={i} src={url} alt="Gallery" className="gallery-thumb" />
+                      ))}
+                      {resource.imageUrls.length > 4 && (
+                        <div className="gallery-more">+{resource.imageUrls.length - 4}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="hero-placeholder">
+                  <div className="placeholder-icon">
+                    {CATEGORY_MAP[resource.type]?.icon}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '32px' }}>
+              <header className="details-header">
               <div className="resource-type-badge">
                 {CATEGORY_MAP[resource.type]?.icon} {CATEGORY_MAP[resource.type]?.name || resource.type}
               </div>
@@ -163,6 +188,7 @@ export default function BookingResourceDetailsPage() {
                 </div>
               </section>
             )}
+            </div>
           </div>
         </main>
 
