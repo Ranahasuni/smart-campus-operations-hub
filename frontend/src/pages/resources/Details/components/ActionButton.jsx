@@ -2,8 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarCheck, AlertTriangle, XCircle, Zap } from 'lucide-react';
 
+import { useAuth } from '../../../../context/AuthContext';
+
 export default function ActionButton({ status, resourceId }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const getButtonConfig = () => {
     switch (status) {
@@ -47,6 +50,9 @@ export default function ActionButton({ status, resourceId }) {
   };
 
   const cfg = getButtonConfig();
+
+  // Technicians should not be able to book resources
+  if (user?.role === 'TECHNICIAN') return null;
 
   return (
     <div className="action-btn-container">

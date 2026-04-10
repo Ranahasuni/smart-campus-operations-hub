@@ -105,7 +105,7 @@ public class NotificationService {
         CreateNotificationRequest req = new CreateNotificationRequest();
         req.setUserId(userId);
         req.setTitle("Ticket Updated 🔧");
-        req.setMessage("Your ticket #" + ticketId + " status changed to: " + status);
+        req.setMessage("Your ticket " + ticketId + " status changed to: " + status);
         req.setType(NotificationType.TICKET_UPDATED);
         req.setPriority(NotificationPriority.MEDIUM);
         req.setReferenceId(ticketId);

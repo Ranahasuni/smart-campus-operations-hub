@@ -18,7 +18,11 @@ const ADMIN_FEATURES = [
 
 export default function HomePage() {
   const { user } = useAuth();
-  const features = user?.role === 'ADMIN' ? ADMIN_FEATURES : USER_FEATURES;
+  const features = user?.role === 'ADMIN' 
+    ? ADMIN_FEATURES 
+    : user?.role === 'TECHNICIAN'
+      ? USER_FEATURES.filter(f => f.title !== 'Reservations')
+      : USER_FEATURES;
 
   return (
     <div className="home-hero" style={{
