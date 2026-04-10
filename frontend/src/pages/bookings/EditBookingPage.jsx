@@ -154,7 +154,11 @@ export default function EditBookingPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Update failed');
+        let errorMsg = 'Update failed';
+        if (data.message) errorMsg = data.message;
+        else if (data.error) errorMsg = data.error;
+        else if (data.messages) errorMsg = Object.values(data.messages).join(', ');
+        throw new Error(errorMsg);
       }
 
       showToast('Reservation updated successfully!', 'success');

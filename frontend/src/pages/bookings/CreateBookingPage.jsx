@@ -169,7 +169,11 @@ export default function CreateBookingPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Submission failed');
+        let errorMsg = 'Submission failed';
+        if (data.message) errorMsg = data.message;
+        else if (data.error) errorMsg = data.error;
+        else if (data.messages) errorMsg = Object.values(data.messages).join(', ');
+        throw new Error(errorMsg);
       }
 
       showToast('Booking submitted successfully!', 'success');
