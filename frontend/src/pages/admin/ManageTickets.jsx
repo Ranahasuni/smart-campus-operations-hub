@@ -28,7 +28,7 @@ export default function ManageTickets() {
       const res = await authFetch('http://localhost:8082/api/tickets');
       if (!res.ok) throw new Error('Failed to retrieve system tickets');
       const data = await res.json();
-      setTickets(Array.isArray(data) ? data.reverse() : []);
+      setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -169,6 +169,9 @@ export default function ManageTickets() {
                       <span style={{ color: '#cbd5e1' }}>
                         {t.technicianFullName || 'Assigned'} 
                         {t.technicianCampusId && <span style={{ opacity: 0.6, marginLeft: '4px' }}>({t.technicianCampusId})</span>}
+                        {t.assignmentMethod === 'SELF_CLAIMED' && (
+                          <div style={{ fontSize: '0.65rem', color: '#6366f1', marginTop: '2px', fontStyle: 'italic' }}>Self-Claimed</div>
+                        )}
                       </span>
                     </>
                   ) : (
