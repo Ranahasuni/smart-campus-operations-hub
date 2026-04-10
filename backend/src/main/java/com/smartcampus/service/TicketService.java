@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import com.smartcampus.service.AuditService;
 import com.smartcampus.service.ResourceService;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.smartcampus.model.Role;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -92,7 +94,7 @@ public class TicketService {
     }
 
     public List<Ticket> getAllTickets() {
-        return ticketRepository.findAll();
+        return ticketRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     public Ticket getTicketById(String id) {
@@ -101,7 +103,7 @@ public class TicketService {
     }
 
     public List<Ticket> getTicketsByUserId(String userId) {
-        return ticketRepository.findByUserId(userId);
+        return ticketRepository.findByUserId(userId, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     public List<Ticket> getTicketsByResourceId(String resourceId) {
@@ -113,6 +115,19 @@ public class TicketService {
         TicketStatus oldStatus = ticket.getStatus();
         ticket.setStatus(newStatus);
         ticket.setUpdatedAt(LocalDateTime.now());
+
+        // Intelligence: Auto-Assign if a technician starts work or resolves an unassigned ticket
+        if ((newStatus == TicketStatus.RESOLVED || newStatus == TicketStatus.IN_PROGRESS) && 
+            (ticket.getTechnicianId() == null || ticket.getTechnicianId().isEmpty())) {
+            User performer = userRepository.findById(updatedBy).orElse(null);
+            if (performer != null && performer.getRole() == Role.TECHNICIAN) {
+                ticket.setTechnicianId(updatedBy);
+                ticket.setTechnicianFullName(performer.getFullName());
+                ticket.setTechnicianCampusId(performer.getCampusId());
+                ticket.setAssignmentMethod("SELF_CLAIMED");
+                ticket.setAssignedAt(LocalDateTime.now());
+            }
+        }
 
         if (newStatus == TicketStatus.RESOLVED) {
             ticket.setResolvedAt(LocalDateTime.now());
@@ -157,6 +172,7 @@ public class TicketService {
         if (technician != null) {
             ticket.setTechnicianFullName(technician.getFullName());
             ticket.setTechnicianCampusId(technician.getCampusId());
+            ticket.setAssignmentMethod("ADMIN_ASSIGNED");
         }
 
         Ticket updatedTicket = ticketRepository.save(ticket);
