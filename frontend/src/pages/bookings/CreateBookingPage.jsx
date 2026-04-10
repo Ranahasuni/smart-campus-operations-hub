@@ -300,20 +300,39 @@ export default function CreateBookingPage() {
           {/* Availability Info */}
           <div className="availability-snapshot">
             <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> Availability on {formData.date}</h5>
-            {bookedSlots.length > 0 ? (
-              <div className="booked-slots-mini">
-                {bookedSlots.map(b => (
-                  <div key={b.id} className="mini-slot">
-                    {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)} (Booked)
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="no-bookings-hint">Full day available! All slots are currently open.</p>
-            )}
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '12px' }}>
-              Resource Hours: {resource?.availableFrom} to {resource?.availableTo}
-            </p>
+            
+            <div className="availability-info-grid">
+               <div className="availability-section">
+                  <h6>Operational Hours</h6>
+                  {resource?.availability ? (
+                    <div className="slots-chips">
+                      {resource.availability
+                        .find(a => a.day === new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' }))
+                        ?.slots.map((s, idx) => (
+                          <span key={idx} className="slot-chip available">{s.startTime} - {s.endTime}</span>
+                        )) || <span className="no-slots">Not available today</span>
+                      }
+                    </div>
+                  ) : (
+                    <p className="no-bookings-hint">Resource hours not specified.</p>
+                  )}
+               </div>
+
+               <div className="availability-section">
+                  <h6>Current Bookings</h6>
+                  {bookedSlots.length > 0 ? (
+                    <div className="slots-chips">
+                      {bookedSlots.map(b => (
+                        <span key={b.id} className="slot-chip booked">
+                          {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-bookings-hint" style={{ color: '#4ade80' }}>No bookings yet!</p>
+                  )}
+               </div>
+            </div>
           </div>
 
           {/* Time Picker - Start */}
@@ -322,7 +341,7 @@ export default function CreateBookingPage() {
             <input 
               type="time" 
               name="startTime"
-              className="form-input"
+              className={`form-input ${formData.startTime >= formData.endTime ? 'input-error' : ''}`}
               value={formData.startTime}
               onChange={handleInputChange}
               required
@@ -335,11 +354,15 @@ export default function CreateBookingPage() {
             <input 
               type="time" 
               name="endTime"
-              className="form-input"
+              className={`form-input ${formData.startTime >= formData.endTime ? 'input-error' : ''}`}
               value={formData.endTime}
               onChange={handleInputChange}
               required
             />
+            {formData.startTime >= formData.endTime && (
+              <span className="input-hint-error">End time must be after start time.</span>
+            )}
+          </div>
           </div>
 
           {/* Purpose */}
