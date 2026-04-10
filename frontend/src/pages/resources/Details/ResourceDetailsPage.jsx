@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 import { ArrowLeft, Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 import api from '../../../api/axiosInstance';
 import ticketApi from '../../../api/ticketApi';
@@ -12,8 +13,10 @@ import EquipmentList from './components/EquipmentList';
 import AvailabilityInfo from './components/AvailabilityInfo';
 import QRCodeDisplay from './components/QRCodeDisplay';
 import ActionButton from './components/ActionButton';
+import ResourceMaintenanceHistory from './components/ResourceMaintenanceHistory';
 
 export default function ResourceDetailsPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const [resource, setResource] = useState(null);
   const [tickets, setTickets] = useState([]);
@@ -139,6 +142,9 @@ export default function ResourceDetailsPage() {
           <ImageGallery images={resource.imageUrls} name={resource.name} />
           <ResourceInfo resource={resource} />
           <EquipmentList equipment={resource.equipment} />
+          {(user?.role === 'TECHNICIAN' || user?.role === 'ADMIN') && (
+            <ResourceMaintenanceHistory tickets={tickets} loading={loading} />
+          )}
         </div>
 
         {/* RIGHT COLUMN: SIDEBAR (ACTION & AVAILABILITY) */}
