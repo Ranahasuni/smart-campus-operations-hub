@@ -44,7 +44,7 @@ public class BookingController {
             @Valid @RequestBody BookingRequestDTO dto,
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByCampusId(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(dto, user.getId()));
     }
 
@@ -52,7 +52,7 @@ public class BookingController {
     public ResponseEntity<List<BookingResponseDTO>> getUserBookings(
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByCampusId(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
         return ResponseEntity.ok(bookingService.getUserBookings(user.getId()));
     }
 
@@ -61,7 +61,7 @@ public class BookingController {
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByCampusId(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
         bookingService.cancelBooking(id, user.getId());
         return ResponseEntity.ok().build();
     }
@@ -71,7 +71,7 @@ public class BookingController {
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByCampusId(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
         
         boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -85,7 +85,7 @@ public class BookingController {
             @Valid @RequestBody BookingRequestDTO dto,
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByCampusId(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
         return ResponseEntity.ok(bookingService.updateBooking(id, dto, user.getId()));
     }
 
@@ -94,7 +94,7 @@ public class BookingController {
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByCampusId(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User context lost"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
         bookingService.deleteBooking(id, user.getId());
         return ResponseEntity.noContent().build();
     }
