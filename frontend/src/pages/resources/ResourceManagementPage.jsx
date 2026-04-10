@@ -18,6 +18,7 @@ export default function ResourceManagementPage() {
     floor: '',
     type: '',
     status: '',
+    capacity: '',
   });
 
   const isInitialMount = React.useRef(true);
@@ -83,7 +84,7 @@ export default function ResourceManagementPage() {
   };
 
   const clearFilters = () => {
-    setFilters({ name: '', building: '', floor: '', type: '', status: '' });
+    setFilters({ name: '', building: '', floor: '', type: '', status: '', capacity: '' });
   };
 
   if (loading && resources.length === 0) return (
