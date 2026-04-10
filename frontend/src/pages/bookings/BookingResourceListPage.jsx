@@ -198,7 +198,14 @@ export default function BookingResourceListPage() {
             const statusInfo = getStatusInfo(res.status);
             return (
               <div key={res.id} className="glass-card resource-item-card animate-fade-in">
-                <div className="card-image-placeholder">
+                <div className="card-image-wrapper">
+                  {res.imageUrls && res.imageUrls.length > 0 ? (
+                    <img src={res.imageUrls[0]} alt={res.name} className="resource-card-img" />
+                  ) : (
+                    <div className="card-image-placeholder">
+                      <LayoutGrid size={32} opacity={0.2} />
+                    </div>
+                  )}
                   <div className={`status-chip ${statusInfo.class}`}>
                     {statusInfo.icon} {statusInfo.label}
                   </div>
