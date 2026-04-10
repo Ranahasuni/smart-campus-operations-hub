@@ -34,10 +34,15 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRuntime(RuntimeException ex) {
-        return ResponseEntity.badRequest()
-                .body(Map.of("error", ex.getMessage()));
+    // Catch specific RuntimeExceptions if needed, but don't catch-all as 400
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArg(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
 
     // Validation errors → 400
