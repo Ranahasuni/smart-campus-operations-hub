@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react';
 import api from '../../../api/axiosInstance';
-import { Filter } from 'lucide-react';
+import { Filter, Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
   'LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'
 ];
 
-const STATUSES = ['ACTIVE', 'MAINTENANCE', 'OUT_OF_SERVICE'];
-
 export default function FilterPanel({ searchParams, updateParams, clearFilters }) {
   const [buildings, setBuildings] = useState([]);
   const [floors, setFloors] = useState([]);
 
-  // Fetch unique buildings on mount
   useEffect(() => {
     const fetchBuildings = async () => {
       try {
@@ -26,7 +23,6 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
     fetchBuildings();
   }, []);
 
-  // Fetch floors when a building is selected
   useEffect(() => {
     if (searchParams.building) {
       const fetchFloors = async () => {
@@ -41,7 +37,7 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
     } else {
       setFloors([]);
       if (searchParams.floor) {
-        updateParams('floor', ''); // Clear floor if building is cleared
+        updateParams('floor', '');
       }
     }
   }, [searchParams.building]);
@@ -63,94 +59,104 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
   };
 
   return (
-    <div className="filter-panel">
-      <div className="filter-header">
-        <h3 style={{display:'flex', alignItems:'center', gap:'8px'}}>
-            <Filter size={20} color="#3b82f6"/> 
-            Filters
-        </h3>
-        <button className="clear-filters-btn" onClick={clearFilters}>
-          Clear All
+    <div className="filter-sidebar">
+      <div className="filter-header-pro">
+        <h3 className="filter-title-pro">Resource Filters</h3>
+        <button className="reset-all-btn" onClick={clearFilters} title="Reset All">
+          <RotateCcw size={18} />
         </button>
       </div>
 
-      <div className="filter-group">
-        <label className="filter-label">Building</label>
-        <select 
-          className="filter-select" 
-          name="building" 
-          value={searchParams.building || ''} 
-          onChange={handleChange}
-        >
-          <option value="">Any Building</option>
-          {buildings.map(b => <option key={b} value={b}>{b}</option>)}
-        </select>
-      </div>
-
-      <div className="filter-group">
-        <label className="filter-label">Floor</label>
-        <select 
-          className="filter-select" 
-          name="floor" 
-          value={searchParams.floor || ''} 
-          onChange={handleChange}
-          disabled={!searchParams.building}
-        >
-          <option value="">Any Floor</option>
-          {floors.map(f => <option key={f} value={f}>Floor {f}</option>)}
-        </select>
-      </div>
-
-      <div className="filter-group">
-        <label className="filter-label">Resource Type</label>
-        <select 
-          className="filter-select" 
-          name="type" 
-          value={searchParams.type || ''} 
-          onChange={handleChange}
-        >
-          <option value="">All Types</option>
-          {RESOURCE_TYPES.map(t => (
-            <option key={t} value={t}>{t.replace('_', ' ')}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="filter-group">
-        <label className="filter-label">Minimum Capacity</label>
-        <div style={{ position: 'relative' }}>
-          <input 
-            type="number" 
-            className="filter-input" 
-            name="capacity" 
-            placeholder="e.g. 30" 
-            min="1"
-            value={searchParams.capacity || ''} 
-            onChange={handleChange}
-            style={{ paddingRight: '40px' }}
-          />
-          <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '0.875rem' }}>
-            ppl
-          </span>
+      <div className="filter-content-pro">
+        {/* Building Filter */}
+        <div className="filter-item-pro">
+          <label className="filter-label-pro">Building Location</label>
+          <div className="input-wrapper-pro">
+            <Building2 className="input-icon-pro" size={16} color="#6366f1" />
+            <select
+              className="filter-select-pro"
+              name="building"
+              value={searchParams.building || ''}
+              onChange={handleChange}
+            >
+              <option value="">Any Building</option>
+              {buildings.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div className="filter-group" style={{ marginTop: '24px' }}>
-        <label className="filter-label" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px', marginBottom: '16px' }}>
-          Popular Features
-        </label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Floor Filter */}
+        <div className="filter-item-pro">
+          <label className="filter-label-pro">Target Floor</label>
+          <div className="input-wrapper-pro">
+            <Map className="input-icon-pro" size={16} color="#0d9488" />
+            <select
+              className="filter-select-pro"
+              name="floor"
+              value={searchParams.floor || ''}
+              onChange={handleChange}
+              disabled={!searchParams.building}
+            >
+              <option value="">Any Floor</option>
+              {floors.map(f => <option key={f} value={f}>Floor {f}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Resource Type Filter */}
+        <div className="filter-item-pro">
+          <label className="filter-label-pro">Facility Category</label>
+          <div className="input-wrapper-pro">
+            <Layout className="input-icon-pro" size={16} color="#8b5cf6" />
+            <select
+              className="filter-select-pro"
+              name="type"
+              value={searchParams.type || ''}
+              onChange={handleChange}
+            >
+              <option value="">All Categories</option>
+              {RESOURCE_TYPES.map(t => (
+                <option key={t} value={t}>{t.replace('_', ' ')}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Capacity Filter */}
+        <div className="filter-item-pro">
+          <label className="filter-label-pro">Minimum Occupancy</label>
+          <div className="input-wrapper-pro">
+            <Users className="input-icon-pro" size={16} color="#f59e0b" />
+            <input
+              type="number"
+              className="filter-input-pro"
+              name="capacity"
+              placeholder="Min. seats"
+              min="1"
+              value={searchParams.capacity || ''}
+              onChange={handleChange}
+            />
+            <span className="input-suffix-pro">ppl</span>
+          </div>
+        </div>
+
+        {/* Features Split Section */}
+        <div className="features-divider-pro">
+          <span>Popular Amenities</span>
+        </div>
+
+        <div className="features-list-pro">
           {['Projector', 'Whiteboard', 'Core i7 PCs', 'Central AC'].map(feature => {
             const isChecked = (searchParams.features || '').includes(feature);
             return (
-              <label key={feature} className="feature-checkbox" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9rem', color: '#334155' }}>
-                <input 
-                  type="checkbox" 
+              <label key={feature} className="feature-checkbox-item">
+                <input
+                  type="checkbox"
                   checked={isChecked}
                   onChange={() => handleFeatureToggle(feature)}
-                  style={{ width: '18px', height: '18px', accentColor: '#2563eb', cursor: 'pointer' }}
+                  className="filter-checkbox"
                 />
-                {feature}
+                <span className="checkbox-label">{feature}</span>
               </label>
             );
           })}

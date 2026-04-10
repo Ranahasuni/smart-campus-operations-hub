@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../../api/axiosInstance';
 import SearchBar from './Catalogue/SearchBar';
 import FilterPanel from './Catalogue/FilterPanel';
@@ -8,56 +8,69 @@ import './Catalogue/Catalogue.css';
 export default function ResourcesPage() {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const abortControllerRef = useRef(null);
+  const isInitialMount = useRef(true);
+
   const [searchParams, setSearchParams] = useState({
     name: '',
     building: '',
     floor: '',
     type: '',
     status: '',
-    capacity: ''
+    capacity: '',
+    features: ''
   });
 
   const fetchResources = async () => {
+    // Abort previous request if it's still running (Prevents lag/clashing)
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setLoading(true);
     try {
-      // Intelligently build the query string ignoring empty string states and frontend-only params
       const query = new URLSearchParams();
       Object.keys(searchParams).forEach(key => {
         if (key !== 'features' && searchParams[key]) {
           query.append(key, searchParams[key]);
         }
       });
-      
-      const res = await api.get(`/resources?${query.toString()}`);
-      console.log('API Response (Catalogue):', res.data);
-      
-      // Perform Frontend-side array filtering for 'features'
+
+      const res = await api.get(`/resources?${query.toString()}`, {
+        signal: abortControllerRef.current.signal
+      });
+
       let finalData = res.data || [];
       if (searchParams.features) {
         const requiredFeatures = searchParams.features.split(',');
         finalData = finalData.filter(resource => {
-          if (!resource.equipment || resource.equipment.length === 0) return false;
-          // Resource MUST contain EVERY selected feature to show up
-          return requiredFeatures.every(rf => (resource.equipment || []).includes(rf));
+          const resourceEquipment = resource.equipment || [];
+          return requiredFeatures.every(rf => resourceEquipment.includes(rf));
         });
       }
-      
+
       setResources(finalData);
     } catch (err) {
-      console.error('Failed to fetch resources', err);
+      if (err.name !== 'CanceledError') {
+        console.error('Catalogue Sync Error:', err);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Trigger API network calls automatically whenever the User updates searchParams.
-  // Utilizing a slight 300ms debounce timer for optimal typing performance.
+  // Performance Optimized Effect
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchResources();
-    }, 300);
-    return () => clearTimeout(timer);
+    if (isInitialMount.current) {
+      fetchResources(); // Instant first load
+      isInitialMount.current = false;
+    } else {
+      const timer = setTimeout(() => {
+        fetchResources(); // Debounced subsequent filters
+      }, 250); // Faster 250ms delay
+      return () => clearTimeout(timer);
+    }
   }, [searchParams]);
 
   const updateParams = (key, value) => {
@@ -71,7 +84,8 @@ export default function ResourcesPage() {
       floor: '',
       type: '',
       status: '',
-      capacity: ''
+      capacity: '',
+      features: ''
     });
   };
 
@@ -79,35 +93,41 @@ export default function ResourcesPage() {
     <div className="catalogue-container">
       <div className="catalogue-header">
         <div>
-          <h1 className="catalogue-title">Resource Catalogue</h1>
-          <p className="catalogue-subtitle">Discover, evaluate, and dynamically provision premier campus facilities.</p>
+          <h1 className="catalogue-title">Facility Catalogue</h1>
+          <p className="catalogue-subtitle">Intelligently browse and provision premier campus research & learning facilities.</p>
         </div>
         <SearchBar searchParams={searchParams} updateParams={updateParams} />
       </div>
 
       <div className="catalogue-layout">
-        <FilterPanel 
-          searchParams={searchParams} 
-          updateParams={updateParams} 
-          clearFilters={clearFilters} 
+        <FilterPanel
+          searchParams={searchParams}
+          updateParams={updateParams}
+          clearFilters={clearFilters}
         />
-        
-        {loading ? (
-           <div className="catalogue-loading">Syncing secure resources with Operations Hub...</div>
-        ) : (
-          <div className="resource-grid">
-            {resources.length > 0 ? (
-              resources.map(resource => (
-                <ResourceCard key={resource.id} resource={resource} />
-              ))
-            ) : (
-              <div style={{gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: '#64748b'}}>
-                <h3>No resources found</h3>
-                <p>No resources match your precise filters. Try adjusting your search or clearing the filters!</p>
-              </div>
-            )}
-          </div>
-        )}
+
+        <div className="resource-grid-container">
+          {loading ? (
+            <div className="catalogue-loading">
+              <div className="spinner"></div>
+              <p>SYNCHRONIZING SECURE FACILITY INVENTORY...</p>
+            </div>
+          ) : (
+            <div className="resource-grid">
+              {resources.length > 0 ? (
+                resources.map(resource => (
+                  <ResourceCard key={resource.id} resource={resource} />
+                ))
+              ) : (
+                <div className="no-results">
+                  <h3 className="no-results-title">No facilities matched your criteria</h3>
+                  <p className="no-results-text">Try adjusting your refine parameters or resetting your search preferences.</p>
+                  <button className="reset-shortcut-btn" onClick={clearFilters}>Reset All Search Criteria</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
