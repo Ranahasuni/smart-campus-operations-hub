@@ -154,7 +154,11 @@ export default function EditBookingPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Update failed');
+        let errorMsg = 'Update failed';
+        if (data.message) errorMsg = data.message;
+        else if (data.error) errorMsg = data.error;
+        else if (data.messages) errorMsg = Object.values(data.messages).join(', ');
+        throw new Error(errorMsg);
       }
 
       showToast('Reservation updated successfully!', 'success');
@@ -216,8 +220,12 @@ export default function EditBookingPage() {
           
           {resource && (
             <div className="resource-summary-box">
-              <div className="resource-summary-icon">
-                {CATEGORY_MAP[resource.type]?.icon || '📍'}
+              <div className="resource-summary-thumb">
+                {resource.imageUrls && resource.imageUrls.length > 0 ? (
+                  <img src={resource.imageUrls[0]} alt={resource.name} />
+                ) : (
+                  <span>{CATEGORY_MAP[resource.type]?.icon || '📍'}</span>
+                )}
               </div>
               <div className="resource-summary-info">
                 <h4>{resource.name}</h4>
@@ -266,19 +274,41 @@ export default function EditBookingPage() {
 
           <div className="availability-snapshot">
             <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> Availability on {formData.date}</h5>
-            {bookedSlots.length > 0 ? (
-              <div className="booked-slots-mini">
-                {bookedSlots.map(b => (
-                  <div key={b.id} className="mini-slot">
-                    {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)} (Taken)
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="no-bookings-hint">No other conflicts found for this day!</p>
-            )}
+            
+            <div className="availability-info-grid">
+               <div className="availability-section">
+                  <h6>Operational Hours</h6>
+                  {resource?.availability ? (
+                    <div className="slots-chips">
+                      {resource.availability
+                        .find(a => a.day === new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' }))
+                        ?.slots.map((s, idx) => (
+                          <span key={idx} className="slot-chip available">{s.startTime} - {s.endTime}</span>
+                        )) || <span className="no-slots">Not available today</span>
+                      }
+                    </div>
+                  ) : (
+                    <p className="no-bookings-hint">Resource hours not specified.</p>
+                  )}
+               </div>
+
+               <div className="availability-section">
+                  <h6>Other Bookings</h6>
+                  {bookedSlots.length > 0 ? (
+                    <div className="slots-chips">
+                      {bookedSlots.map(b => (
+                        <span key={b.id} className="slot-chip booked">
+                          {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-bookings-hint" style={{ color: '#4ade80' }}>No conflicts found!</p>
+                  )}
+               </div>
+            </div>
             <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '12px' }}>
-              Note: Your current slot is hidden from this list.
+              Note: Your current reservation slot is not shown as a conflict.
             </p>
           </div>
 
@@ -287,7 +317,7 @@ export default function EditBookingPage() {
             <input 
               type="time" 
               name="startTime"
-              className="form-input"
+              className={`form-input ${formData.startTime >= formData.endTime ? 'input-error' : ''}`}
               value={formData.startTime}
               onChange={handleInputChange}
               required
@@ -299,11 +329,14 @@ export default function EditBookingPage() {
             <input 
               type="time" 
               name="endTime"
-              className="form-input"
+              className={`form-input ${formData.startTime >= formData.endTime ? 'input-error' : ''}`}
               value={formData.endTime}
               onChange={handleInputChange}
               required
             />
+            {formData.startTime >= formData.endTime && (
+              <span className="input-hint-error">End time must be after start time.</span>
+            )}
           </div>
 
           <div className="form-group full-width">
