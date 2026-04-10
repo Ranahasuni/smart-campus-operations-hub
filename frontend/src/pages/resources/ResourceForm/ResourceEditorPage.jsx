@@ -54,11 +54,44 @@ export default function ResourceEditorPage() {
     }
   }, [id]);
 
+  const DEFAULT_AVAILABILITY = [
+    { day: 'Mon', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+    { day: 'Tue', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+    { day: 'Wed', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+    { day: 'Thu', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+    { day: 'Fri', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+    { day: 'Sat', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+    { day: 'Sun', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
+  ];
+
   const fetchResource = async () => {
     try {
       setInitLoading(true);
       const res = await api.get(`/resources/${id}`);
-      setFormData(res.data);
+      let data = res.data;
+
+      // ✅ DEEP DATA NORMALIZATION
+      if (!data.availability || data.availability.length === 0) {
+        // Handle migration from old availableDays model if it exists
+        if (data.availableDays && data.availableFrom && data.availableTo) {
+          data.availability = DEFAULT_AVAILABILITY.map(d => ({
+            day: d.day,
+            isAvailable: data.availableDays.some(old => old.toUpperCase().startsWith(d.day.toUpperCase())),
+            slots: [{ startTime: data.availableFrom, endTime: data.availableTo }]
+          }));
+        } else {
+          data.availability = DEFAULT_AVAILABILITY;
+        }
+      } else {
+        // Ensure every item is standardized (Fixing the isAvailable naming bug)
+        data.availability = data.availability.map(item => ({
+          ...item,
+          isAvailable: item.isAvailable === true || item.available === true,
+          slots: item.slots || [{ startTime: '08:00', endTime: '18:00' }]
+        }));
+      }
+
+      setFormData(data);
       setError(null);
     } catch (err) {
       console.error('Failed to fetch resource', err);
@@ -100,10 +133,10 @@ export default function ResourceEditorPage() {
 
       };
 
-      const url = isEdit 
-        ? `${API}/api/resources/${id}` 
+      const url = isEdit
+        ? `${API}/api/resources/${id}`
         : `${API}/api/resources`;
-      
+
       const res = await authFetch(url, {
         method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,7 +145,7 @@ export default function ResourceEditorPage() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        
+
         // Handle Spring Boot validation errors (messages is a map)
         if (errorData.messages && typeof errorData.messages === 'object') {
           const fieldErrors = Object.entries(errorData.messages)
@@ -120,10 +153,10 @@ export default function ResourceEditorPage() {
             .join(', ');
           throw new Error(`Validation Failed: ${fieldErrors}`);
         }
-        
+
         throw new Error(errorData.message || errorData.error || `Server Error (${res.status})`);
       }
-      
+
       setShowSuccess(true);
     } catch (err) {
       console.error('Submission error:', err);
@@ -152,11 +185,11 @@ export default function ResourceEditorPage() {
         transition: 'color 0.2s'
       }} onMouseOver={e => e.currentTarget.style.color = '#6366f1'}
         onMouseOut={e => e.currentTarget.style.color = '#64748b'}>
-        <ArrowLeft size={16} /> Back to Registry
+        <ArrowLeft size={16} /> Back to Management
       </Link>
 
-      <h2 className="resource-form-title" style={{ textAlign: 'left', marginBottom: '40px' }}>
-        {isEdit ? 'Asset Modification' : 'New Asset Registration'}
+      <h2 className="resource-form-title" style={{ textAlign: 'center', marginBottom: '48px', fontSize: '2.2rem' }}>
+        {isEdit ? 'Update Resource Details' : 'New Resource Registration'}
       </h2>
 
       {error && <div className="error-banner">{error}</div>}
@@ -179,19 +212,14 @@ export default function ResourceEditorPage() {
             <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}>
               <ShieldCheck size={40} />
             </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#0f172a', margin: '0 0 12px 0' }}>
-              {isEdit ? 'Update Successful' : 'Registration Successful'}
+            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#0f172a', margin: '0 0 32px 0' }}>
+              {isEdit ? 'Resource Updated Successfully' : 'New Asset Registered'}
             </h2>
-            <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', margin: '0 0 32px 0' }}>
-              {isEdit
-                ? 'The facility configuration has been successfully updated in the central registry.'
-                : 'The new campus asset has been successfully registered and published to the catalogue.'}
-            </p>
             <button
               onClick={() => navigate('/admin/resources')}
-              style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: '#fff', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.2)' }}
+              style={{ width: '100%', marginTop: '12px', padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: '#fff', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.2)' }}
             >
-              Return to Resource Registry <Zap size={18} fill="#fff" />
+              Return to Management <Zap size={18} fill="#fff" />
             </button>
           </div>
         </div>

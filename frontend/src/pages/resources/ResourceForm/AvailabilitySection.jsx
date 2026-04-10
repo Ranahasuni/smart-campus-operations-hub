@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 
 export default function AvailabilitySection({ formData, setFormValue }) {
-  const availability = formData.availability || [
+  const availability = (formData.availability && formData.availability.length > 0) ? formData.availability : [
     { day: 'Mon', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
     { day: 'Tue', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
     { day: 'Wed', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
@@ -54,15 +54,15 @@ export default function AvailabilitySection({ formData, setFormValue }) {
 
       <div className="availability-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {availability.map((item, dayIndex) => (
-          <div 
-            key={item.day} 
-            className="availability-row" 
-            style={{ 
-              display: 'flex', 
+          <div
+            key={item.day}
+            className="availability-row"
+            style={{
+              display: 'flex',
               flexDirection: 'column',
-              gap: '12px', 
-              padding: '20px', 
-              background: item.isAvailable ? '#f8fafc' : '#fff', 
+              gap: '12px',
+              padding: '20px',
+              background: item.isAvailable ? '#f8fafc' : '#fff',
               border: item.isAvailable ? '1px solid #6366f1' : '1px dashed #e2e8f0',
               borderRadius: '20px',
               transition: 'all 0.2s ease'
@@ -74,30 +74,30 @@ export default function AvailabilitySection({ formData, setFormValue }) {
               </div>
 
               <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px', cursor: 'pointer' }}>
-                <input 
-                  type="checkbox" 
-                  checked={item.isAvailable} 
+                <input
+                  type="checkbox"
+                  checked={item.isAvailable}
                   onChange={() => handleToggleDay(dayIndex)}
                   style={{ opacity: 0, width: 0, height: 0 }}
                 />
-                <span className="slider round" style={{ 
-                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
-                  backgroundColor: item.isAvailable ? '#6366f1' : '#cbd5e1', 
-                  transition: '.4s', borderRadius: '34px' 
+                <span className="slider round" style={{
+                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: item.isAvailable ? '#6366f1' : '#cbd5e1',
+                  transition: '.4s', borderRadius: '34px'
                 }}>
-                  <span style={{ 
-                    position: 'absolute', content: '""', height: '18px', width: '18px', left: item.isAvailable ? '26px' : '4px', bottom: '3px', 
-                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%' 
+                  <span style={{
+                    position: 'absolute', content: '""', height: '18px', width: '18px', left: item.isAvailable ? '26px' : '4px', bottom: '3px',
+                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
                   }}></span>
                 </span>
               </label>
 
               <span style={{ fontSize: '0.9rem', color: item.isAvailable ? '#6366f1' : '#64748b', fontWeight: '700' }}>
-                {item.isAvailable ? 'Available for Bookings' : 'Completely Unavailable'}
+                {item.isAvailable ? 'Available for Bookings' : 'Operational Offline'}
               </span>
 
               {item.isAvailable && (
-                <button 
+                <button
                   type="button"
                   onClick={() => handleAddTimeSlot(dayIndex)}
                   style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', border: '1px solid #6366f1', background: 'transparent', color: '#6366f1', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
@@ -131,7 +131,7 @@ export default function AvailabilitySection({ formData, setFormValue }) {
                       />
                     </div>
                     {item.slots.length > 1 && (
-                      <button 
+                      <button
                         type="button"
                         onClick={() => handleRemoveTimeSlot(dayIndex, slotIndex)}
                         style={{ marginLeft: 'auto', padding: '8px', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#ef4444', cursor: 'pointer' }}

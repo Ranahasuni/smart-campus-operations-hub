@@ -27,8 +27,8 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
   const openDeleteModal = (id, name) => {
     setConfirmModal({
       show: true, id, type: 'DELETE',
-      title: 'Delete Asset?',
-      message: `Are you sure you want to permanently remove "${name}" from the registry?`
+      title: 'Remove Facility?',
+      message: `Are you sure you want to permanently delete "${name}" from the registry?`
     });
   };
 
@@ -36,8 +36,8 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
     const next = getNextStatus(currentStatus);
     setConfirmModal({
       show: true, id, type: 'STATUS', nextStatus: next,
-      title: 'Toggle Registry Status?',
-      message: `Change ${name} status to ${next.replace('_', ' ')}?`
+      title: 'Change Asset Status?',
+      message: `Are you sure you want to set "${name}" to ${next.replace('_', ' ').toLowerCase()}?`
     });
   };
 
@@ -49,6 +49,14 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
       await onUpdateStatus(confirmModal.id, confirmModal.nextStatus);
     }
     setConfirmModal({ ...confirmModal, show: false });
+  };
+
+  const getOrdinalFloor = (floor) => {
+    const f = parseInt(floor);
+    if (f === 0) return 'Ground Floor';
+    const s = ["th", "st", "nd", "rd"];
+    const v = f % 100;
+    return f + (s[(v - 20) % 10] || s[v] || s[0]) + " Floor";
   };
 
   return (
@@ -63,18 +71,18 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '20px 24px', textAlign: 'left', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>Facility Details</th>
-              <th style={{ padding: '20px 24px', textAlign: 'left', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>Location</th>
-              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>Capacity</th>
-              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>Status</th>
-              <th style={{ padding: '20px 24px', textAlign: 'right', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>Actions</th>
+              <th style={{ padding: '20px 24px', textAlign: 'left', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '35%' }}>Facility Details</th>
+              <th style={{ padding: '20px 24px', textAlign: 'left', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '25%' }}>Location</th>
+              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '10%' }}>Capacity</th>
+              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '15%' }}>Status</th>
+              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '15%' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {resources.map(r => {
               const status = getStatusStyle(r.status);
               return (
-                <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s' }}>
+                <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s', cursor: 'default' }} onMouseOver={e => e.currentTarget.style.background = '#fcfdff'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
                   <td style={{ padding: '20px 24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <div style={{
@@ -96,10 +104,19 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
                     </div>
                   </td>
                   <td style={{ padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '0.9rem', fontWeight: '500' }}>
-                      <MapPin size={14} color="#94a3b8" /> {r.building}, Floor {r.floor}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <MapPin size={16} color="#3b82f6" fill="#3b82f620" />
+                        <span style={{ fontWeight: '800', color: '#1e293b', fontSize: '0.95rem' }}>{r.building}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '24px' }}>
+                        <span style={{ padding: '2px 8px', background: '#f1f5f9', borderRadius: '6px', fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>
+                          {getOrdinalFloor(r.floor)}
+                        </span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>•</span>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '500' }}>{r.roomNumber || 'N/A'}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: '22px' }}>Room {r.roomNumber || 'N/A'}</div>
                   </td>
                   <td style={{ padding: '20px 24px', textAlign: 'center' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', height: '24px', padding: '10px', borderRadius: '8px', background: '#f1f5f9', color: '#0f172a', fontWeight: '800', fontSize: '0.9rem' }}>
@@ -111,20 +128,30 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
                       {status.label}
                     </span>
                   </td>
-                  <td style={{ padding: '20px 24px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '14px' }}>
+                  <td style={{ padding: '20px 24px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                       <button
                         onClick={() => openStatusModal(r.id, r.status, r.name)}
-                        title="Toggle Asset Availability"
-                        style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px', color: '#64748b', cursor: 'pointer', transition: 'all 0.2s' }}
+                        title="Toggle Status"
+                        style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                        onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#6366f1'; }}
+                        onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#64748b'; }}
                       >
                         <Power size={18} />
                       </button>
-                      <Link to={`/admin/resources/edit/${r.id}`} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px', color: '#1e293b', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center' }}>
+                      <Link to={`/admin/resources/edit/${r.id}`}
+                        title="Edit Resource"
+                        style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                        onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
+                        onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                      >
                         <Edit3 size={18} />
                       </Link>
                       <button onClick={() => openDeleteModal(r.id, r.name)}
-                        style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '10px', padding: '8px', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s' }}
+                        title="Delete Resource"
+                        style={{ background: '#fff', border: '1px solid #fecaca', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                        onMouseOver={e => { e.currentTarget.style.background = '#fef2f2'; }}
+                        onMouseOut={e => { e.currentTarget.style.background = '#fff'; }}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -156,15 +183,24 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => setConfirmModal({ ...confirmModal, show: false })}
-                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: '700', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseOver={e => e.currentTarget.style.background = '#fefeff'}
+                onMouseOut={e => e.currentTarget.style.background = '#fff'}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirm}
-                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: confirmModal.type === 'DELETE' ? '#ef4444' : '#6366f1', color: '#fff', fontWeight: '700', cursor: 'pointer' }}
+                style={{
+                  flex: 1, padding: '14px', borderRadius: '12px', border: 'none',
+                  background: confirmModal.type === 'DELETE' ? '#ef4444' : '#6366f1',
+                  color: '#fff', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s',
+                  boxShadow: confirmModal.type === 'DELETE' ? '0 4px 12px rgba(239, 68, 68, 0.2)' : '0 4px 12px rgba(99, 102, 241, 0.2)'
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
               >
-                {confirmModal.type === 'DELETE' ? 'Delete Forever' : 'Yes, Proceed'}
+                {confirmModal.type === 'DELETE' ? 'Delete Asset' : 'Yes, Proceed'}
               </button>
             </div>
           </div>
