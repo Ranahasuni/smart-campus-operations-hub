@@ -363,7 +363,6 @@ export default function CreateBookingPage() {
               <span className="input-hint-error">End time must be after start time.</span>
             )}
           </div>
-          </div>
 
           {/* Purpose */}
           <div className="form-group full-width">
