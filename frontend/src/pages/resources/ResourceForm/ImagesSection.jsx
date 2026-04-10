@@ -45,7 +45,7 @@ export default function ImagesSection({ formData, setFormValue }) {
       </div>
       
       <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '-10px', marginBottom: '20px' }}>
-        Select up to 5 images from your computer to showcase this resource.
+        Select 5 high-quality images from your computer to showcase this resource effectively.
       </p>
 
       <div className="image-grid-paf">

@@ -52,7 +52,7 @@ export default function BasicInfoSection({ formData, handleChange }) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="capacity">Capacity (Persons) *</label>
+          <label htmlFor="capacity">Capacity (Seats) *</label>
           <input
             type="number"
             id="capacity"

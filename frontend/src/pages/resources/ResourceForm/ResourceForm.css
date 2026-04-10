@@ -33,12 +33,13 @@
 }
 
 .form-section {
-    background: #f8fafc;
+    background: #ffffff;
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
-    border: 1px solid #e2e8f0;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #bfdbfe;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    transition: all 0.3s ease;
 }
 
 .form-section:hover {

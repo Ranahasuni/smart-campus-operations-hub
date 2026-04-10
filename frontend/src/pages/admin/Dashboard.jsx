@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  Users, ShieldAlert, Activity, TrendingUp, Clock, 
+import {
+  Users, ShieldAlert, Activity, TrendingUp, Clock,
   ShieldCheck, MailWarning, Ticket, Hammer, ArrowRight,
   LayoutDashboard, PieChart
 } from 'lucide-react';
 import ticketApi from '../../api/ticketApi';
 
-// Sub-components for better organization
-import SummaryCards from './Dashboard/SummaryCards';
-import ResourcesByTypeChart from './Dashboard/ResourcesByTypeChart';
-import ResourcesByBuildingChart from './Dashboard/ResourcesByBuildingChart';
-import MostBookedTable from './Dashboard/MostBookedTable';
+// Sub-components
+import SummaryCards from './DashboardComponents/SummaryCards';
+import ResourcesByBuildingChart from './DashboardComponents/ResourcesByBuildingChart';
+import MostBookedTable from './DashboardComponents/MostBookedTable';
 
 export default function Dashboard() {
   const { authFetch, user, API } = useAuth();
@@ -38,7 +37,7 @@ export default function Dashboard() {
       // 1. Fetch Users
       const userRes = await authFetch(`${API}/api/users`);
       const users = userRes.ok ? await userRes.json() : [];
-      
+
       // 2. Fetch Logs
       const logRes = await authFetch(`${API}/api/logs`);
       const logs = logRes.ok ? await logRes.json() : [];
@@ -56,7 +55,7 @@ export default function Dashboard() {
         const analyticsRes = await authFetch(`${API}/api/resources/analytics/summary`);
         if (analyticsRes.ok) rStats = await analyticsRes.json();
       } catch (aErr) { console.error(aErr); }
- 
+
       setStats({
         totalUsers: Array.isArray(users) ? users.length : 0,
         lockedUsers: Array.isArray(users) ? users.filter(u => u.status === 'LOCKED').length : 0,
@@ -77,12 +76,12 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: '1400px', margin: '0 auto' }}>
-      
+
       {/* Unified Multi-View Header */}
-      <header style={{ 
-        marginBottom: '2.5rem', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <header style={{
+        marginBottom: '2.5rem',
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         background: 'rgba(15, 23, 42, 0.4)',
         padding: '24px',
@@ -98,16 +97,15 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* The Alternative Way: Tabbed Switcher */}
-        <div style={{ 
-          display: 'flex', 
-          background: 'rgba(0,0,0,0.2)', 
-          padding: '6px', 
+        <div style={{
+          display: 'flex',
+          background: 'rgba(0,0,0,0.2)',
+          padding: '6px',
           borderRadius: '16px',
           border: '1px solid rgba(255,255,255,0.05)'
         }}>
-          <button 
-            onClick={() => setActiveTab('OVERVIEW')}
+          <button
+            onClick={() => window.location.href = '/admin'}
             style={{
               padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer',
               fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px',
@@ -118,8 +116,8 @@ export default function Dashboard() {
           >
             <LayoutDashboard size={18} /> Overview
           </button>
-          <button 
-            onClick={() => setActiveTab('ANALYTICS')}
+          <button
+            onClick={() => window.location.href = '/admin/dashboard'}
             style={{
               padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer',
               fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px',
@@ -141,7 +139,13 @@ export default function Dashboard() {
             <StatCard icon={<ShieldCheck color="#22c55e" />} label="Active Accounts" value={stats.activeUsers} />
             <StatCard icon={<Ticket color="#f43f5e" />} label="Open Tickets" value={stats.openTickets} valueColor="#f43f5e" />
             <StatCard icon={<MailWarning color="#f59e0b" />} label="Locked Accounts" value={stats.lockedUsers} valueColor="#f59e0b" />
-            <StatCard icon={<Activity color="#10b981" />} label="System Uptime" value="99.9%" />
+            <StatCard 
+              icon={<Activity color="#10b981" />} 
+              label="Resources Active" 
+              value={stats.resourceStats && stats.resourceStats.totalResources > 0 
+                ? `${Math.round((stats.resourceStats.activeResources / stats.resourceStats.totalResources) * 100)}%`
+                : "0%"} 
+            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
@@ -184,24 +188,12 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* VIEW 2: RESOURCE ANALYTICS */}
+      {/* VIEW 2: RESOURCE ANALYTICS - DEPRECATED (LIVE AT /admin/dashboard) */}
       {activeTab === 'ANALYTICS' && (
-        <div className="fade-in anim-dash">
-           {stats.resourceStats ? (
-             <>
-               <SummaryCards stats={stats.resourceStats} isDark={true} />
-               <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '30px', marginBottom: '30px', marginTop: '30px' }}>
-                 <ResourcesByTypeChart data={stats.resourceStats.distributionByType} isDark={true} />
-                 <ResourcesByBuildingChart data={stats.resourceStats.distributionByBuilding} isDark={true} />
-               </div>
-               <MostBookedTable data={stats.resourceStats.mostBooked} isDark={true} />
-             </>
-           ) : (
-             <div style={{ padding: '80px', textAlign: 'center', color: '#64748b' }}>
-               <Activity className="animate-pulse" size={48} style={{ margin: '0 auto 20px' }} />
-               <p>Intelligence engine is calibrating asset data...</p>
-             </div>
-           )}
+        <div style={{ padding: '80px', textAlign: 'center', color: '#64748b' }}>
+          <Activity className="animate-pulse" size={48} style={{ margin: '0 auto 20px' }} />
+          <p>Redirecting to dedicated Intelligence engine...</p>
+          <script>{`setTimeout(() => { window.location.href = '/admin/dashboard'; }, 1000);`}</script>
         </div>
       )}
 
@@ -223,8 +215,8 @@ function StatCard({ icon, label, value, valueColor = '#fff' }) {
 
 function DashboardLink({ to, label }) {
   return (
-    <a href={to} style={{ 
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+    <a href={to} style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       padding: '12px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)',
       textDecoration: 'none', color: '#cbd5e1', fontSize: '0.9rem', fontWeight: '500',
       border: '1px solid rgba(255,255,255,0.05)'

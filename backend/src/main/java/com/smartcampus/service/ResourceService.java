@@ -152,6 +152,22 @@ public class ResourceService {
         Map<String, Long> byBuilding = all.stream()
                 .collect(Collectors.groupingBy(Resource::getBuilding, Collectors.counting()));
 
+        // Peak Booking Hours (08:00 - 18:00)
+        Map<String, Long> peakHours = new TreeMap<>();
+        for (int i = 8; i <= 18; i++) {
+            peakHours.put(String.format("%02d:00", i), 0L);
+        }
+
+        allBookings.forEach(b -> {
+            if (b.getStartTime() != null) {
+                int hour = b.getStartTime().getHour();
+                if (hour >= 8 && hour <= 18) {
+                    String hourKey = String.format("%02d:00", hour);
+                    peakHours.put(hourKey, peakHours.getOrDefault(hourKey, 0L) + 1);
+                }
+            }
+        });
+
         // Top 5 Most Booked Resources
         Map<String, Long> bookingCounts = allBookings.stream()
                 .collect(Collectors.groupingBy(Booking::getResourceId, Collectors.counting()));
@@ -179,8 +195,8 @@ public class ResourceService {
         summary.put("activeResources", active);
         summary.put("maintenanceResources", maintenance);
         summary.put("outOfServiceResources", outOfService);
-        summary.put("distributionByType", byType);
         summary.put("distributionByBuilding", byBuilding);
+        summary.put("peakBookingHours", peakHours);
         summary.put("mostBooked", mostBooked);
         return summary;
     }
