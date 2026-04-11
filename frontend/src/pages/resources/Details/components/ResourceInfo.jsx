@@ -1,88 +1,81 @@
 import React from 'react';
-import { MapPin, Users, Building, Layers, AlertTriangle } from 'lucide-react';
+import { Users, Building, MapPin, ShieldAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ResourceInfo({ resource }) {
-  const getStatusConfig = (status) => {
-    switch (status) {
-      case 'ACTIVE': return { label: 'Online', bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' };
-      case 'MAINTENANCE': return { label: 'Maintenance', bg: 'rgba(234, 179, 8, 0.1)', color: '#eab308' };
-      case 'OUT_OF_SERVICE': return { label: 'Offline', bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' };
-      default: return { label: status, bg: '#f1f5f9', color: '#64748b' };
-    }
+  // HARD-CODED INDESTRUCTIBLE STYLES
+  const containerStyle = { marginBottom: '24px' };
+  const badgeRowStyle = { display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' };
+  const titleStyle = { color: '#000000', fontSize: '3.5rem', fontWeight: '950', margin: '10px 0', lineHeight: '1.1' };
+  const descStyle = { color: '#334155', fontSize: '1.15rem', lineHeight: '1.7', marginBottom: '30px', fontWeight: '600' };
+
+  const statCardStyle = { 
+    background: '#f0f4ff', 
+    padding: '24px', 
+    borderRadius: '24px', 
+    border: '2.5px solid #6366f1', 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '16px',
+    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.1)'
   };
 
-  const statusCfg = getStatusConfig(resource.status);
-
   return (
-    <div className="info-content">
-      <div className="badge-group" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <span style={{ padding: '6px 16px', background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', borderRadius: '99px', fontSize: '0.8rem', fontWeight: '800' }}>
+    <div style={containerStyle}>
+      <div style={badgeRowStyle}>
+        <span style={{ padding: '8px 18px', background: '#f1f5f9', color: '#6366f1', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '900', border: '1.5px solid #6366f1' }}>
           {resource.type}
         </span>
-        <span className="status-badge" style={{ background: statusCfg.bg, color: statusCfg.color }}>
-          {statusCfg.label}
-        </span>
-        
-        {/* TOP MARKS: SMART TICKET LINK */}
-        {resource.status === 'ACTIVE' && (
-          <Link 
-            to={`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`}
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '6px',
-              padding: '6px 16px', 
-              background: 'rgba(239, 68, 68, 0.1)', 
-              color: '#ef4444', 
-              borderRadius: '99px', 
-              fontSize: '0.8rem', 
-              fontWeight: '800',
-              textDecoration: 'none',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
-            onMouseOut={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
-          >
-            <AlertTriangle size={14} /> Report Issue?
-          </Link>
-        )}
+        <Link to={`/tickets/new?resourceId=${resource.id}`} style={{ textDecoration: 'none' }}>
+          <div style={{ padding: '8px 18px', background: '#fef2f2', color: '#ef4444', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '900', border: '1.5px solid #ef4444', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <ShieldAlert size={14} /> Report Issue?
+          </div>
+        </Link>
       </div>
 
-      <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a', marginBottom: '16px' }}>{resource.name}</h1>
-      <p style={{ fontSize: '1.1rem', color: '#64748b', lineHeight: '1.7', marginBottom: '32px' }}>{resource.description}</p>
+      <h1 style={{ ...titleStyle, fontSize: '2.4rem', fontWeight: '950', margin: '15px 0', lineHeight: '1.2' }}>
+        {resource.name}
+      </h1>
+      <p style={descStyle}>{resource.description}</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', padding: '24px', background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-            <Users size={20} />
+      {/* 📏 FORCED GRID */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+        
+        {/* CAPACITY */}
+        <div style={statCardStyle}>
+          <div style={{ background: 'white', padding: '12px', borderRadius: '14px', border: '1px solid #e0e7ff', color: '#8b5cf6', display: 'flex' }}>
+            <Users size={24} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase' }}>Capacity</div>
-            <div style={{ fontWeight: '800', color: '#1e293b' }}>{resource.capacity} Seats</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ color: '#6366f1', fontWeight: '950', fontSize: '0.7rem', textTransform: 'uppercase' }}>CAPACITY</span>
+            <span style={{ color: '#000000', fontWeight: '950', fontSize: '1.15rem' }}>{resource.capacity} Seats</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-            <Building size={20} />
+        {/* BUILDING */}
+        <div style={statCardStyle}>
+          <div style={{ background: 'white', padding: '12px', borderRadius: '14px', border: '1px solid #e0e7ff', color: '#6366f1', display: 'flex' }}>
+            <Building size={24} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase' }}>Building</div>
-            <div style={{ fontWeight: '800', color: '#1e293b' }}>{resource.building}</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ color: '#6366f1', fontWeight: '950', fontSize: '0.7rem', textTransform: 'uppercase' }}>BUILDING</span>
+            <span style={{ color: '#000000', fontWeight: '950', fontSize: '1.15rem' }}>{resource.building}</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-            <Layers size={20} />
+        {/* LOCATION */}
+        <div style={statCardStyle}>
+          <div style={{ background: 'white', padding: '12px', borderRadius: '14px', border: '1px solid #e0e7ff', color: '#0d9488', display: 'flex' }}>
+            <MapPin size={24} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase' }}>Floor & Room</div>
-            <div style={{ fontWeight: '800', color: '#1e293b' }}>Lvl {resource.floor}, {resource.roomNumber}</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ color: '#6366f1', fontWeight: '950', fontSize: '0.7rem', textTransform: 'uppercase' }}>FLOOR & ROOM</span>
+            <span style={{ color: '#000000', fontWeight: '950', fontSize: '1.1rem' }}>
+              {resource.floor % 10 === 1 ? '1st' : resource.floor % 10 === 2 ? '2nd' : resource.floor % 10 === 3 ? '3rd' : `${resource.floor}th`} Floor, {resource.roomNumber}
+            </span>
           </div>
         </div>
+
       </div>
     </div>
   );
