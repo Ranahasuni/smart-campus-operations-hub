@@ -45,7 +45,7 @@ export default function ResourceCard({ resource }) {
       </div>
 
       <div className="card-info-section">
-        <div className="card-type-mini">{(resource.type || 'FACILITY').replace('_', ' ')}</div>
+        <div className="card-type-mini">{resource.type?.replace(/_/g, ' ')?.toUpperCase() || 'FACILITY'}</div>
         <h3 className="card-name-h3">{resource.name || 'Unnamed Resource'}</h3>
 
         <div className="card-meta-final-layout">
