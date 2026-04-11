@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../../api/axiosInstance';
-import { Filter, Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
+import { Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
@@ -36,9 +36,6 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
       fetchFloors();
     } else {
       setFloors([]);
-      if (searchParams.floor) {
-        updateParams('floor', '');
-      }
     }
   }, [searchParams.building]);
 
@@ -61,9 +58,9 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
   return (
     <div className="filter-sidebar">
       <div className="filter-header-pro">
-        <h3 className="filter-title-pro">Resource Filters</h3>
+        <h3 className="filter-title-pro">FACILITY EXPLORER</h3>
         <button className="reset-all-btn" onClick={clearFilters} title="Reset All">
-          <RotateCcw size={18} />
+          <RotateCcw size={16} />
         </button>
       </div>
 
@@ -114,29 +111,33 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.type || ''}
               onChange={handleChange}
             >
-              <option value="">All Categories</option>
+              <option value="">All Types</option>
               {RESOURCE_TYPES.map(t => (
-                <option key={t} value={t}>{t.replace('_', ' ')}</option>
+                <option key={t} value={t}>
+                  {t.toLowerCase().split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Capacity Filter */}
+        {/* Capacity Filter (Upgraded to Dropdown) */}
         <div className="filter-item-pro">
           <label className="filter-label-pro">Minimum Occupancy</label>
           <div className="input-wrapper-pro">
             <Users className="input-icon-pro" size={16} color="#f59e0b" />
-            <input
-              type="number"
-              className="filter-input-pro"
+            <select
+              className="filter-select-pro"
               name="capacity"
-              placeholder="Min. seats"
-              min="1"
               value={searchParams.capacity || ''}
               onChange={handleChange}
-            />
-            <span className="input-suffix-pro">ppl</span>
+            >
+              <option value="">Any Capacity</option>
+              <option value="10">10+ Seats</option>
+              <option value="50">50+ Seats</option>
+              <option value="100">100+ Seats</option>
+              <option value="200">200+ Seats</option>
+            </select>
           </div>
         </div>
 

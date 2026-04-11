@@ -5,9 +5,13 @@ import FilterPanel from './Catalogue/FilterPanel';
 import ResourceCard from './Catalogue/ResourceCard';
 import './Catalogue/Catalogue.css';
 
+// ADVANCED CACHE: Stores resources outside the component so they stay in memory during the session
+let sessionCache = null;
+
 export default function ResourcesPage() {
-  const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [allResources, setAllResources] = useState(sessionCache || []); // Initialize from cache
+  const [resources, setResources] = useState(sessionCache || []);      // Initialize from cache
+  const [loading, setLoading] = useState(!sessionCache);               // Only show spinner if cache is empty
   const abortControllerRef = useRef(null);
   const isInitialMount = useRef(true);
 
@@ -22,56 +26,81 @@ export default function ResourcesPage() {
   });
 
   const fetchResources = async () => {
-    // Abort previous request if it's still running (Prevents lag/clashing)
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
+    // If we have cached data, don't show the big spinner (Faster feel)
+    if (!sessionCache) setLoading(true);
 
-    setLoading(true);
     try {
       const query = new URLSearchParams();
-      Object.keys(searchParams).forEach(key => {
-        if (key !== 'features' && searchParams[key]) {
-          query.append(key, searchParams[key]);
-        }
+      // Only send category filters to server
+      ['building', 'floor', 'type', 'status', 'capacity'].forEach(key => {
+        if (searchParams[key]) query.append(key, searchParams[key]);
       });
 
-      const res = await api.get(`/resources?${query.toString()}`, {
-        signal: abortControllerRef.current.signal
-      });
+      const res = await api.get(`/resources?${query.toString()}`);
+      const data = res.data || [];
 
-      let finalData = res.data || [];
-      if (searchParams.features) {
-        const requiredFeatures = searchParams.features.split(',');
-        finalData = finalData.filter(resource => {
-          const resourceEquipment = resource.equipment || [];
-          return requiredFeatures.every(rf => resourceEquipment.includes(rf));
-        });
-      }
-
-      setResources(finalData);
+      sessionCache = data;
+      setAllResources(data);
+      applyInstantFilters(data, searchParams);
     } catch (err) {
-      if (err.name !== 'CanceledError') {
-        console.error('Catalogue Sync Error:', err);
-      }
+      console.error('Fetch Error:', err);
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop spinner NO MATTER WHAT
     }
   };
 
-  // Performance Optimized Effect
-  useEffect(() => {
-    if (isInitialMount.current) {
-      fetchResources(); // Instant first load
-      isInitialMount.current = false;
-    } else {
-      const timer = setTimeout(() => {
-        fetchResources(); // Debounced subsequent filters
-      }, 250); // Faster 250ms delay
-      return () => clearTimeout(timer);
+  // MASTER FILTER LOGIC (100% Strict & Instant)
+  const applyInstantFilters = (sourceData, params) => {
+    if (!sourceData) return;
+    let filtered = [...sourceData];
+
+    // 1. Name Filter (Strict Start of Name)
+    if (params.name) {
+      const q = params.name.toLowerCase().trim();
+      filtered = filtered.filter(r => r.name.toLowerCase().startsWith(q));
     }
-  }, [searchParams]);
+
+    // 2. Building Filter (Strict Match)
+    if (params.building && params.building !== '') {
+      filtered = filtered.filter(r => r.building === params.building);
+    }
+
+    // 3. Floor Filter (Strict Match)
+    if (params.floor !== undefined && params.floor !== '') {
+      filtered = filtered.filter(r => r.floor.toString() === params.floor.toString());
+    }
+
+    // 4. Type / Category Filter (STRICT MATCH)
+    if (params.type && params.type !== '') {
+      filtered = filtered.filter(r => r.type === params.type);
+    }
+
+    // 5. Capacity Filter (Minimum Seats)
+    if (params.capacity && params.capacity !== '') {
+      const minSeats = parseInt(params.capacity);
+      filtered = filtered.filter(r => (r.capacity || 0) >= minSeats);
+    }
+
+    // 6. Features (Multiple Amenities)
+    if (params.features) {
+      const req = params.features.split(',');
+      filtered = filtered.filter(r => req.every(f => (r.equipment || []).includes(f)));
+    }
+
+    setResources(filtered);
+  };
+
+  // Effect for ALL changes (Instant)
+  useEffect(() => {
+    if (!loading) {
+      applyInstantFilters(allResources, searchParams);
+    }
+  }, [searchParams, allResources, loading]);
+
+  // MANDATORY: Start fetching when the page opens
+  useEffect(() => {
+    fetchResources();
+  }, []); // Fires once on mount
 
   const updateParams = (key, value) => {
     setSearchParams(prev => ({ ...prev, [key]: value }));
@@ -93,8 +122,8 @@ export default function ResourcesPage() {
     <div className="catalogue-container">
       <div className="catalogue-header">
         <div>
-          <h1 className="catalogue-title">Facility Catalogue</h1>
-          <p className="catalogue-subtitle">Intelligently browse and provision premier campus research & learning facilities.</p>
+          <h1 className="catalogue-title">Facility <span className="text-indigo">Catalogue</span></h1>
+          <p className="catalogue-subtitle">Intelligently navigate and provision high-tier campus research assets and specialized learning environments.</p>
         </div>
         <SearchBar searchParams={searchParams} updateParams={updateParams} />
       </div>
@@ -113,19 +142,42 @@ export default function ResourcesPage() {
               <p>SYNCHRONIZING SECURE FACILITY INVENTORY...</p>
             </div>
           ) : (
-            <div className="resource-grid">
-              {resources.length > 0 ? (
-                resources.map(resource => (
-                  <ResourceCard key={resource.id} resource={resource} />
-                ))
-              ) : (
-                <div className="no-results">
-                  <h3 className="no-results-title">No facilities matched your criteria</h3>
-                  <p className="no-results-text">Try adjusting your refine parameters or resetting your search preferences.</p>
-                  <button className="reset-shortcut-btn" onClick={clearFilters}>Reset All Search Criteria</button>
-                </div>
-              )}
-            </div>
+            <>
+              {/* RESULTS COUNTER */}
+              <div className="results-header-metadata">
+                <span className="results-found-tag">
+                  {resources.length === 0 ? 'No Facilities' : `${resources.length} ${resources.length === 1 ? 'Facility' : 'Facilities'}`} Discovered
+                </span>
+                {searchParams.name && (
+                  <span className="search-term-tag">Searching for "{searchParams.name}"</span>
+                )}
+              </div>
+
+              <div className="resource-grid">
+                {resources.length > 0 ? (
+                  resources.map(resource => (
+                    <ResourceCard key={resource.id} resource={resource} />
+                  ))
+                ) : (
+                  <div className="no-results-advanced">
+                    <div className="no-results-icon">
+                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.3-4.3" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                      </svg>
+                    </div>
+                    <h3 className="no-results-title">No Facilities Found</h3>
+                    <p className="no-results-text">
+                      No campus assets matching your criteria were found. 
+                      Please adjust your filters or reset your search to continue.
+                    </p>
+                    <button className="reset-shortcut-btn" onClick={clearFilters}>Reset All Search Filters</button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
