@@ -23,7 +23,7 @@ public class Booking {
 
     // References to other collections
     private String userId;
-    private String resourceId;
+    private java.util.List<String> resourceIds;
 
     // Booking time slots
     private LocalDate date;
@@ -34,8 +34,27 @@ public class Booking {
     private BookingStatus status = BookingStatus.PENDING;
 
     private String purpose;
-
     private Integer expectedAttendees;
+
+    // Additional Griffith Requirements
+    private boolean isExternalUser;
+    private String organizationName;
+    private boolean isNonProfit;
+    private String publicLiabilityInsuranceUrl;
+    
+    // Event Plan Details
+    private String emergencyContact;
+    private String eventSchedule;
+    private String riskAssessment;
+
+    private boolean cateringRequired;
+    private java.util.List<String> selectedEquipment;
+
+    // Financials
+    private Double totalFee;
+    private boolean isPaid;
+    private LocalDateTime paymentDeadline;
+
     /** Only filled if status = REJECTED */
     private String rejectionReason;
 

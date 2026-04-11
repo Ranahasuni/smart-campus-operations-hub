@@ -60,6 +60,7 @@ export default function ResourcesPage() {
     return () => clearTimeout(timer);
   }, [searchParams]);
 
+
   const updateParams = (key, value) => {
     setSearchParams(prev => ({ ...prev, [key]: value }));
   };

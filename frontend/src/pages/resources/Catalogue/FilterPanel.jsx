@@ -4,8 +4,10 @@ import { Filter } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
-  'LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'
+  'TEACHING_VENUE', 'LECTURE_THEATRE', 'SEMINAR_ROOM', 'MEETING_ROOM', 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM', 'LAB', 'AUDITORIUM', 'SPORTS_FACILITY'
 ];
+
+const FEATURES = ['Projector', 'Microsoft Teams', 'Cisco Webex', 'Whiteboard', 'Sound System', 'Video Conferencing'];
 
 const STATUSES = ['ACTIVE', 'MAINTENANCE', 'OUT_OF_SERVICE'];
 
@@ -140,15 +142,15 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
           Popular Features
         </label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {['Projector', 'Whiteboard', 'Core i7 PCs', 'Central AC'].map(feature => {
+          {FEATURES.map(feature => {
             const isChecked = (searchParams.features || '').includes(feature);
             return (
-              <label key={feature} className="feature-checkbox" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9rem', color: '#334155' }}>
+              <label key={feature} className="feature-checkbox" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.9rem', color: '#64748b' }}>
                 <input 
                   type="checkbox" 
                   checked={isChecked}
                   onChange={() => handleFeatureToggle(feature)}
-                  style={{ width: '18px', height: '18px', accentColor: '#2563eb', cursor: 'pointer' }}
+                  style={{ width: '18px', height: '18px', accentColor: '#6366f1', cursor: 'pointer' }}
                 />
                 {feature}
               </label>

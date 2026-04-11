@@ -15,42 +15,31 @@ export default function AvailabilityInfo({ availability }) {
 
   return (
     <div className="sidebar-card">
-      <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <Clock size={18} color="#6366f1" /> Weekly Schedule
+      <h3 className="sidebar-title">
+        <Clock size={16} /> Weekly Schedule
       </h3>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="schedule-list">
         {availability.map((item) => (
-          <div key={item.day} style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            padding: '14px',
-            background: item.isAvailable ? '#f8fafc' : '#fff',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            opacity: item.isAvailable ? 1 : 0.6
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontWeight: '800', fontSize: '0.9rem', width: '35px', color: item.isAvailable ? '#0f172a' : '#94a3b8' }}>
-                  {item.day}
-                </span>
+          <div key={item.day} className={`schedule-item ${item.isAvailable ? 'available' : 'closed'}`}>
+            <div className="schedule-day-row">
+              <div className="day-info">
+                <span className="day-label">{item.day}</span>
                 {item.isAvailable ? (
-                  <CheckCircle2 size={14} color="#22c55e" />
+                  <CheckCircle2 size={14} className="status-icon-ok" />
                 ) : (
-                  <XCircle size={14} color="#94a3b8" />
+                  <XCircle size={14} className="status-icon-no" />
                 )}
               </div>
               {!item.isAvailable && (
-                <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#94a3b8' }}>Closed</span>
+                <span className="closed-label">Closed</span>
               )}
             </div>
             
             {item.isAvailable && item.slots && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '45px' }}>
+              <div className="slots-container">
                 {item.slots.map((slot, idx) => (
-                  <div key={idx} style={{ fontSize: '0.85rem', fontWeight: '700', color: '#6366f1' }}>
+                  <div key={idx} className="slot-time">
                     {slot.startTime} — {slot.endTime}
                   </div>
                 ))}
@@ -59,7 +48,6 @@ export default function AvailabilityInfo({ availability }) {
           </div>
         ))}
       </div>
-
     </div>
   );
 }

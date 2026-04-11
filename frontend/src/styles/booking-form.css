@@ -1,6 +1,6 @@
 .booking-form-container {
   padding: 80px 24px;
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -12,32 +12,38 @@
 }
 
 .form-header {
-  border-bottom: 1px solid var(--glass-border);
-  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-primary);
+  padding-bottom: 32px;
   margin-bottom: 8px;
+}
+
+.form-header h1 {
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
 }
 
 .resource-summary-box {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
+  gap: 24px;
+  padding: 24px;
   background: rgba(99, 102, 241, 0.05);
   border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: 16px;
-  margin-top: 16px;
+  border-radius: var(--radius-lg);
+  margin-top: 24px;
 }
 
 .resource-summary-thumb {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  background: rgba(99, 102, 241, 0.1);
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: rgba(99, 102, 241, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent-light);
+  color: #818cf8;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .resource-summary-thumb img {
@@ -46,38 +52,40 @@
   object-fit: cover;
 }
 
-.resource-summary-info h4 {
-  margin: 0;
-  color: white;
-  font-size: 1.1rem;
-}
-
-.resource-summary-info p {
-  margin: 4px 0 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
 .booking-main-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
 }
 
-@media (max-width: 768px) {
-  .booking-main-form {
+@media (max-width: 640px) {
+  .form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-primary);
+  margin-bottom: 16px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.form-group.full-width {
-  grid-column: 1 / -1;
+  gap: 10px;
 }
 
 .form-group label {
@@ -91,179 +99,108 @@
 
 .form-input {
   width: 100%;
-  padding: 14px;
-  background: rgba(15, 23, 42, 0.6);
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.4);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   color: white;
-  outline: none;
-  transition: border-color 0.2s;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .form-input:focus {
+  outline: none;
+  background: rgba(15, 23, 42, 0.6);
   border-color: var(--accent-primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-.form-input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.availability-snapshot {
-  grid-column: 1 / -1;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 16px;
-  border: 1px solid var(--glass-border);
-}
-
-.availability-snapshot h5 {
-  margin-bottom: 16px;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.booked-slots-mini {
+.policy-box {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(14, 165, 233, 0.05);
+  border: 1px solid rgba(14, 165, 233, 0.1);
+  border-radius: 14px;
 }
 
-.mini-slot {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #f87171;
+.policy-box strong {
+  color: #7dd3fc;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 4px;
 }
 
-.no-bookings-hint {
+.policy-box p {
   font-size: 0.85rem;
-  color: #4ade80;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .form-actions {
-  grid-column: 1 / -1;
   display: flex;
   gap: 16px;
-  margin-top: 16px;
+  padding-top: 16px;
 }
 
 .btn-submit-booking {
   flex: 2;
-  padding: 16px;
-  background: var(--accent-primary);
+  padding: 18px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   border: none;
   border-radius: 12px;
   color: white;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+  transition: all 0.3s;
 }
 
 .btn-submit-booking:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
 }
 
 .btn-submit-booking:disabled {
-  opacity: 0.3;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-cancel-booking {
   flex: 1;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 18px;
+  background: transparent;
   border: 1px solid var(--glass-border);
   border-radius: 12px;
-  color: white;
+  color: var(--text-secondary);
   font-weight: 600;
   text-decoration: none;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-cancel-booking:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: white;
+  border-color: white;
 }
 
 .error-banner {
-  padding: 12px 16px;
+  padding: 16px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 8px;
-  color: #f87171;
+  border-radius: 10px;
+  color: #fca5a5;
   font-size: 0.9rem;
-  margin-bottom: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.availability-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-top: 16px;
-}
-
-@media (max-width: 600px) {
-  .availability-info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.availability-section h6 {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  letter-spacing: 0.5px;
-}
-
-.slots-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.slot-chip {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border: 1px solid transparent;
-}
-
-.slot-chip.available {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.2);
-  color: #818cf8;
-}
-
-.slot-chip.booked {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-}
-
-.input-error {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
-}
-
-.input-hint-error {
-  font-size: 0.75rem;
-  color: #f87171;
-  margin-top: 4px;
-  display: block;
-}
-
-.no-slots {
-  color: #f87171;
-  font-size: 0.8rem;
-  font-style: italic;
 }

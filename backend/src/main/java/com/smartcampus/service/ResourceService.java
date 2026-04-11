@@ -180,7 +180,9 @@ public class ResourceService {
 
         // Top 5 Most Booked Resources
         Map<String, Long> bookingCounts = allBookings.stream()
-                .collect(Collectors.groupingBy(Booking::getResourceId, Collectors.counting()));
+                .filter(b -> b.getResourceIds() != null)
+                .flatMap(b -> b.getResourceIds().stream())
+                .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
 
         List<Map<String, Object>> mostBooked = bookingCounts.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
