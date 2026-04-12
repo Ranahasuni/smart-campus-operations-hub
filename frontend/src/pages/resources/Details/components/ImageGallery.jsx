@@ -24,11 +24,7 @@ export default function ImageGallery({ images, name, status }) {
     <div className="gallery-container">
       <img src={mainImage} alt={name} className="gallery-image" />
       
-      {/* 🚀 DYNAMIC CORNER LABEL */}
-      <div className="status-pill-over-photo" style={{ backgroundColor: labelCfg.bg }}>
-        <div className="dot-white" />
-        {labelCfg.text}
-      </div>
+      {/* Extra corner label removed for cleaner professional UX */}
     </div>
   );
 }
