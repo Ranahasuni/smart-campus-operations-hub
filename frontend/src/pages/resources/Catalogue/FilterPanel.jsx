@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../../api/axiosInstance';
-import { Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
+import { Building2, Map, Layout, Users, RotateCcw, ChevronDown } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
@@ -78,16 +78,17 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.building || ''}
               onChange={handleChange}
             >
-              <option value="">Any Building</option>
+              <option value="">All Buildings</option>
               {buildings.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
         {/* Floor Filter */}
-        <div className="filter-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label className="filter-label" style={{ marginBottom: 0, whiteSpace: 'nowrap', marginRight: '16px' }}>Target Floor</label>
-          <div className="input-wrapper-pro" style={{ width: '150px' }}>
+        <div className="filter-group">
+          <label className="filter-label">Target Floor</label>
+          <div className="input-wrapper-pro">
             <Map className="input-icon-pro" size={16} color="var(--accent-secondary)" />
             <select
               className="filter-select-pro"
@@ -95,11 +96,11 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.floor || ''}
               onChange={handleChange}
               disabled={!searchParams.building}
-              style={{ paddingLeft: '42px', borderRadius: '12px' }}
             >
-              <option value="">Any Floor</option>
+              <option value="">All Floors</option>
               {floors.map(f => <option key={f} value={f}>Floor {f}</option>)}
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
@@ -114,13 +115,14 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.type || ''}
               onChange={handleChange}
             >
-              <option value="">All Types</option>
+              <option value="">All Categories</option>
               {RESOURCE_TYPES.map(t => {
                 let displayName = t.replace(/_/g, ' ').toUpperCase();
                 if (t === 'LECTURE_HALL') displayName = 'LECTURE HALL';
                 return <option key={t} value={t}>{displayName}</option>;
               })}
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
@@ -135,13 +137,14 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.capacity || ''}
               onChange={handleChange}
             >
-              <option value="">Any Capacity</option>
+              <option value="">Any Occupancy</option>
               <option value="10">10+ Seats</option>
               <option value="50">50+ Seats</option>
               <option value="100">100+ Seats</option>
               <option value="200">200+ Seats</option>
               <option value="500">500+ Seats</option>
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
