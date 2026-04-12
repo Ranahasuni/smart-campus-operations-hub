@@ -4,7 +4,7 @@ import { Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
-  'LAB', 'LECTURE_THEATRE', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'
+  'LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'
 ];
 
 const FEATURES = ['Projector', 'Whiteboard', 'Core i7 PCs', 'Central AC'];
@@ -116,7 +116,7 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               <option value="">All Types</option>
               {RESOURCE_TYPES.map(t => {
                 let displayName = t.replace(/_/g, ' ').toUpperCase();
-                if (t === 'LECTURE_THEATRE') displayName = 'LECTURE HALL';
+                if (t === 'LECTURE_HALL') displayName = 'LECTURE HALL';
                 return <option key={t} value={t}>{displayName}</option>;
               })}
             </select>

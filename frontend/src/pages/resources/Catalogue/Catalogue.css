@@ -73,7 +73,7 @@
 .search-input:focus {
   border-color: var(--accent-primary) !important;
   background: #ffffff !important;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
 }
 
 .search-icon {
@@ -101,8 +101,14 @@
 }
 
 /* Thin Scrollbar */
-.filter-panel::-webkit-scrollbar { width: 4px; }
-.filter-panel::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+.filter-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.filter-panel::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
 
 .filter-header-pro {
   display: flex;
@@ -135,13 +141,15 @@
   align-items: center;
   justify-content: center;
 }
+
 .reset-all-btn:hover {
   background: #fee2e2;
   color: #ef4444;
-  border-color: #fecaca;
 }
 
-.filter-group { margin-bottom: 20px; }
+.filter-group {
+  margin-bottom: 20px;
+}
 
 .filter-label {
   display: block;
@@ -194,7 +202,7 @@
 .filter-select-pro:focus,
 .filter-input-pro:focus {
   border-color: var(--accent-primary) !important;
-  background: rgba(255,255,255,0.05) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 .filter-checkbox {
@@ -245,8 +253,8 @@
 
 .resource-card-final:hover {
   transform: translateY(-8px);
-  border-color: rgba(99,102,241,0.3);
-  box-shadow: var(--shadow-xl), 0 0 0 1px rgba(99,102,241,0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: var(--shadow-xl), 0 0 0 1px rgba(99, 102, 241, 0.15);
 }
 
 /* ── Card Image ── */
@@ -279,7 +287,7 @@
   justify-content: center;
   gap: 8px;
   color: var(--text-dim);
-  background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(168,139,250,0.05));
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 139, 250, 0.05));
 }
 
 /* ── Status Badge ── */
@@ -298,21 +306,21 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(34,197,94,0.2);
+  background: rgba(34, 197, 94, 0.2);
   color: #4ade80;
-  border: 1px solid rgba(34,197,94,0.25);
+  border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
 .status-pill-final.st-maint {
-  background: rgba(245,158,11,0.2);
+  background: rgba(245, 158, 11, 0.2);
   color: #fbbf24;
-  border: 1px solid rgba(245,158,11,0.25);
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .status-pill-final.st-offline {
-  background: rgba(239,68,68,0.2);
+  background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
-  border: 1px solid rgba(239,68,68,0.25);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .dot-white {
@@ -325,12 +333,20 @@
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .check-icon-mini {
-  display: none; /* Hidden for clean look */
+  display: none;
+  /* Hidden for clean look */
 }
 
 
@@ -385,7 +401,7 @@
 .view-details-btn-final {
   margin-top: auto;
   padding: 13px;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-secondary);
   font-weight: 600;
   font-size: 0.875rem;
@@ -444,9 +460,24 @@
   text-align: center;
 }
 
-.no-results-icon { margin-bottom: 24px; opacity: 0.5; }
-.no-results-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
-.no-results-text { color: var(--text-secondary); margin-bottom: 32px; max-width: 400px; line-height: 1.6; }
+.no-results-icon {
+  margin-bottom: 24px;
+  opacity: 0.5;
+}
+
+.no-results-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.no-results-text {
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  max-width: 400px;
+  line-height: 1.6;
+}
 
 .reset-shortcut-btn {
   background: var(--accent-primary);
@@ -458,6 +489,7 @@
   cursor: pointer;
   transition: all 0.3s;
 }
+
 .reset-shortcut-btn:hover {
   background: var(--accent-secondary);
   box-shadow: 0 6px 20px var(--accent-glow);
@@ -480,12 +512,14 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(255,255,255,0.05);
+  border: 3px solid rgba(255, 255, 255, 0.05);
   border-top: 3px solid var(--accent-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  100% { transform: rotate(360deg); }
+  100% {
+    transform: rotate(360deg);
+  }
 }

@@ -38,7 +38,7 @@ export default function ResourcesPage() {
 
       const res = await api.get(`/resources?${query.toString()}`);
       const rawData = res.data || [];
-      
+
       // Filter out removed categories globally
       const data = rawData.filter(r => r.type !== 'TEACHING_VENUE' && r.type !== 'SEMINAR_ROOM');
 
@@ -124,14 +124,12 @@ export default function ResourcesPage() {
 
   return (
     <div className="catalogue-container">
-      <div className="catalogue-header" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderLeft: '4px solid var(--accent-primary)', paddingLeft: '24px' }}>
-        <div style={{ flex: 1 }}>
+      <div className="catalogue-header">
+        <div>
           <h1 className="catalogue-title">Facility <span className="text-indigo">Catalogue</span></h1>
           <p className="catalogue-subtitle">Intelligently navigate and provision high-tier campus research assets and specialized learning environments.</p>
         </div>
-        <div style={{ width: '300px' }}>
-          <SearchBar searchParams={searchParams} updateParams={updateParams} />
-        </div>
+        <SearchBar searchParams={searchParams} updateParams={updateParams} />
       </div>
 
       <div className="catalogue-layout">
@@ -176,7 +174,7 @@ export default function ResourcesPage() {
                     </div>
                     <h3 className="no-results-title">No Facilities Found</h3>
                     <p className="no-results-text">
-                      No campus assets matching your criteria were found. 
+                      No campus assets matching your criteria were found.
                       Please adjust your filters or reset your search to continue.
                     </p>
                     <button className="reset-shortcut-btn" onClick={clearFilters}>Reset All Search Filters</button>

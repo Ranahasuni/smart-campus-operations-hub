@@ -96,7 +96,11 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
           <Layout size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b5cf6' }} />
           <select name="type" value={filters.type || ''} onChange={handleChange} style={{ ...selectStyle, paddingLeft: '44px' }}>
             <option value="" style={optionStyle}>All Types</option>
-            {RESOURCE_TYPES.map(t => <option key={t} value={t} style={optionStyle}>{t.replace('_', ' ')}</option>)}
+            {RESOURCE_TYPES.map(t => {
+                let displayName = t.replace(/_/g, ' ').toUpperCase();
+                if (t === 'LECTURE_HALL') displayName = 'LECTURE HALL';
+                return <option key={t} value={t} style={optionStyle}>{displayName}</option>;
+            })}
           </select>
         </div>
 
