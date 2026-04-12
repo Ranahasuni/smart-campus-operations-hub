@@ -137,8 +137,14 @@ export default function ResourceDetailsPage() {
             <AvailabilityInfo availability={resource.availability} />
             
             <div className="availability-card" style={{ marginTop: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>CHECK AVAILABILITY</span>
+                <button 
+                  onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                  style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
+                >
+                  Reset Today
+                </button>
               </div>
               <input 
                 type="date" 
@@ -152,7 +158,8 @@ export default function ResourceDetailsPage() {
                   border: '1px solid var(--glass-border)',
                   borderRadius: '12px',
                   color: 'var(--text-primary)',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  cursor: 'pointer'
                 }}
               />
             </div>
