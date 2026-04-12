@@ -124,7 +124,7 @@ export default function BookingResourceListPage() {
     <div className="resource-list-container animate-fade-in">
       <header className="resource-list-header">
         <div className="breadcrumb">
-          <Link to="/bookings"><ChevronLeft size={16} /> Back to Categories</Link>
+          <Link to="/bookings"><ChevronLeft size={16} /> Back to Resource Categories</Link>
         </div>
         <div>
           <h1 className="gradient-text">Available {category.name}</h1>
