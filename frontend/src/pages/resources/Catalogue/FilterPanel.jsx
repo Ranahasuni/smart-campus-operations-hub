@@ -4,7 +4,7 @@ import { Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
-  'TEACHING_VENUE', 'LECTURE_THEATRE', 'SEMINAR_ROOM', 'MEETING_ROOM', 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM', 'LAB', 'AUDITORIUM', 'SPORTS_FACILITY'
+  'LECTURE_THEATRE', 'MEETING_ROOM', 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM', 'LAB', 'AUDITORIUM', 'SPORTS_FACILITY'
 ];
 
 const FEATURES = ['Projector', 'Microsoft Teams', 'Cisco Webex', 'Whiteboard', 'Sound System', 'Video Conferencing'];

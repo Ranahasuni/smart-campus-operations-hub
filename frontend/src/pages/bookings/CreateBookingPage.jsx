@@ -4,14 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, Users, Calendar, Clock, 
   ChevronLeft, Info, AlertCircle, CheckCircle2, 
-  ArrowRight, Loader2, FileText
+  ArrowRight, Loader2, FileText, RotateCcw
 } from 'lucide-react';
 import '../../styles/booking-form.css';
 
 const CATEGORY_MAP = {
-  TEACHING_VENUE: { name: 'Teaching Venue', icon: '📖' },
   LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
-  SEMINAR_ROOM: { name: 'Seminar Room', icon: '🗣️' },
   MEETING_ROOM: { name: 'Meeting Room', icon: '🤝' },
   FUNCTION_SPACE: { name: 'Function Space', icon: '🎉' },
   VIDEO_CONFERENCE_ROOM: { name: 'Video Conference', icon: '🎥' },
@@ -37,7 +35,9 @@ export default function CreateBookingPage() {
   const initialDate = queryParams.get('date') || getLocalDate();
 
   const [resource, setResource] = useState(null);
+  const [existingBookings, setExistingBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -52,10 +52,22 @@ export default function CreateBookingPage() {
   });
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     if (id) {
        fetchResource(id);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (id && formData.date && user) {
+      fetchExistingBookings(id, formData.date);
+    }
+  }, [id, formData.date, user]);
 
   const fetchResource = async (resId) => {
     setLoading(true);
@@ -63,11 +75,51 @@ export default function CreateBookingPage() {
       const res = await authFetch(`${API}/api/resources/${resId}`);
       if (!res.ok) throw new Error('Resource not found');
       const data = await res.json();
+      
+      // 1. RBAC Check
+      const role = user?.role?.toUpperCase() || '';
+      const isStudent = role === 'STUDENT' || role === 'ROLE_STUDENT';
+      const isLecturer = role === 'LECTURER' || role === 'ROLE_LECTURER';
+      const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
+
+      const studentCategories = ['LECTURE_THEATRE', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM'];
+      const lecturerCategories = [...studentCategories, 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM'];
+      
+      let hasAccess = false;
+      if (isAdmin) hasAccess = true;
+      else if (isLecturer) hasAccess = lecturerCategories.includes(data.type);
+      else if (isStudent) hasAccess = studentCategories.includes(data.type);
+
+      if (!hasAccess) {
+        throw new Error(`ACCESS_DENIED: Your account role (${role}) does not have permission to reserve ${data.type.replace('_', ' ')} facilities.`);
+      }
+
+      // 2. Status Check
+      if (data.status !== 'ACTIVE') {
+        throw new Error(`FACILITY_UNAVAILABLE: This resource is currently ${data.status.replace('_', ' ')} and is not accepting reservations.`);
+      }
+
       setResource(data);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExistingBookings = async (resId, date) => {
+    setCheckingAvailability(true);
+    try {
+      const res = await authFetch(`${API}/api/bookings/resource/${resId}?date=${date}`);
+      if (res.ok) {
+        const data = await res.json();
+        // Filter for active bookings (PENDING or APPROVED)
+        setExistingBookings(data.filter(b => b.status === 'PENDING' || b.status === 'APPROVED'));
+      }
+    } catch (err) {
+      console.error("Failed to fetch existing bookings:", err);
+    } finally {
+      setCheckingAvailability(false);
     }
   };
 
@@ -79,10 +131,58 @@ export default function CreateBookingPage() {
 
   const validateForm = () => {
     if (!resource) return "No resource selected.";
+    if (resource.status !== 'ACTIVE') return `This resource is currently ${resource.status.replace('_', ' ')} and cannot be booked.`;
     if (!formData.purpose.trim()) return "Please state the purpose of the booking.";
     if (formData.startTime >= formData.endTime) return "Start time must be before end time.";
+    if (parseInt(formData.expectedAttendees) > resource.capacity) return `The expected attendees exceed the resource capacity (${resource.capacity}).`;
+
+    const dayName = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const dayAvail = resource.availability?.find(a => a.day === dayName);
+    
+    if (!dayAvail || !dayAvail.isAvailable) {
+      return "The facility is closed on the selected date.";
+    }
+
+    // 1. Check if within operational hours
+    const isWithinSlots = dayAvail.slots?.some(slot => 
+      formData.startTime >= slot.startTime && formData.endTime <= slot.endTime
+    );
+
+    if (!isWithinSlots) {
+      return "The selected time duration is outside the facility's operational hours.";
+    }
+
+    // 2. CONFLICT CHECK: (existing.start < new.end) AND (existing.end > new.start)
+    const hasConflict = existingBookings.some(eb => {
+      // Overlap logic: [eb.start, eb.end] overlaps [new.start, new.end]
+      return (eb.startTime < formData.endTime) && (eb.endTime > formData.startTime);
+    });
+
+    if (hasConflict) {
+      return "The selected time overlaps with an existing reservation. Please check the availability log above.";
+    }
+
     return null;
   };
+
+  // Helper calculation for UI disablement
+  const getNoAvailabilityStatus = () => {
+    if (!resource || !formData.date) return false;
+    const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const dayData = resource.availability?.find(a => a.day === dayShort);
+    
+    if (!dayData || !dayData.isAvailable) return true;
+    
+    const freeSlots = dayData.slots?.filter(slot => {
+        return !existingBookings.some(eb => 
+            (eb.startTime < slot.endTime) && (eb.endTime > slot.startTime)
+        );
+    }) || [];
+    
+    return freeSlots.length === 0;
+  };
+
+  const noAvailability = getNoAvailabilityStatus();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -206,6 +306,117 @@ export default function CreateBookingPage() {
                 />
             </div>
 
+            </div>
+
+          {/* AVAILABILITY & CONFLICT DISPLAY */}
+          {resource && (
+            <div className="availability-display-box" style={{ 
+              marginBottom: '24px', 
+              padding: '24px', 
+              background: 'rgba(15, 23, 42, 0.4)', 
+              borderRadius: '20px',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#818cf8', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <Clock size={16} /> Real-Time Availability for {new Date(formData.date).toLocaleDateString('en-US', { weekday: 'long' })}
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => fetchExistingBookings(id, formData.date)}
+                  className="check-availability-mini-btn"
+                  style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {checkingAvailability ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />} Refresh
+                </button>
+              </div>
+              
+              <div className="availability-segments-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                {(() => {
+                  const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+                  const dayData = resource.availability?.find(a => a.day === dayShort);
+                  
+                  if (!dayData || !dayData.isAvailable) {
+                    return <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on this day.</div>;
+                  }
+
+                  return (
+                    <>
+                      {/* Show only slots that are COMPLETELY free (zero overlap with existing bookings) */}
+                      {(() => {
+                        const freeSlots = dayData.slots?.filter(slot => {
+                          const hasOverlap = existingBookings.some(eb => 
+                            (eb.startTime < slot.endTime) && (eb.endTime > slot.startTime)
+                          );
+                          return !hasOverlap;
+                        });
+
+                        if (!freeSlots || freeSlots.length === 0) {
+                          return (
+                            <div style={{ padding: '20px', background: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '100%', textAlign: 'center' }}>
+                              <span style={{ color: '#fca5a5', fontWeight: '800', fontSize: '0.9rem' }}>
+                                🚫 No available time slots left for this date.
+                              </span>
+                            </div>
+                          );
+                        }
+
+                        return freeSlots.map((slot, idx) => (
+                          <div key={`slot-${idx}`} style={{ 
+                            padding: '16px 20px', 
+                            background: 'rgba(34, 197, 94, 0.05)',
+                            border: '2px solid rgba(34, 197, 94, 0.2)',
+                            borderRadius: '16px',
+                            minWidth: '200px',
+                            transition: 'all 0.3s ease',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '1rem', fontWeight: '950', color: 'white' }}>{slot.startTime} — {slot.endTime}</span>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80' }}></div>
+                            </div>
+                            <span style={{ fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', color: '#22c55e', letterSpacing: '0.1em' }}>
+                              Open for Booking
+                            </span>
+                          </div>
+                        ));
+                      })()}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Status & Capacity Check Footer */}
+              <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                   <div style={{ padding: '8px', borderRadius: '10px', background: resource.status === 'ACTIVE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' }}>
+                      <CheckCircle2 size={16} color={resource.status === 'ACTIVE' ? '#4ade80' : '#ef4444'} />
+                   </div>
+                   <div>
+                      <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Facility Status</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '900', color: 'white' }}>{resource.status}</div>
+                   </div>
+                </div>
+                
+                <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                   <div style={{ padding: '8px', borderRadius: '10px', background: parseInt(formData.expectedAttendees) > resource.capacity ? 'rgba(239, 68, 68, 0.1)' : 'rgba(99, 102, 241, 0.1)' }}>
+                      <Users size={16} color={parseInt(formData.expectedAttendees) > resource.capacity ? '#ef4444' : '#818cf8'} />
+                   </div>
+                   <div>
+                      <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Occupancy Headcount</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '900', color: parseInt(formData.expectedAttendees) > resource.capacity ? '#ef4444' : 'white' }}>
+                        {formData.expectedAttendees} / {resource.capacity} Seats
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="form-grid">
             <div className="form-group">
                 <label><Clock size={16} /> Start Time</label>
                 <input 
@@ -273,9 +484,13 @@ export default function CreateBookingPage() {
             <button 
               type="submit" 
               className="btn-submit-booking"
-              disabled={submitting}
+              disabled={submitting || noAvailability}
+              style={{ 
+                opacity: (submitting || noAvailability) ? 0.5 : 1,
+                cursor: (submitting || noAvailability) ? 'not-allowed' : 'pointer'
+              }}
             >
-              {submitting ? 'Processing...' : 'Confirm Reservation'} <ArrowRight size={18} />
+              {submitting ? 'Processing...' : noAvailability ? 'Slot Unavailable' : 'Confirm Reservation'} <ArrowRight size={18} />
             </button>
           </div>
         </form>
