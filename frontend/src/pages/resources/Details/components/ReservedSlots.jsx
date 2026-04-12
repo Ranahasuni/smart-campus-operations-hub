@@ -32,13 +32,14 @@ export default function ReservedSlots({ bookings, selectedDate, isUnavailable })
               display: 'flex',
               justifyContent: 'space-between',
               padding: '12px 16px',
-              background: 'rgba(239, 68, 68, 0.05)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1.5px solid rgba(239, 68, 68, 0.3)',
               borderRadius: '12px',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.1)'
             }}>
-              <span style={{ fontWeight: '700', color: '#ef4444' }}>Reserved</span>
-              <span style={{ color: 'var(--text-secondary)' }}>{b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)}</span>
+              <span style={{ fontWeight: '900', color: '#ef4444', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>Reserved</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: '700' }}>{b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)}</span>
             </div>
           ))
         ) : (
