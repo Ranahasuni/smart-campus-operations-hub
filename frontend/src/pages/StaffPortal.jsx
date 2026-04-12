@@ -36,11 +36,11 @@ export default function StaffPortal() {
       if (res.ok) {
         const tickets = await res.json();
         
-        // Calculate statistics
-        const myTasks = tickets.filter(t => t.technicianId === user.id && t.status !== 'COMPLETED');
-        const urgent = tickets.filter(t => t.priority === 'HIGH' && t.status !== 'COMPLETED');
-        const active = tickets.filter(t => t.status !== 'COMPLETED' && t.status !== 'CANCELLED');
-        const completed = tickets.filter(t => t.status === 'COMPLETED');
+        // Calculate statistics - Adapted for Professional Workflow
+        const myTasks = tickets.filter(t => t.technicianId === user.id && (t.status === 'IN_PROGRESS' || t.status === 'OPEN'));
+        const urgent = tickets.filter(t => t.priority === 'HIGH' && t.status !== 'CLOSED' && t.status !== 'REJECTED');
+        const active = tickets.filter(t => t.status !== 'CLOSED' && t.status !== 'REJECTED');
+        const completed = tickets.filter(t => t.technicianId === user.id && (t.status === 'RESOLVED' || t.status === 'CLOSED'));
 
         setStats({
           activeTickets: active.length,
