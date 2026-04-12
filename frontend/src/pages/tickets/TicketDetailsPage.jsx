@@ -15,7 +15,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  X
 } from 'lucide-react';
 import CommentSection from '../../components/tickets/CommentSection';
 import { formatDuration } from '../../utils/TimeUtils';
@@ -122,7 +123,8 @@ export default function TicketDetailsPage() {
       OPEN: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', icon: <AlertCircle size={14} /> },
       IN_PROGRESS: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: <Clock size={14} /> },
       RESOLVED: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', icon: <CheckCircle2 size={14} /> },
-      CLOSED: { bg: 'rgba(236, 72, 153, 0.1)', color: '#ec4899', icon: <CheckCircle2 size={14} /> }
+      CLOSED: { bg: 'rgba(236, 72, 153, 0.1)', color: '#ec4899', icon: <CheckCircle2 size={14} /> },
+      REJECTED: { bg: 'rgba(225, 29, 72, 0.1)', color: '#fb7185', icon: <X size={14} /> }
     };
     const s = styles[status] || styles.OPEN;
     return (
@@ -138,7 +140,7 @@ export default function TicketDetailsPage() {
         color: s.color,
         border: `1px solid ${s.color}33`
       }}>
-        {s.icon} {status}
+        {s.icon} {status === 'REJECTED' ? 'CANCELLED' : status}
       </span>
     );
   };
@@ -331,7 +333,7 @@ export default function TicketDetailsPage() {
 
           <div className="glass-card" style={{ padding: '24px', background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
             <h4 style={{ marginBottom: '12px', fontSize: '1rem' }}>Staff Portal Update</h4>
-            {isAdmin ? (
+            {(isAdmin || (user.id === ticket.userId && (ticket.status === 'OPEN' || ticket.status === 'RESOLVED'))) ? (
               <div className="space-y-4">
                 <div>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
@@ -409,33 +411,61 @@ export default function TicketDetailsPage() {
         <div className="modal-overlay animate-fade-in" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
           background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', 
-          justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' 
+          justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' 
         }}>
-          <div className="glass-card animate-slide-up" style={{ width: '100%', maxWidth: '400px', padding: '32px' }}>
-            <h2 style={{ marginBottom: '8px' }}>Update Status</h2>
+          <div className="glass-card animate-slide-up" style={{ width: '100%', maxWidth: '450px', padding: '32px' }}>
+            <h2 style={{ marginBottom: '8px' }}>Action Center</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px' }}>
-              Transitions are logged for audit purposes.
+              Select the appropriate operational update for this request.
             </p>
             
             <div className="space-y-3">
-              {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map((status) => (
-                <button
-                  key={status}
-                  disabled={updating || ticket.status === status}
-                  onClick={() => setSelectedStatus(status)}
-                  className="btn-secondary"
-                  style={{ 
-                    width: '100%', 
-                    justifyContent: 'space-between', 
-                    opacity: ticket.status === status ? 0.5 : 1,
-                    border: selectedStatus === status ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)',
-                    background: selectedStatus === status ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)'
-                  }}
-                >
-                  {status.replace('_', ' ')}
-                  {(selectedStatus === status || ticket.status === status) && <CheckCircle2 size={16} className="text-emerald-400" />}
+              {/* TECHNICIAN ACTIONS */}
+              {(user.role === 'TECHNICIAN' || user.role === 'ADMIN') && (
+                <>
+                  {ticket.status === 'OPEN' && (
+                    <button onClick={() => setSelectedStatus('IN_PROGRESS')} className="btn-secondary w-full" style={{ justifyContent: 'space-between', border: selectedStatus === 'IN_PROGRESS' ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)' }}>
+                      Start Maintenance Work <Clock size={16} />
+                    </button>
+                  )}
+                  {(ticket.status === 'IN_PROGRESS' || ticket.status === 'OPEN') && (
+                    <button onClick={() => setSelectedStatus('RESOLVED')} className="btn-secondary w-full" style={{ justifyContent: 'space-between', border: selectedStatus === 'RESOLVED' ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)' }}>
+                      Mark as RESOLVED <CheckCircle2 size={16} />
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* STUDENT / LECTURER ACTIONS (FOR RESOLVED TICKETS) */}
+              {(user.role === 'STUDENT' || user.role === 'LECTURER' || user.role === 'ADMIN') && ticket.status === 'RESOLVED' && (
+                <>
+                  <button onClick={() => setSelectedStatus('CLOSED')} className="btn-primary w-full" style={{ background: '#10b981', justifyContent: 'space-between' }}>
+                    Confirm Fix & Close <CheckCircle2 size={16} />
+                  </button>
+                  <button onClick={() => setSelectedStatus('IN_PROGRESS')} className="btn-secondary w-full" style={{ color: '#fb7185', borderColor: '#fb718533', justifyContent: 'space-between' }}>
+                    Re-fix Required <AlertCircle size={16} />
+                  </button>
+                </>
+              )}
+
+              {/* CANCEL ACTION (ONLY IF OPEN) */}
+              {(user.id === ticket.userId || user.role === 'ADMIN') && ticket.status === 'OPEN' && (
+                <button onClick={() => setSelectedStatus('REJECTED')} className="btn-secondary w-full" style={{ color: '#fb7185', borderColor: '#fb718533', justifyContent: 'space-between' }}>
+                  Cancel This Request <X size={16} />
                 </button>
-              ))}
+              )}
+
+              {/* ADMIN GLOBAL OVERRIDE (FORCED OPTIONS) */}
+              {user.role === 'ADMIN' && (
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--glass-border)' }}>
+                  <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '10px' }}>ADMIN OVERRIDE</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED'].map(s => (
+                      <button key={s} onClick={() => setSelectedStatus(s)} className="btn-ghost" style={{ fontSize: '0.7rem', padding: '6px', border: selectedStatus === s ? '1px solid white' : 'none' }}>{s}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {selectedStatus === 'RESOLVED' && (
@@ -468,7 +498,7 @@ export default function TicketDetailsPage() {
                 className="btn-primary" 
                 style={{ flex: 1.5 }}
               >
-                {updating ? 'Saving...' : 'Confirm Update'}
+                {updating ? 'Processing...' : 'Sync Update'}
               </button>
             </div>
           </div>
