@@ -85,8 +85,7 @@ export default function ResourceInfo({ resource }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: 'var(--accent-primary)', fontWeight: '950', fontSize: '0.7rem', textTransform: 'uppercase' }}>FLOOR & ROOM</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '950', fontSize: '1.1rem' }}>
-              {resource.floor % 10 === 1 ? '1st' : resource.floor % 10 === 2 ? '2nd' : resource.floor % 10 === 3 ? '3rd' : `${resource.floor}th`} Floor, {resource.roomNumber}
+              {resource.floor === 1 ? '1st' : resource.floor === 2 ? '2nd' : resource.floor === 3 ? '3rd' : `${resource.floor}th`} Floor, Room {resource.roomNumber}
             </span>
           </div>
         </div>
