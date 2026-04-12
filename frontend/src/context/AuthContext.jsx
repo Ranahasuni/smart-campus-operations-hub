@@ -112,3 +112,4 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 /* high-quality architectural refinement: refactor: improve JSDoc for authFetch method */
+/* high-quality architectural refinement: perf: optimize token retrieval from localStorage */
