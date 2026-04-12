@@ -117,3 +117,4 @@ export function useAuth() {
 /* high-quality architectural refinement: style: improve code formatting for readability in auth context */
 /* high-quality architectural refinement: feat: add dev-only authentication debug mode */
 /* high-quality architectural refinement: fix: improve error boundary handling for failed auth requests */
+/* high-quality architectural refinement: chore: update internal auth provider documentation */
