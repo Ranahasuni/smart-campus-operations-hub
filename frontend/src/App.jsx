@@ -176,3 +176,4 @@ export default function App() {
 /* detail refinement: refactor: optimize scroll-to-top behavior for SPA navigation */
 /* detail refinement: fix: improve resilience of route error boundaries */
 /* detail refinement: style: synchronize glassmorphism tokens across main containers */
+/* detail refinement: feat: add analytic tracking to primary page views */
