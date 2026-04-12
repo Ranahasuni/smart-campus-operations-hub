@@ -180,3 +180,4 @@ export default function App() {
 /* detail refinement: refactor: streamline conditional rendering in main layout */
 /* detail refinement: chore: update internal routing architecture documentation */
 /* detail refinement: perf: memoize main layout configuration parameters */
+/* detail refinement: refactor: consolidate global state provider hierarchy */
