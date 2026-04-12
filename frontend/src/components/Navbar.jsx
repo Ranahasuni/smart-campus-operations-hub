@@ -43,8 +43,7 @@ export default function Navbar() {
             {user?.role !== 'TECHNICIAN' && (
               <>
                 <Link to="/bookings" className="nav-link">Bookings</Link>
-                <Link to="/my-bookings" className="nav-link">Active Bookings</Link>
-                <Link to="/booking-history" className="nav-link">Booking History</Link>
+                <Link to="/my-bookings" className="nav-link">My Bookings</Link>
               </>
             )}
 
@@ -52,10 +51,6 @@ export default function Navbar() {
 
             {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
               <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
-            )}
-
-            {user?.role === 'LECTURER' && (
-              <Link to="/admin" className="nav-link nav-link-admin">System Overview</Link>
             )}
           </>
         )}

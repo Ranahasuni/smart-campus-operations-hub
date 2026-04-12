@@ -19,7 +19,7 @@ const ADMIN_FEATURES = [
 const LECTURER_FEATURES = [
   { icon: '🏰', title: 'Facilities & Assets', desc: 'Browse and manage university lecture halls, labs, and catalogues.', link: '/resources' },
   { icon: '📅', title: 'Reservations', desc: 'Reserve space for lectures, workshops, or study groups in real-time.', link: '/bookings' },
-  { icon: '🛡️', title: 'System Overview', desc: 'Monitor campus resource status and operational health.', link: '/admin' },
+  { icon: '🏫', title: 'Staff Portal', desc: 'Access academic tools, support tickets, and your operational overview.', link: '/staff' },
   { icon: '🎫', title: 'Support Tickets', desc: 'Report facility issues or request technical support for campus assets.', link: '/tickets' }
 ];
 
@@ -55,6 +55,7 @@ export default function HomePage() {
               ? 'Lecturer Console: Manage your academic reservations and monitor campus facilities in real-time.'
               : 'Experience a smarter way to manage university operations. Seamlessly book space, monitor assets, and stay informed.'}
         </p>
+
 
         {/* Feature Grid */}
         <div style={{
