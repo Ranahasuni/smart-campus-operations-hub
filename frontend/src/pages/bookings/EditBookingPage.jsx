@@ -185,10 +185,17 @@ export default function EditBookingPage() {
     }
 
     setSubmitting(true);
+    const payload = {
+      ...formData,
+      resourceIds: [formData.resourceId], // Wrap singular ID in array for DTO compliance
+    };
+    // Remove the singular key to stay clean
+    delete payload.resourceId;
+
     try {
       const res = await authFetch(`${API}/api/bookings/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
