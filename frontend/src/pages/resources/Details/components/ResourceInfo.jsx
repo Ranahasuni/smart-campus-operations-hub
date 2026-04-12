@@ -74,7 +74,7 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: 'var(--accent-primary)', fontWeight: '700', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CAPACITY</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.15rem' }}>{resource.capacity} Seats</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '1.15rem' }}>{resource.capacity} Seats</span>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: 'var(--accent-primary)', fontWeight: '700', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>BUILDING</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.15rem' }}>{resource.building}</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '1.15rem' }}>{resource.building}</span>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: 'var(--accent-primary)', fontWeight: '700', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>FLOOR & ROOM</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.1rem' }}>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '1.1rem' }}>
               {resource.floor === 1 ? '1st' : resource.floor === 2 ? '2nd' : resource.floor === 3 ? '3rd' : `${resource.floor}th`} Floor, Room {resource.roomNumber}
             </span>
           </div>
