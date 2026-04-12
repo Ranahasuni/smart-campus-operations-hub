@@ -85,9 +85,9 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
         </div>
 
         {/* Floor Filter */}
-        <div className="filter-group">
-          <label className="filter-label">Target Floor</label>
-          <div className="input-wrapper-pro">
+        <div className="filter-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label className="filter-label" style={{ marginBottom: 0, whiteSpace: 'nowrap', marginRight: '16px' }}>Target Floor</label>
+          <div className="input-wrapper-pro" style={{ width: '150px' }}>
             <Map className="input-icon-pro" size={16} color="var(--accent-secondary)" />
             <select
               className="filter-select-pro"
@@ -95,6 +95,7 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.floor || ''}
               onChange={handleChange}
               disabled={!searchParams.building}
+              style={{ paddingLeft: '42px', borderRadius: '12px' }}
             >
               <option value="">Any Floor</option>
               {floors.map(f => <option key={f} value={f}>Floor {f}</option>)}
@@ -144,9 +145,9 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
           </div>
         </div>
 
-        {/* Features Split Section */}
-        <div className="filter-group" style={{ marginTop: '32px' }}>
-          <label className="filter-label" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+        {/* Popular Amenities Filter */}
+        <div className="filter-group" style={{ display: 'block', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--glass-border)' }}>
+          <label className="filter-label" style={{ display: 'block', marginBottom: '16px', width: '100%' }}>
             Popular Amenities
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

@@ -8,7 +8,7 @@ export default function SearchBar({ searchParams, updateParams }) {
 
   return (
     <div className="search-bar-container">
-      <Search className="search-icon" size={20} />
+      <Search className="search-icon" size={22} />
       <input
         type="text"
         className="search-input"
