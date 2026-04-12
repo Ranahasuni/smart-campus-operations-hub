@@ -11,7 +11,8 @@ export default function ActionButton({ status, resourceId, activeIssueTicket, se
 
   const handleClick = () => {
     if (isAvailable) {
-      navigate(`/bookings/create/${resourceId}`);
+      const dateParam = selectedDate ? `?date=${selectedDate}` : '';
+      navigate(`/bookings/create/${resourceId}${dateParam}`);
     }
   };
 
