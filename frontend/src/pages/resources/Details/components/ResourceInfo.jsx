@@ -33,7 +33,7 @@ export default function ResourceInfo({ resource }) {
         </span>
         
         {/* SMART TICKET LINK */}
-        {resource.status === 'ACTIVE' && (
+        {(resource.status === 'ACTIVE' || resource.status === 'MAINTENANCE') && (
           <Link 
             to={`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`}
             style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
