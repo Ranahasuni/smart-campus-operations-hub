@@ -42,8 +42,8 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
           {statusCfg.label === 'ONLINE' && <span className="dot-white pulsing"></span>}
           {statusCfg.icon} {statusCfg.label}
         </span>
-        {/* SMART TICKET LINK: Hide if system already knows there is an issue */}
-        {resource.status === 'ACTIVE' && !activeIssueTicket && (
+        {/* SMART TICKET LINK: Show in Active or Maintenance states */}
+        {(resource.status === 'ACTIVE' || resource.status === 'MAINTENANCE') && (
           <Link
             to={`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`}
             style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
