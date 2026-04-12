@@ -69,10 +69,10 @@ export default function ResourceDetailsPage() {
       {/* ⬅️ STYLED BACK BUTTON */}
       <Link to="/resources" style={{
         display: 'inline-flex', alignItems: 'center', gap: '8px',
-        padding: '10px 20px', background: '#ffffff', color: '#1e293b',
-        borderRadius: '12px', border: '1.5px solid #cbd5e1',
+        padding: '10px 20px', background: 'var(--bg-secondary)', color: 'var(--text-primary)',
+        borderRadius: '12px', border: '1px solid var(--glass-border)',
         textDecoration: 'none', fontWeight: '800', fontSize: '0.9rem',
-        marginBottom: '28px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+        marginBottom: '28px', boxShadow: 'var(--shadow-sm)'
       }}>
         <ArrowLeft size={16} /> Back
       </Link>
