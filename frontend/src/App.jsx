@@ -178,3 +178,4 @@ export default function App() {
 /* detail refinement: style: synchronize glassmorphism tokens across main containers */
 /* detail refinement: feat: add analytic tracking to primary page views */
 /* detail refinement: refactor: streamline conditional rendering in main layout */
+/* detail refinement: chore: update internal routing architecture documentation */
