@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarCheck, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
 
-export default function ActionButton({ status, resourceId, activeIssueTicket }) {
+export default function ActionButton({ status, resourceId, activeIssueTicket, selectedDate }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
