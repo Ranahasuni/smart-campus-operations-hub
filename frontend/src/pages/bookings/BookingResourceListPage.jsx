@@ -255,7 +255,7 @@ export default function BookingResourceListPage() {
                   </div>
 
                   <div className="card-actions">
-                    <Link to={`/bookings/resource/${res.id}`} className="action-btn btn-details">
+                    <Link to={`/resources/${res.id}`} className="action-btn btn-details">
                       View Details
                     </Link>
                     <Link 
