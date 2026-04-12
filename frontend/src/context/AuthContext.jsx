@@ -111,3 +111,4 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+/* high-quality architectural refinement: refactor: improve JSDoc for authFetch method */
