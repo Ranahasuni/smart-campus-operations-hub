@@ -105,10 +105,16 @@ export default function BookingResourceListPage() {
 
   if (loading && resources.length === 0) {
     return (
-      <div className="resource-list-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-          <Loader2 className="animate-spin" size={48} style={{ marginBottom: '16px', color: '#6366f1' }} />
-          <p>Scanning campus assets...</p>
+      <div className="resource-list-container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '20px' }}>
+        <div style={{ position: 'relative', width: '80px', height: '80px' }}>
+          <Loader2 className="animate-spin" size={80} style={{ color: '#6366f1', opacity: 0.2 }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LayoutGrid className="animate-pulse" size={32} style={{ color: '#6366f1' }} />
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <h3 style={{ color: 'white', marginBottom: '8px', fontSize: '1.2rem' }}>Scanning Campus Assets...</h3>
+          <p style={{ color: '#94a3b8' }}>Synchronizing real-time availability with the central registry</p>
         </div>
       </div>
     );
