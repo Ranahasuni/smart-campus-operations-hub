@@ -39,7 +39,7 @@ export default function EditBookingPage() {
     expectedAttendees: 1
   });
 
-  const [bookedSlots, setBookedSlots] = useState([]);
+  const [existingBookings, setExistingBookings] = useState([]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -91,13 +91,14 @@ export default function EditBookingPage() {
   };
 
   const fetchAvailability = async () => {
+    if (!booking?.resourceId || !formData.date) return;
     setCheckingAvailability(true);
     try {
       const res = await authFetch(`${API}/api/bookings/resource/${booking.resourceId}?date=${formData.date}`);
       if (res.ok) {
         const data = await res.json();
         // Exclude current booking from conflict checks
-        setBookedSlots(data.filter(b => b.id !== id));
+        setExistingBookings(data.filter(b => b.id !== id));
       }
     } catch (err) {
       console.error('Error fetching availability:', err);
@@ -144,7 +145,7 @@ export default function EditBookingPage() {
     }
 
     // 2. Conflict check (excluding the current booking)
-    const hasConflict = bookedSlots.some(b => 
+    const hasConflict = existingBookings.some(b => 
       formData.startTime < b.endTime.substring(0, 5) && 
       formData.endTime > b.startTime.substring(0, 5)
     );
@@ -161,7 +162,7 @@ export default function EditBookingPage() {
     if (!dayData) return resource.availability?.length > 0;
     
     const freeSlots = dayData.slots?.filter(slot => {
-        return !bookedSlots.some(eb => 
+        return !existingBookings.some(eb => 
             (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
         );
     }) || [];
@@ -329,13 +330,17 @@ export default function EditBookingPage() {
             </div>
             
             <div className="availability-segments-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              {(() => {
+              {checkingAvailability || !resource ? (
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8' }}>
+                    <Loader2 size={16} className="animate-spin" /> Fetching latest availability...
+                 </div>
+              ) : (() => {
                 const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
                 const dayShortLower = dayShort.toLowerCase();
-                const dayData = resource?.availability?.find(a => a.day?.toLowerCase().startsWith(dayShortLower.substring(0, 3)));
+                const dayData = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayShortLower.substring(0, 3)));
                 
                 if (!dayData) {
-                  return resource?.availability?.length > 0
+                  return resource.availability?.length > 0
                     ? <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on {dayShort}.</div>
                     : <div style={{ color: '#4ade80', fontWeight: '800' }}>✅ Open for All-Day Booking</div>;
                 }
@@ -346,10 +351,9 @@ export default function EditBookingPage() {
 
                 return (
                   <>
-                    {/* Show only slots that are COMPLETELY free (zero overlap with existing bookings) */}
                     {(() => {
                       const freeSlots = dayData.slots?.filter(slot => {
-                        const hasOverlap = bookedSlots.some(eb => 
+                        const hasOverlap = existingBookings.some(eb => 
                           (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
                         );
                         return !hasOverlap;
