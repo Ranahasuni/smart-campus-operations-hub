@@ -19,8 +19,8 @@ const ADMIN_FEATURES = [
 const LECTURER_FEATURES = [
   { icon: '🏰', title: 'Facilities & Assets', desc: 'Browse and manage university lecture halls, labs, and catalogues.', link: '/resources' },
   { icon: '📅', title: 'Reservations', desc: 'Reserve space for lectures, workshops, or study groups in real-time.', link: '/bookings' },
-  { icon: '🏫', title: 'Staff Portal', desc: 'Access academic tools, support tickets, and your operational overview.', link: '/staff' },
-  { icon: '🎫', title: 'Support Tickets', desc: 'Report facility issues or request technical support for campus assets.', link: '/tickets' }
+  { icon: '🎫', title: 'Support Tickets', desc: 'Report facility issues or request technical support for campus assets.', link: '/tickets' },
+  { icon: '🔔', title: 'Notifications', desc: 'Real-time updates on booking approvals and ticket status.', link: '/notifications' }
 ];
 
 export default function HomePage() {

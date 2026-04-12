@@ -50,7 +50,7 @@ export default function Navbar() {
 
             <Link to="/tickets" className="nav-link">Tickets</Link>
 
-            {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
+            {['STAFF', 'TECHNICIAN'].includes(user?.role) && (
               <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
             )}
           </>
