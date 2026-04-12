@@ -152,11 +152,17 @@ export default function ResourceDetailsPage() {
                   </p>
                 </div>
                 <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Capacity Management</span>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+                    {resource.type === 'EQUIPMENT' ? 'Concurrent Usage' : 
+                     resource.type === 'LAB' ? 'Research Capacity' : 
+                     resource.type === 'SPORTS_FACILITY' ? 'Athlete Occupancy' : 
+                     resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Seating Capacity' : 
+                     'Workspace Limit'}
+                  </span>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                     {resource.type === 'EQUIPMENT' 
-                      ? `This asset supports simultaneous use for up to ${resource.capacity} registered users.` 
-                      : `Observe the formal occupancy limit of ${resource.capacity} users for safety and performance.`}
+                      ? `This specialized asset supports simultaneous access for up to ${resource.capacity} authorized users.` 
+                      : `Observe the formal facility limit of ${resource.capacity} occupants for safety and optimal performance.`}
                   </p>
                 </div>
               </div>
