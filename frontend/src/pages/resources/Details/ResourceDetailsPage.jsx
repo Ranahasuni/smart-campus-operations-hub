@@ -20,23 +20,27 @@ export default function ResourceDetailsPage() {
   const { id } = useParams();
   const [resource, setResource] = useState(null);
   const [tickets, setTickets] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchData();
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, selectedDate]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resResponse, ticketsResponse] = await Promise.all([
+      const [resResponse, ticketsResponse, bookingsResponse] = await Promise.all([
         api.get(`/resources/${id}`),
-        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] }))
+        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] })),
+        api.get(`/bookings/resource/${id}?date=${selectedDate}`).catch(() => ({ data: [] }))
       ]);
       setResource(resResponse.data);
       setTickets(ticketsResponse.data || []);
+      setBookings(bookingsResponse.data || []);
     } catch (err) {
       setError('Operational synchronization error.');
     } finally {
