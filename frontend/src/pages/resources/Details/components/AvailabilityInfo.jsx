@@ -23,7 +23,7 @@ export default function AvailabilityInfo({ availability }) {
       <h3 style={titleStyle}>
         <Clock size={20} color="#6366f1" /> Weekly Schedule
       </h3>
-      
+
       <div className="schedule-days-container">
         {availability.map((item) => (
           <div key={item.day} style={{ ...cardStyle, opacity: item.isAvailable ? 1 : 0.7 }}>

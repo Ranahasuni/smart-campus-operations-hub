@@ -10,10 +10,10 @@ export default function MostBookedTable({ data = [], isDark }) {
   };
 
   return (
-    <div style={{ 
-      background: '#ffffff', 
-      padding: '35px', 
-      borderRadius: '35px', 
+    <div style={{
+      background: '#ffffff',
+      padding: '35px',
+      borderRadius: '35px',
       border: '1px solid #e2e8f0',
       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.03)',
       position: 'relative',
@@ -50,8 +50,9 @@ export default function MostBookedTable({ data = [], isDark }) {
           <tbody>
             {(data || []).map((item, idx) => {
               const badge = getBadgeStyle(item.type);
-              const name = item.resourceName || item.name || 'Unknown Asset';
-              const location = item.location || item.building || 'N/A';
+              const name = item.name || item.resourceName || 'Unknown Asset';
+              const location = item.building || item.location || 'N/A';
+              const count = item.count || 0;
 
               return (
                 <tr key={idx} style={{ background: '#f8fafc', borderRadius: '16px' }}>
@@ -59,7 +60,7 @@ export default function MostBookedTable({ data = [], isDark }) {
                     {name}
                   </td>
                   <td style={cellStyle}>
-                    <span style={{ 
+                    <span style={{
                       padding: '8px 16px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900,
                       color: badge.color, background: badge.bg, textTransform: 'uppercase',
                       border: `1px solid ${badge.color}20`
@@ -71,7 +72,7 @@ export default function MostBookedTable({ data = [], isDark }) {
                     {location}
                   </td>
                   <td style={{ ...cellStyle, textAlign: 'right', borderRadius: '0 16px 16px 0' }}>
-                    <div style={{ 
+                    <div style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                       padding: '8px 18px', borderRadius: '14px',
                       background: '#0f172a', color: '#fff', fontWeight: 900, fontSize: '1.1rem',
