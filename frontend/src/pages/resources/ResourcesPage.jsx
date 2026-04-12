@@ -124,12 +124,14 @@ export default function ResourcesPage() {
 
   return (
     <div className="catalogue-container">
-      <div className="catalogue-header">
-        <div>
+      <div className="catalogue-header" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderLeft: '4px solid var(--accent-primary)', paddingLeft: '24px' }}>
+        <div style={{ flex: 1 }}>
           <h1 className="catalogue-title">Facility <span className="text-indigo">Catalogue</span></h1>
           <p className="catalogue-subtitle">Intelligently navigate and provision high-tier campus research assets and specialized learning environments.</p>
         </div>
-        <SearchBar searchParams={searchParams} updateParams={updateParams} />
+        <div style={{ width: '300px' }}>
+          <SearchBar searchParams={searchParams} updateParams={updateParams} />
+        </div>
       </div>
 
       <div className="catalogue-layout">
