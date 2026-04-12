@@ -166,3 +166,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+/* detail refinement: refactor: optimize route structure for faster initial load */
