@@ -171,3 +171,4 @@ export default function App() {
 /* detail refinement: style: refine global transition timing functions */
 /* detail refinement: perf: lazy-load non-critical dashboard charts */
 /* detail refinement: refactor: extract navigation guard logic to standalone component */
+/* detail refinement: docs: improve JSDoc for main router organization */
