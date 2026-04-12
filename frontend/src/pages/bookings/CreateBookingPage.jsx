@@ -7,6 +7,7 @@ import {
   ArrowRight, Loader2, FileText, RotateCcw
 } from 'lucide-react';
 import '../../styles/booking-form.css';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 const CATEGORY_MAP = {
   LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
@@ -26,13 +27,7 @@ export default function CreateBookingPage() {
 
   const queryParams = new URLSearchParams(location.search);
   
-  const getLocalDate = () => {
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    return new Date(now - offset).toISOString().split('T')[0];
-  };
-
-  const initialDate = queryParams.get('date') || getLocalDate();
+  const initialDate = queryParams.get('date') || getLocalDateString();
 
   const [resource, setResource] = useState(null);
   const [existingBookings, setExistingBookings] = useState([]);
@@ -293,7 +288,7 @@ export default function CreateBookingPage() {
                     className="form-input"
                     value={formData.date}
                     onChange={handleInputChange}
-                    min={getLocalDate()}
+                    min={getLocalDateString()}
                     required
                 />
             </div>
