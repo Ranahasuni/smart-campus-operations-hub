@@ -136,7 +136,7 @@ export default function CreateBookingPage() {
     if (formData.startTime >= formData.endTime) return "Start time must be before end time.";
     if (parseInt(formData.expectedAttendees) > resource.capacity) return `The expected attendees exceed the resource capacity (${resource.capacity}).`;
 
-    const dayName = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const dayName = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
     const dayAvail = resource.availability?.find(a => a.day === dayName);
     
     if (!dayAvail || !dayAvail.isAvailable) {
@@ -168,7 +168,7 @@ export default function CreateBookingPage() {
   // Helper calculation for UI disablement
   const getNoAvailabilityStatus = () => {
     if (!resource || !formData.date) return false;
-    const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
     const dayData = resource.availability?.find(a => a.day === dayShort);
     
     if (!dayData || !dayData.isAvailable) return true;
@@ -334,7 +334,7 @@ export default function CreateBookingPage() {
               
               <div className="availability-segments-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 {(() => {
-                  const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+                  const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
                   const dayData = resource.availability?.find(a => a.day === dayShort);
                   
                   if (!dayData || !dayData.isAvailable) {

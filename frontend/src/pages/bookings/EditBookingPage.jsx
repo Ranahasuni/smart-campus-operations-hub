@@ -126,7 +126,7 @@ export default function EditBookingPage() {
     if (resource) {
       if (resource.status !== 'ACTIVE') return `Resource is currently ${resource.status.replace(/_/g, ' ')}`;
       
-      const dayName = new Date(selectedDateStr).toLocaleDateString('en-US', { weekday: 'short' });
+      const dayName = new Date(selectedDateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
       const dayAvail = resource.availability?.find(a => a.day === dayName);
       
       if (!dayAvail || !dayAvail.isAvailable) return "The facility is closed on the selected date.";
@@ -150,7 +150,7 @@ export default function EditBookingPage() {
 
   const getNoAvailabilityStatus = () => {
     if (!resource || !formData.date) return false;
-    const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
     const dayData = resource.availability?.find(a => a.day === dayShort);
     
     if (!dayData || !dayData.isAvailable) return true;
@@ -305,7 +305,7 @@ export default function EditBookingPage() {
             <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> True Availability for building {resource?.building}</h5>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
               {(() => {
-                const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+                const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
                 const dayData = resource?.availability?.find(a => a.day === dayShort);
                 
                 if (!dayData || !dayData.isAvailable) {
