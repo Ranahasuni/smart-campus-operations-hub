@@ -13,6 +13,7 @@ import EquipmentList from './components/EquipmentList';
 import AvailabilityInfo from './components/AvailabilityInfo';
 import QRCodeDisplay from './components/QRCodeDisplay';
 import ActionButton from './components/ActionButton';
+import ResourceMaintenanceHistory from './components/ResourceMaintenanceHistory';
 
 export default function ResourceDetailsPage() {
   const { user } = useAuth();
@@ -120,6 +121,11 @@ export default function ResourceDetailsPage() {
             <ImageGallery images={resource.imageUrls} name={resource.name} status={resource.status} />
             <ResourceInfo resource={resource} />
             <EquipmentList equipment={resource.equipment} />
+            
+            {/* 🛠️ TECHNICIAN INTELLIGENCE: Maintenance History Log */}
+            {(user?.role === 'TECHNICIAN' || user?.role === 'ADMIN') && (
+              <ResourceMaintenanceHistory tickets={tickets} loading={loading} />
+            )}
           </div>
 
           <div className="details-sidebar">
