@@ -116,7 +116,8 @@ export default function EditBookingPage() {
 
   const validateForm = () => {
     const now = new Date();
-    const selectedDate = new Date(formData.date);
+    const selectedDateStr = formData.date;
+    const selectedDate = new Date(selectedDateStr);
     
     if (selectedDate < now.setHours(0,0,0,0)) return "Date cannot be in the past";
     if (formData.startTime >= formData.endTime) return "Start time must be before end time";
@@ -124,18 +125,46 @@ export default function EditBookingPage() {
     
     if (resource) {
       if (resource.status !== 'ACTIVE') return `Resource is currently ${resource.status.replace(/_/g, ' ')}`;
-      if (formData.startTime < resource.availableFrom) return `Starts before opening (${resource.availableFrom})`;
-      if (formData.endTime > resource.availableTo) return `Ends after closing (${resource.availableTo})`;
+      
+      const dayName = new Date(selectedDateStr).toLocaleDateString('en-US', { weekday: 'short' });
+      const dayAvail = resource.availability?.find(a => a.day === dayName);
+      
+      if (!dayAvail || !dayAvail.isAvailable) return "The facility is closed on the selected date.";
+
+      // 1. Check if within operational slots
+      const isWithinSlots = dayAvail.slots?.some(slot => 
+        formData.startTime >= slot.startTime && formData.endTime <= slot.endTime
+      );
+      if (!isWithinSlots) return "Selected time is outside operational hours for this day.";
     }
 
+    // 2. Conflict check (excluding the current booking)
     const hasConflict = bookedSlots.some(b => 
       formData.startTime < b.endTime.substring(0, 5) && 
       formData.endTime > b.startTime.substring(0, 5)
     );
-    if (hasConflict) return "Selected time slot overlaps with another reservation";
+    if (hasConflict) return "Selected time overlaps with another reservation";
 
     return null;
   };
+
+  const getNoAvailabilityStatus = () => {
+    if (!resource || !formData.date) return false;
+    const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const dayData = resource.availability?.find(a => a.day === dayShort);
+    
+    if (!dayData || !dayData.isAvailable) return true;
+    
+    const freeSlots = dayData.slots?.filter(slot => {
+        return !bookedSlots.some(eb => 
+            (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
+        );
+    }) || [];
+    
+    return freeSlots.length === 0;
+  };
+
+  const noAvailability = getNoAvailabilityStatus();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -273,42 +302,43 @@ export default function EditBookingPage() {
           </div>
 
           <div className="availability-snapshot">
-            <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> Availability on {formData.date}</h5>
-            
-            <div className="availability-info-grid">
-               <div className="availability-section">
-                  <h6>Operational Hours</h6>
-                  {resource?.availability ? (
-                    <div className="slots-chips">
-                      {resource.availability
-                        .find(a => a.day === new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' }))
-                        ?.slots.map((s, idx) => (
-                          <span key={idx} className="slot-chip available">{s.startTime} - {s.endTime}</span>
-                        )) || <span className="no-slots">Not available today</span>
-                      }
-                    </div>
-                  ) : (
-                    <p className="no-bookings-hint">Resource hours not specified.</p>
-                  )}
-               </div>
+            <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> True Availability for building {resource?.building}</h5>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+              {(() => {
+                const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+                const dayData = resource?.availability?.find(a => a.day === dayShort);
+                
+                if (!dayData || !dayData.isAvailable) {
+                   return <div style={{ color: '#ef4444', fontWeight: '800' }}>Closed on {dayShort}</div>;
+                }
 
-               <div className="availability-section">
-                  <h6>Other Bookings</h6>
-                  {bookedSlots.length > 0 ? (
-                    <div className="slots-chips">
-                      {bookedSlots.map(b => (
-                        <span key={b.id} className="slot-chip booked">
-                          {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="no-bookings-hint" style={{ color: '#4ade80' }}>No conflicts found!</p>
-                  )}
-               </div>
+                const freeSlots = dayData.slots?.filter(slot => {
+                  return !bookedSlots.some(eb => 
+                      (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
+                  );
+                }) || [];
+
+                if (freeSlots.length === 0) {
+                   return <div style={{ color: '#fca5a5', fontWeight: '800' }}>🚫 Fully Booked for {formData.date}</div>;
+                }
+
+                return freeSlots.map((slot, idx) => (
+                  <div key={idx} style={{ 
+                    padding: '8px 12px', 
+                    background: 'rgba(34, 197, 94, 0.1)', 
+                    border: '1px solid rgba(34, 197, 94, 0.3)', 
+                    borderRadius: '8px',
+                    color: '#4ade80',
+                    fontSize: '0.85rem',
+                    fontWeight: '700'
+                  }}>
+                    {slot.startTime} - {slot.endTime}
+                  </div>
+                ));
+              })()}
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '12px' }}>
-              Note: Your current reservation slot is not shown as a conflict.
+            <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '12px', fontStyle: 'italic' }}>
+              * Note: Your existing time slot is excluded from conflicts for easier modification.
             </p>
           </div>
 
@@ -358,9 +388,13 @@ export default function EditBookingPage() {
             <button 
               type="submit" 
               className="btn-submit-booking"
-              disabled={submitting || (resource && resource.status !== 'ACTIVE')}
+              disabled={submitting || (resource && resource.status !== 'ACTIVE') || noAvailability}
+              style={{ 
+                opacity: (submitting || (resource && resource.status !== 'ACTIVE') || noAvailability) ? 0.5 : 1,
+                cursor: (submitting || (resource && resource.status !== 'ACTIVE') || noAvailability) ? 'not-allowed' : 'pointer'
+              }}
             >
-              {submitting ? 'Updating...' : (resource && resource.status !== 'ACTIVE' ? 'Unavailable' : 'Save Changes')} <ArrowRight size={18} />
+              {submitting ? 'Updating...' : noAvailability ? 'Slot Unavailable' : 'Save Changes'} <ArrowRight size={18} />
             </button>
           </div>
         </form>
