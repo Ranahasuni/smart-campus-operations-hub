@@ -48,6 +48,8 @@ export default function ActionButton({ status, resourceId, activeIssueTicket, se
         }}
         onMouseEnter={(e) => isAvailable && (e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)')}
         onMouseLeave={(e) => isAvailable && (e.currentTarget.style.transform = 'translateY(0) scale(1)')}
+        aria-label={buttonLabel}
+        title={isAvailable ? 'Click to proceed with your booking' : 'This facility is currently unavailable'}
       >
         {buttonIcon}
         <span>{buttonLabel}</span>
