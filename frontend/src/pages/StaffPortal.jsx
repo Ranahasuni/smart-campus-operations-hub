@@ -42,9 +42,19 @@ export default function StaffPortal() {
         const active = tickets.filter(t => t.status !== 'COMPLETED' && t.status !== 'CANCELLED');
         const completed = tickets.filter(t => t.status === 'COMPLETED');
 
+        // Fetch user bookings for lecturer stats
+        let myBookingsCount = 0;
+        if (user.role === 'LECTURER') {
+          const bRes = await authFetch(`${API}/api/bookings/user`);
+          if (bRes.ok) {
+            const bData = await bRes.json();
+            myBookingsCount = bData.length;
+          }
+        }
+
         setStats({
           activeTickets: active.length,
-          myTickets: myTasks.length,
+          myTickets: user.role === 'LECTURER' ? myBookingsCount : myTasks.length,
           urgentTickets: urgent.length,
           completedToday: completed.length
         });
@@ -95,11 +105,11 @@ export default function StaffPortal() {
           subtitle="Total campus issues"
         />
         <SummaryCard 
-          title="My Tasks" 
+          title={user.role === 'LECTURER' ? "My Reservations" : "My Tasks"} 
           value={stats.myTickets} 
-          icon={<Wrench size={24} />} 
+          icon={user.role === 'LECTURER' ? <Clock size={24} /> : <Wrench size={24} />} 
           color="#8b5cf6"
-          subtitle="Assigned to you"
+          subtitle={user.role === 'LECTURER' ? "Booked slots" : "Assigned to you"}
         />
         <SummaryCard 
           title="Urgent Alerts" 
@@ -133,16 +143,16 @@ export default function StaffPortal() {
             <button className="q-action-btn" onClick={() => navigate('/resources')}>
               <div className="qa-icon" style={{ backgroundColor: '#ecfdf5', color: '#059669' }}><Search /></div>
               <div className="qa-text">
-                <h3>Find Resources</h3>
-                <p>Locate facilities and equipment</p>
+                <h3>{user.role === 'LECTURER' ? 'Campus Catalog' : 'Find Resources'}</h3>
+                <p>Browse facilities and equipment</p>
               </div>
               <ExternalLink size={16} className="qa-arrow" />
             </button>
             <button className="q-action-btn" onClick={() => navigate('/tickets/new')}>
               <div className="qa-icon" style={{ backgroundColor: '#fff7ed', color: '#ea580c' }}><PlusCircle /></div>
               <div className="qa-text">
-                <h3>Report Fault</h3>
-                <p>Log a new technical issue</p>
+                <h3>{user.role === 'LECTURER' ? 'Request Assistance' : 'Report Fault'}</h3>
+                <p>{user.role === 'LECTURER' ? 'Get help with room tech' : 'Log a new technical issue'}</p>
               </div>
               <ExternalLink size={16} className="qa-arrow" />
             </button>
