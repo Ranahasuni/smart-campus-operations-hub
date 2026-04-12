@@ -40,7 +40,7 @@ export default function Dashboard() {
   }, [activeTab, navigate]);
 
   const fetchDashData = async () => {
-    if (user?.role !== 'ADMIN') return;
+    if (!['ADMIN', 'LECTURER'].includes(user?.role)) return;
 
     try {
       // 1. Fetch Users

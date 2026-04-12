@@ -27,9 +27,9 @@ export default function Login() {
       const userData = await login(formData.campusId, formData.password);
       
       // Redirect based on role
-      if (userData.role === 'ADMIN') {
+      if (userData.role === 'ADMIN' || userData.role === 'LECTURER') {
         navigate('/admin');
-      } else if (['STAFF', 'LECTURER', 'TECHNICIAN'].includes(userData.role)) {
+      } else if (['STAFF', 'TECHNICIAN'].includes(userData.role)) {
         navigate('/staff');
       } else {
         navigate('/profile');

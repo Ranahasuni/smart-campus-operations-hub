@@ -46,7 +46,7 @@ public class UserController {
 
     /** Create a new user — ADMIN only */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<User> createUser(
             @RequestBody User newUser,
             @AuthenticationPrincipal UserDetails admin) {
@@ -59,28 +59,28 @@ public class UserController {
 
     /** List all users — ADMIN only */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     /** List users by role — ADMIN only */
     @GetMapping("/role/{role}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable com.smartcampus.model.Role role) {
         return ResponseEntity.ok(userService.getUsersByRole(role));
     }
 
     /** Get user details — ADMIN only */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<User> getUserById(@PathVariable String id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     /** Update user profile — ADMIN only here, or extended for profile self-service later */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<User> updateUser(
             @PathVariable String id, 
             @RequestBody User updatedUser,
@@ -95,7 +95,7 @@ public class UserController {
 
     /** Update user status (LOCKED / ACTIVE / DISABLED) — ADMIN only */
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<Void> updateStatus(
             @PathVariable String id, 
             @RequestBody Map<String, String> body,
@@ -111,7 +111,7 @@ public class UserController {
 
     /** Delete user — ADMIN only */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<Void> deleteUser(
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails admin) {

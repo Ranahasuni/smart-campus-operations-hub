@@ -18,7 +18,7 @@ const ADMIN_FEATURES = [
 
 export default function HomePage() {
   const { user } = useAuth();
-  const features = user?.role === 'ADMIN' ? ADMIN_FEATURES : USER_FEATURES;
+  const features = ['ADMIN', 'LECTURER'].includes(user?.role) ? ADMIN_FEATURES : USER_FEATURES;
 
   return (
     <div className="home-hero" style={{
@@ -36,7 +36,7 @@ export default function HomePage() {
           maxWidth: '800px',
           margin: '0 auto 60px'
         }}>
-          {user?.role === 'ADMIN' 
+          {['ADMIN', 'LECTURER'].includes(user?.role)
             ? 'Administrator Portal: Oversee campus operations and maintain system integrity with full security authorization.'
             : 'Experience a smarter way to manage university operations. Seamlessly book space, monitor assets, and stay informed.'}
         </p>
@@ -76,7 +76,7 @@ export default function HomePage() {
         </div>
 
         {/* Quick Help for Admin */}
-        {user?.role === 'ADMIN' && (
+        {['ADMIN', 'LECTURER'].includes(user?.role) && (
           <div className="glass-card" style={{
             marginTop: '60px',
             padding: '24px',

@@ -25,7 +25,7 @@ export default function Navbar() {
         <Link to="/" className="nav-link">Home</Link>
 
         {/* Admin Navigation */}
-        {user?.role === 'ADMIN' ? (
+        {['ADMIN', 'LECTURER'].includes(user?.role) ? (
           <>
             <Link to="/admin" className="nav-link nav-link-admin">Overview</Link>
 

@@ -296,14 +296,21 @@ public class BookingService {
     }
 
     private BookingResponseDTO mapToResponseDTOEnriched(Booking booking) {
-        List<Resource> resources = resourceRepository.findAllById(booking.getResourceIds());
-        com.smartcampus.model.User user = userRepository.findById(booking.getUserId()).orElse(null);
+        List<String> resIds = booking.getResourceIds();
+        List<Resource> resources = (resIds != null && !resIds.isEmpty())
+                ? resourceRepository.findAllById(resIds.stream().filter(id -> id != null).collect(Collectors.toList()))
+                : List.of();
+
+        com.smartcampus.model.User user = null;
+        if (booking.getUserId() != null) {
+            user = userRepository.findById(booking.getUserId()).orElse(null);
+        }
         
         return BookingResponseDTO.builder()
                 .id(booking.getId())
                 .userId(booking.getUserId())
                 .requesterName(user != null ? user.getFullName() : "Unknown User (" + booking.getUserId() + ")")
-                .resourceIds(booking.getResourceIds())
+                .resourceIds(resIds != null ? resIds : List.of())
                 .resourceNames(resources.stream().map(Resource::getName).collect(Collectors.toList()))
                 .resourceType(resources.isEmpty() ? null : resources.get(0).getType())
                 .date(booking.getDate())
