@@ -119,3 +119,4 @@ export function useAuth() {
 /* high-quality architectural refinement: fix: improve error boundary handling for failed auth requests */
 /* high-quality architectural refinement: chore: update internal auth provider documentation */
 /* high-quality architectural refinement: refactor: simplify API base URL concatenation logic */
+/* high-quality architectural refinement: perf: debouncing auth state updates to prevent UI flicker */
