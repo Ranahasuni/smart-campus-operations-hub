@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, MapPin, Users, Calendar, Clock, 
   ChevronLeft, Info, AlertCircle, CheckCircle2, 
-  ArrowRight, ShieldCheck, HelpCircle, Loader2
+  ArrowRight, ShieldCheck, HelpCircle, Loader2, RotateCcw
 } from 'lucide-react';
 import '../../styles/booking-form.css';
 
@@ -25,6 +25,7 @@ export default function EditBookingPage() {
   const [booking, setBooking] = useState(null);
   const [resource, setResource] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -90,6 +91,7 @@ export default function EditBookingPage() {
   };
 
   const fetchAvailability = async () => {
+    setCheckingAvailability(true);
     try {
       const res = await authFetch(`${API}/api/bookings/resource/${booking.resourceId}?date=${formData.date}`);
       if (res.ok) {
@@ -99,6 +101,8 @@ export default function EditBookingPage() {
       }
     } catch (err) {
       console.error('Error fetching availability:', err);
+    } finally {
+      setCheckingAvailability(false);
     }
   };
 
@@ -302,47 +306,89 @@ export default function EditBookingPage() {
             />
           </div>
 
-          <div className="availability-snapshot">
-            <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> True Availability for building {resource?.building}</h5>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+          <div className="availability-display-section" style={{ 
+            marginBottom: '32px', 
+            padding: '24px', 
+            background: 'rgba(15, 23, 42, 0.4)', 
+            borderRadius: '20px', 
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#818cf8', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Clock size={16} /> Real-Time Availability for {new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
+              </div>
+              <button 
+                type="button" 
+                onClick={fetchAvailability}
+                className="check-availability-mini-btn"
+                style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                {checkingAvailability ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />} Refresh
+              </button>
+            </div>
+            
+            <div className="availability-segments-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               {(() => {
                 const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
                 const dayShortLower = dayShort.toLowerCase();
                 const dayData = resource?.availability?.find(a => a.day?.toLowerCase().startsWith(dayShortLower.substring(0, 3)));
                 
                 if (!dayData) {
-                   return resource?.availability?.length > 0 
-                     ? <div style={{ color: '#ef4444', fontWeight: '800' }}>Closed on {dayShort}</div>
-                     : <div style={{ color: '#4ade80', fontWeight: '800' }}>Available (24/7 Policy)</div>;
+                  return resource?.availability?.length > 0
+                    ? <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on {dayShort}.</div>
+                    : <div style={{ color: '#4ade80', fontWeight: '800' }}>Available (24/7 Policy)</div>;
                 }
 
                 if (!dayData.isAvailable) {
-                   return <div style={{ color: '#ef4444', fontWeight: '800' }}>Closed on {dayShort}</div>;
+                  return <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on this day.</div>;
                 }
 
-                const freeSlots = dayData.slots?.filter(slot => {
-                  return !bookedSlots.some(eb => 
-                      (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
-                  );
-                }) || [];
+                return (
+                  <>
+                    {/* Show only slots that are COMPLETELY free (zero overlap with existing bookings) */}
+                    {(() => {
+                      const freeSlots = dayData.slots?.filter(slot => {
+                        const hasOverlap = bookedSlots.some(eb => 
+                          (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
+                        );
+                        return !hasOverlap;
+                      });
 
-                if (freeSlots.length === 0) {
-                   return <div style={{ color: '#fca5a5', fontWeight: '800' }}>🚫 Fully Booked for {formData.date}</div>;
-                }
+                      if (!freeSlots || freeSlots.length === 0) {
+                        return (
+                          <div style={{ padding: '20px', background: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '100%', textAlign: 'center' }}>
+                            <span style={{ color: '#fca5a5', fontWeight: '800', fontSize: '0.9rem' }}>
+                              🚫 No available time slots left for this date.
+                            </span>
+                          </div>
+                        );
+                      }
 
-                return freeSlots.map((slot, idx) => (
-                  <div key={idx} style={{ 
-                    padding: '8px 12px', 
-                    background: 'rgba(34, 197, 94, 0.1)', 
-                    border: '1px solid rgba(34, 197, 94, 0.3)', 
-                    borderRadius: '8px',
-                    color: '#4ade80',
-                    fontSize: '0.85rem',
-                    fontWeight: '700'
-                  }}>
-                    {slot.startTime} - {slot.endTime}
-                  </div>
-                ));
+                      return freeSlots.map((slot, idx) => (
+                        <div key={`slot-${idx}`} style={{ 
+                          padding: '16px 20px', 
+                          background: 'rgba(34, 197, 94, 0.05)',
+                          border: '2px solid rgba(34, 197, 94, 0.2)',
+                          borderRadius: '16px',
+                          minWidth: '200px',
+                          transition: 'all 0.3s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: '950', color: 'white' }}>{slot.startTime} — {slot.endTime}</span>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80' }}></div>
+                          </div>
+                          <span style={{ fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', color: '#22c55e', letterSpacing: '0.1em' }}>
+                            Open for Booking
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </>
+                );
               })()}
             </div>
             <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '12px', fontStyle: 'italic' }}>
