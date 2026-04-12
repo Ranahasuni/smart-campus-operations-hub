@@ -172,3 +172,4 @@ export default function App() {
 /* detail refinement: perf: lazy-load non-critical dashboard charts */
 /* detail refinement: refactor: extract navigation guard logic to standalone component */
 /* detail refinement: docs: improve JSDoc for main router organization */
+/* detail refinement: chore: standardize page container spacing across all views */
