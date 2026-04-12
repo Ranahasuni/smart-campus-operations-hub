@@ -4,8 +4,10 @@ import { Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
-  'LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'
+  'TEACHING_VENUE', 'LECTURE_THEATRE', 'SEMINAR_ROOM', 'MEETING_ROOM', 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM', 'LAB', 'AUDITORIUM', 'SPORTS_FACILITY'
 ];
+
+const FEATURES = ['Projector', 'Microsoft Teams', 'Cisco Webex', 'Whiteboard', 'Sound System', 'Video Conferencing'];
 
 export default function FilterPanel({ searchParams, updateParams, clearFilters }) {
   const [buildings, setBuildings] = useState([]);
@@ -56,9 +58,9 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
   };
 
   return (
-    <div className="filter-sidebar">
+    <div className="filter-panel">
       <div className="filter-header-pro">
-        <h3 className="filter-title-pro">FACILITY EXPLORER</h3>
+        <h3 className="filter-title-pro">Facility Explorer</h3>
         <button className="reset-all-btn" onClick={clearFilters} title="Reset All">
           <RotateCcw size={16} />
         </button>
@@ -66,10 +68,10 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
 
       <div className="filter-content-pro">
         {/* Building Filter */}
-        <div className="filter-item-pro">
-          <label className="filter-label-pro">Building Location</label>
+        <div className="filter-group">
+          <label className="filter-label">Building Location</label>
           <div className="input-wrapper-pro">
-            <Building2 className="input-icon-pro" size={16} color="#6366f1" />
+            <Building2 className="input-icon-pro" size={16} color="var(--accent-primary)" />
             <select
               className="filter-select-pro"
               name="building"
@@ -83,10 +85,10 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
         </div>
 
         {/* Floor Filter */}
-        <div className="filter-item-pro">
-          <label className="filter-label-pro">Target Floor</label>
+        <div className="filter-group">
+          <label className="filter-label">Target Floor</label>
           <div className="input-wrapper-pro">
-            <Map className="input-icon-pro" size={16} color="#0d9488" />
+            <Map className="input-icon-pro" size={16} color="var(--accent-secondary)" />
             <select
               className="filter-select-pro"
               name="floor"
@@ -101,10 +103,10 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
         </div>
 
         {/* Resource Type Filter */}
-        <div className="filter-item-pro">
-          <label className="filter-label-pro">Facility Category</label>
+        <div className="filter-group">
+          <label className="filter-label">Facility Category</label>
           <div className="input-wrapper-pro">
-            <Layout className="input-icon-pro" size={16} color="#8b5cf6" />
+            <Layout className="input-icon-pro" size={16} color="var(--accent-primary)" />
             <select
               className="filter-select-pro"
               name="type"
@@ -121,11 +123,11 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
           </div>
         </div>
 
-        {/* Capacity Filter (Upgraded to Dropdown) */}
-        <div className="filter-item-pro">
-          <label className="filter-label-pro">Minimum Occupancy</label>
+        {/* Capacity Filter */}
+        <div className="filter-group">
+          <label className="filter-label">Minimum Occupancy</label>
           <div className="input-wrapper-pro">
-            <Users className="input-icon-pro" size={16} color="#f59e0b" />
+            <Users className="input-icon-pro" size={16} color="var(--accent-secondary)" />
             <select
               className="filter-select-pro"
               name="capacity"
@@ -137,30 +139,33 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               <option value="50">50+ Seats</option>
               <option value="100">100+ Seats</option>
               <option value="200">200+ Seats</option>
+              <option value="500">500+ Seats</option>
             </select>
           </div>
         </div>
 
         {/* Features Split Section */}
-        <div className="features-divider-pro">
-          <span>Popular Amenities</span>
-        </div>
-
-        <div className="features-list-pro">
-          {['Projector', 'Whiteboard', 'Core i7 PCs', 'Central AC'].map(feature => {
-            const isChecked = (searchParams.features || '').includes(feature);
-            return (
-              <label key={feature} className="feature-checkbox-item">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => handleFeatureToggle(feature)}
-                  className="filter-checkbox"
-                />
-                <span className="checkbox-label">{feature}</span>
-              </label>
-            );
-          })}
+        <div className="filter-group" style={{ marginTop: '32px' }}>
+          <label className="filter-label" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+            Popular Amenities
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {FEATURES.map(feature => {
+              const isChecked = (searchParams.features || '').includes(feature);
+              return (
+                <label key={feature} className="feature-checkbox-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleFeatureToggle(feature)}
+                    className="filter-checkbox"
+                    style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                  />
+                  <span className="checkbox-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{feature}</span>
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

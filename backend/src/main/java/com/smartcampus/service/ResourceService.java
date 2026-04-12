@@ -74,6 +74,16 @@ public class ResourceService {
                 .build();
     }
 
+    // ── HELPER — Map Resource to Summary ResponseDTO (Single Image) ─────
+    private ResourceResponseDTO toSummaryDTO(Resource resource) {
+        ResourceResponseDTO dto = toDTO(resource);
+        if (dto.getImageUrls() != null && dto.getImageUrls().size() > 1) {
+            // Keep only the first image for the list view to improve performance
+            dto.setImageUrls(Collections.singletonList(dto.getImageUrls().get(0)));
+        }
+        return dto;
+    }
+
     // ── GET ALL WITH FILTERS (PAF Dynamic Search) ───────
     public List<ResourceResponseDTO> getResources(
             String building, Integer floor,
@@ -89,7 +99,7 @@ public class ResourceService {
                 .filter(r -> type == null || r.getType() == type)
                 .filter(r -> status == null || r.getStatus() == status)
                 .filter(r -> capacity == null || r.getCapacity() >= capacity)
-                .map(this::toDTO)
+                .map(this::toSummaryDTO)
                 .collect(Collectors.toList());
     }
 
@@ -131,7 +141,7 @@ public class ResourceService {
     public List<ResourceResponseDTO> getFloorMap(String building, Integer floor) {
         return resourceRepository.findByBuildingAndFloorOrderByRoomNumber(building, floor)
                 .stream()
-                .map(this::toDTO)
+                .map(this::toSummaryDTO)
                 .collect(Collectors.toList());
     }
 
@@ -170,7 +180,9 @@ public class ResourceService {
 
         // Top 5 Most Booked Resources
         Map<String, Long> bookingCounts = allBookings.stream()
-                .collect(Collectors.groupingBy(Booking::getResourceId, Collectors.counting()));
+                .filter(b -> b.getResourceIds() != null)
+                .flatMap(b -> b.getResourceIds().stream())
+                .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
 
         List<Map<String, Object>> mostBooked = bookingCounts.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))

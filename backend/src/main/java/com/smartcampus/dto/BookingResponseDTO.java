@@ -15,11 +15,11 @@ public class BookingResponseDTO {
     private String id;
     private String userId;
     private String requesterName;
-    private String resourceId;
+    private java.util.List<String> resourceIds;
     
     // Resource Details (Added)
-    private String resourceName;
-    private ResourceType resourceType;
+    private java.util.List<String> resourceNames;
+    private ResourceType resourceType; // Assuming same type for all in one request if simplified
 
     private LocalDate date;
     private LocalTime startTime;
@@ -28,9 +28,6 @@ public class BookingResponseDTO {
     private String purpose;
     private Integer expectedAttendees;
     private String rejectionReason;
-    
-    // Professional ID
     private String bookingCode;
-    
     private LocalDateTime createdAt;
 }

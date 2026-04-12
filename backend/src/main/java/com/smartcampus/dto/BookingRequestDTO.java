@@ -12,8 +12,8 @@ import java.time.LocalTime;
 @Data
 public class BookingRequestDTO {
     
-    @NotBlank(message = "Resource ID is required")
-    private String resourceId;
+    @NotNull(message = "Resource selection is required")
+    private java.util.List<String> resourceIds;
 
     @NotNull(message = "Date is required")
     @FutureOrPresent(message = "Booking date cannot be in the past")
@@ -30,4 +30,17 @@ public class BookingRequestDTO {
 
     @Min(value = 1, message = "At least one attendee is required")
     private Integer expectedAttendees;
+
+    // Griffith Specific
+    private boolean isExternalUser;
+    private String organizationName;
+    private boolean isNonProfit;
+    private String publicLiabilityInsuranceUrl;
+    
+    private String emergencyContact;
+    private String eventSchedule;
+    private String riskAssessment;
+
+    private boolean cateringRequired;
+    private java.util.List<String> selectedEquipment;
 }

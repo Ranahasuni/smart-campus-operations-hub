@@ -9,12 +9,15 @@ import {
 import '../../styles/my-bookings.css';
 
 const CATEGORY_MAP = {
-  LAB: { name: 'Lab', icon: '🧪' },
-  LECTURE_HALL: { name: 'Lecture Hall', icon: '🏛️' },
+  TEACHING_VENUE: { name: 'Teaching Venue', icon: '📖' },
+  LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
+  SEMINAR_ROOM: { name: 'Seminar Room', icon: '🗣️' },
   MEETING_ROOM: { name: 'Meeting Room', icon: '🤝' },
+  FUNCTION_SPACE: { name: 'Function Space', icon: '🎉' },
+  VIDEO_CONFERENCE_ROOM: { name: 'Video Conference', icon: '🎥' },
+  LAB: { name: 'Lab', icon: '🧪' },
   AUDITORIUM: { name: 'Auditorium', icon: '🎭' },
   SPORTS_FACILITY: { name: 'Sports Facility', icon: '🏀' },
-  EQUIPMENT: { name: 'Equipment', icon: '📽️' },
 };
 
 export default function MyBookingsPage() {
@@ -122,7 +125,7 @@ export default function MyBookingsPage() {
               <div className="booking-info-main">
                 <div className="resource-name-row">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>{booking.resourceName}</h3>
+                    <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>{(booking.resourceNames || [booking.resourceName || 'Unnamed Unit']).join(', ')}</h3>
                     <span style={{ fontSize: '0.75rem', color: '#6366f1', fontWeight: 800 }}>
                       {booking.bookingCode || `RSV-${new Date(booking.date).getFullYear()}-${booking.id?.slice(-5).toUpperCase()}`}
                     </span>

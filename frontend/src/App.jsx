@@ -92,64 +92,64 @@ export default function App() {
             } />
 
             <Route path="/admin" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <Dashboard />
               </ProtectedRoute>
             } />
             <Route path="/admin/dashboard" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ResourceAnalyticsPage />
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ManageUsers />
               </ProtectedRoute>
             } />
             <Route path="/admin/resources" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ResourceManagementPage />
               </ProtectedRoute>
             } />
             <Route path="/admin/bookings" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ManageBookings />
               </ProtectedRoute>
             } />
             <Route path="/admin/bookings/:id" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <BookingReview />
               </ProtectedRoute>
             } />
             <Route path="/admin/bookings/calendar" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <BookingCalendar />
               </ProtectedRoute>
             } />
             <Route path="/admin/tickets" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ManageTickets />
               </ProtectedRoute>
             } />
             <Route path="/admin/tickets/:id" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <TicketReview />
               </ProtectedRoute>
             } />
             <Route path="/admin/logs" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <SystemLogs />
               </ProtectedRoute>
             } />
 
             <Route path="/admin/resources/new" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ResourceEditorPage />
               </ProtectedRoute>
             } />
 
             <Route path="/admin/resources/edit/:id" element={
-              <ProtectedRoute role="ADMIN">
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ResourceEditorPage />
               </ProtectedRoute>
             } />

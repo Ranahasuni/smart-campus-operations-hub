@@ -1,182 +1,180 @@
-/* ─── Premium Navbar ──────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   NAVBAR — Floating Glass Header
+   ═══════════════════════════════════════════════════════════ */
 
 .navbar {
   display: flex;
   align-items: center;
-  padding: 0 28px;
+  padding: 0 32px;
   height: 64px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
   z-index: 100;
   gap: 32px;
 }
 
-/* Brand */
+/* ── Brand ── */
 .navbar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #f1f5f9;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
   white-space: nowrap;
   flex-shrink: 0;
+  letter-spacing: -0.02em;
 }
 
-.navbar-logo {
-  font-size: 1.4rem;
-}
+.navbar-logo { font-size: 1.35rem; }
 
-/* Nav links */
+/* ── Links ── */
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
 .nav-link {
-  padding: 6px 14px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
-  color: #94a3b8;
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
   font-weight: 500;
-  transition: color 0.2s, background 0.2s;
+  transition: all 0.2s var(--ease-smooth);
+  position: relative;
 }
 
 .nav-link:hover {
-  color: #f1f5f9;
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  background: var(--glass-hover);
+}
+
+.nav-link.active {
+  color: var(--text-primary);
+  background: rgba(99, 102, 241, 0.1);
 }
 
 .nav-link-admin {
-  color: #f59e0b !important;
+  color: #fbbf24 !important;
 }
-
 .nav-link-admin:hover {
-  background: rgba(245, 158, 11, 0.12) !important;
+  background: rgba(251, 191, 36, 0.08) !important;
 }
 
-/* Right section */
+/* ── Right Section ── */
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
-/* User display */
+/* ── User Chip ── */
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   text-decoration: none;
-  padding: 4px 10px;
-  border-radius: 10px;
+  padding: 6px 12px 6px 6px;
+  border-radius: var(--radius-md);
   transition: background 0.2s;
 }
-
 .navbar-user:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-hover);
 }
 
 .navbar-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.navbar-user-name {
   font-size: 0.85rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.navbar-user-name {
-  color: #fff;
-  font-weight: 500;
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-
-.navbar-role-badge {
-  font-size: 0.65rem;
-  color: #6366f1;
-  /* Indigo color */
-  font-weight: bold;
-  letter-spacing: 0.05em;
-  opacity: 0.8;
-  margin-top: 2px;
-}
-
-.navbar-user-name {
-  font-size: 0.875rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
 }
 
-/* Auth buttons */
+.navbar-role-badge {
+  font-size: 0.6rem;
+  color: var(--accent-secondary);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* ── Auth Buttons ── */
 .navbar-btn-ghost {
-  padding: 7px 16px;
-  border-radius: 9px;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
-  color: #94a3b8;
-  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--glass-border);
   background: transparent;
-  transition: all 0.2s;
+  transition: all 0.2s var(--ease-smooth);
 }
-
 .navbar-btn-ghost:hover {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text-primary);
+  border-color: rgba(255,255,255,0.25);
+  background: var(--glass-hover);
 }
 
 .navbar-btn-primary {
-  padding: 7px 16px;
-  border-radius: 9px;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   color: #fff;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  transition: box-shadow 0.2s, transform 0.15s;
-  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.35);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  transition: all 0.25s var(--ease-smooth);
+  box-shadow: 0 2px 12px var(--accent-glow);
 }
-
 .navbar-btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 6px 20px var(--accent-glow);
 }
 
-/* Logout button */
+/* ── Logout ── */
 .navbar-logout {
-  padding: 7px 14px;
-  border-radius: 9px;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.08);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
   color: #fca5a5;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s var(--ease-smooth);
 }
-
 .navbar-logout:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.6);
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
   color: #fff;
 }

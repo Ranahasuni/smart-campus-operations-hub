@@ -9,46 +9,67 @@ import '../../styles/bookings.css';
  */
 const RESOURCE_TYPES = [
   { 
-    id: 'LAB', 
-    name: 'Labs', 
-    icon: '🧪', 
-    description: 'Scientific labs and computer centers for research and practical sessions.',
+    id: 'TEACHING_VENUE', 
+    name: 'Teaching Venues', 
+    icon: '📖', 
+    description: 'General purpose teaching spaces and classrooms across campuses.',
     roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
   },
   { 
-    id: 'LECTURE_HALL', 
-    name: 'Lecture Halls', 
+    id: 'LECTURE_THEATRE', 
+    name: 'Lecture Theatres', 
     icon: '🏛️', 
-    description: 'Spacious halls equipped with modern audio-visual technology for large classes.',
+    description: 'Tiered theatres equipped with premium AV for large scale presentations.',
     roles: ['ADMIN', 'LECTURER'] 
+  },
+  { 
+    id: 'SEMINAR_ROOM', 
+    name: 'Seminar Rooms', 
+    icon: '🗣️', 
+    description: 'Formal spaces for collaborative academic seminars and workshops.',
+    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
   },
   { 
     id: 'MEETING_ROOM', 
     name: 'Meeting Rooms', 
     icon: '🤝', 
-    description: 'Collaborative spaces for group discussions, study sessions, and small meetings.',
-    roles: ['ADMIN', 'STUDENT'] 
+    description: 'Professional spaces for group discussions and team coordination.',
+    roles: ['ADMIN', 'STUDENT', 'LECTURER'] 
+  },
+  { 
+    id: 'FUNCTION_SPACE', 
+    name: 'Function Spaces', 
+    icon: '🎉', 
+    description: 'Versatile areas for events, exhibitions, and social gatherings.',
+    roles: ['ADMIN', 'LECTURER'] 
+  },
+  { 
+    id: 'VIDEO_CONFERENCE_ROOM', 
+    name: 'Video Conference Rooms', 
+    icon: '🎥', 
+    description: 'High-tech rooms with dedicated MSTeams or Webex equipment.',
+    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
+  },
+  { 
+    id: 'LAB', 
+    name: 'Labs & Specialist Facilities', 
+    icon: '🧪', 
+    description: 'Specialized computer and scientific labs for technical sessions.',
+    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
   },
   { 
     id: 'AUDITORIUM', 
     name: 'Auditoriums', 
     icon: '🎭', 
-    description: 'Premiere venues for seminars, workshops, and large-scale academic events.',
+    description: 'Large prestige venues for ceremonies and major events.',
     roles: ['ADMIN', 'LECTURER'] 
   },
   { 
     id: 'SPORTS_FACILITY', 
     name: 'Sports Facilities', 
     icon: '🏀', 
-    description: 'Indoor and outdoor facilities for physical activities and sports events.',
+    description: 'Recreational spaces for physical activities and sporting events.',
     roles: ['ADMIN', 'STUDENT'] 
-  },
-  { 
-    id: 'EQUIPMENT', 
-    name: 'Equipment', 
-    icon: '📽️', 
-    description: 'Reserve projectors, laptops, cameras, and other academic peripherals.',
-    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
   },
 ];
 

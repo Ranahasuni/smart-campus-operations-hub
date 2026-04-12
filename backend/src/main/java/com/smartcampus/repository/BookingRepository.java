@@ -11,14 +11,15 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
     List<Booking> findByUserId(String userId);
-    List<Booking> findByResourceId(String resourceId);
+    
+    @org.springframework.data.mongodb.repository.Query("{ 'resourceIds': ?0 }")
+    List<Booking> findByResourceIdIn(java.util.Collection<String> resourceIds);
+
     List<Booking> findByStatus(BookingStatus status);
     
-    /**
-     * Find bookings for a specific resource on a specific date that are not rejected or cancelled.
-     */
-    List<Booking> findByResourceIdAndDateAndStatusIn(
-        String resourceId, 
+    @org.springframework.data.mongodb.repository.Query("{ 'resourceIds': { $in: ?0 }, 'date': ?1, 'status': { $in: ?2 } }")
+    List<Booking> findByResourceIdsInAndDateAndStatusIn(
+        java.util.Collection<String> resourceIds, 
         LocalDate date, 
         List<BookingStatus> statuses
     );
