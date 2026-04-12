@@ -190,6 +190,13 @@ export default function MyBookingsPage() {
             <History size={64} className="empty-state-icon" />
             <h3>No reservations found</h3>
             <p>You haven't made any bookings in this category yet.</p>
+            <button 
+              className="action-btn btn-update" 
+              style={{ marginTop: '20px', width: 'auto', background: '#6366f1', color: 'white' }}
+              onClick={() => navigate('/bookings')}
+            >
+              Schedule a New Booking <ArrowRight size={16} />
+            </button>
           </div>
         )}
       </div>
