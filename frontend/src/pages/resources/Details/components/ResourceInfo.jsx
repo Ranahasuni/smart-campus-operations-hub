@@ -55,10 +55,10 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
         )}
       </div>
 
-      <h1 style={{ fontSize: '2.5rem', fontWeight: '950', color: 'var(--text-primary)', margin: '15px 0', lineHeight: '1.2' }}>
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--text-primary)', margin: '15px 0', lineHeight: '1.2' }}>
         {resource.name}
       </h1>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '1.15rem', lineHeight: '1.7', marginBottom: '30px', fontWeight: '600' }}>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.7', marginBottom: '30px', fontWeight: '500' }}>
         {resource.description}
       </p>
 
@@ -73,8 +73,8 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
             <Users size={24} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: '950', fontSize: '0.7rem', textTransform: 'uppercase' }}>CAPACITY</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '950', fontSize: '1.15rem' }}>{resource.capacity} Seats</span>
+            <span style={{ color: 'var(--accent-primary)', fontWeight: '700', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CAPACITY</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.15rem' }}>{resource.capacity} Seats</span>
           </div>
         </div>
 
@@ -84,8 +84,8 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
             <Building size={24} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: '950', fontSize: '0.7rem', textTransform: 'uppercase' }}>BUILDING</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '950', fontSize: '1.15rem' }}>{resource.building}</span>
+            <span style={{ color: 'var(--accent-primary)', fontWeight: '700', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>BUILDING</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.15rem' }}>{resource.building}</span>
           </div>
         </div>
 
@@ -95,8 +95,8 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
             <MapPin size={24} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: '950', fontSize: '0.7rem', textTransform: 'uppercase' }}>FLOOR & ROOM</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '950', fontSize: '1.1rem' }}>
+            <span style={{ color: 'var(--accent-primary)', fontWeight: '700', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>FLOOR & ROOM</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '800', fontSize: '1.1rem' }}>
               {resource.floor === 1 ? '1st' : resource.floor === 2 ? '2nd' : resource.floor === 3 ? '3rd' : `${resource.floor}th`} Floor, Room {resource.roomNumber}
             </span>
           </div>
