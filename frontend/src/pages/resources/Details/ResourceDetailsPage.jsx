@@ -124,7 +124,7 @@ export default function ResourceDetailsPage() {
         <div className="details-grid">
           <div className="details-main-card">
             <ImageGallery images={resource.imageUrls} name={resource.name} status={resource.status} />
-            <ResourceInfo resource={resource} />
+            <ResourceInfo resource={resource} activeIssueTicket={activeIssueTicket} />
             <EquipmentList equipment={resource.equipment} />
             
             {/* 🛠️ TECHNICIAN INTELLIGENCE: Maintenance History Log */}
