@@ -257,7 +257,10 @@ export default function CreateBookingPage() {
       <div className="glass-card booking-form-card">
         <header className="form-header" style={{ marginBottom: '32px' }}>
           <h1 className="gradient-text">Reservation for {new Date(formData.date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</h1>
-          <p style={{ color: '#94a3b8' }}>Confirming your schedule for {resource?.name || 'this facility'}</p>
+          <p style={{ color: '#94a3b8' }}>
+            Confirming your schedule for {resource?.name || 'this facility'}. 
+            <Link to={`/resources/${id}`} style={{ color: '#6366f1', marginLeft: '10px', textDecoration: 'none', fontWeight: '800' }}>Change Date?</Link>
+          </p>
           
           {resource && (
             <div className="resource-summary-box" style={{ marginTop: '32px' }}>
