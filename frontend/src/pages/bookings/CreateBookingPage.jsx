@@ -136,10 +136,15 @@ export default function CreateBookingPage() {
     if (formData.startTime >= formData.endTime) return "Start time must be before end time.";
     if (parseInt(formData.expectedAttendees) > resource.capacity) return `The expected attendees exceed the resource capacity (${resource.capacity}).`;
 
-    const dayName = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
-    const dayAvail = resource.availability?.find(a => a.day === dayName);
+    const dayName = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+    const dayAvail = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayName.substring(0, 3)));
     
-    if (!dayAvail || !dayAvail.isAvailable) {
+    // Fallback: If no explicit availability record, assume closed if record exists but is empty, 
+    // or open if no availability list exists at all (legacy support)
+    if (!dayAvail && resource.availability?.length > 0) {
+      return "The facility is closed on the selected day.";
+    }
+    if (dayAvail && !dayAvail.isAvailable) {
       return "The facility is closed on the selected date.";
     }
 
@@ -168,18 +173,15 @@ export default function CreateBookingPage() {
   // Helper calculation for UI disablement
   const getNoAvailabilityStatus = () => {
     if (!resource || !formData.date) return false;
-    const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
-    const dayData = resource.availability?.find(a => a.day === dayShort);
+    const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+    const dayData = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayShort.substring(0, 3)));
     
-    if (!dayData || !dayData.isAvailable) return true;
-    
-    const freeSlots = dayData.slots?.filter(slot => {
+    if (!dayData) return resource.availability?.length > 0; // If list exists but day missing -> closed. If no list -> open.
+    return !dayData.isAvailable || (dayData.slots?.filter(slot => {
         return !existingBookings.some(eb => 
             (eb.startTime < slot.endTime) && (eb.endTime > slot.startTime)
         );
-    }) || [];
-    
-    return freeSlots.length === 0;
+    }).length === 0);
   };
 
   const noAvailability = getNoAvailabilityStatus();
@@ -334,10 +336,17 @@ export default function CreateBookingPage() {
               
               <div className="availability-segments-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 {(() => {
-                  const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
-                  const dayData = resource.availability?.find(a => a.day === dayShort);
+                  const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
+                  const dayShortLower = dayShort.toLowerCase();
+                  const dayData = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayShortLower.substring(0, 3)));
                   
-                  if (!dayData || !dayData.isAvailable) {
+                  if (!dayData) {
+                    return resource.availability?.length > 0
+                      ? <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on {dayShort}.</div>
+                      : <div style={{ color: '#4ade80', fontWeight: '800' }}>✅ Open for All-Day Booking</div>;
+                  }
+
+                  if (!dayData.isAvailable) {
                     return <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on this day.</div>;
                   }
 

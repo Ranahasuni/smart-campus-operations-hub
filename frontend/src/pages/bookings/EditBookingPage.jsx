@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, MapPin, Users, Calendar, Clock, 
   ChevronLeft, Info, AlertCircle, CheckCircle2, 
-  ArrowRight, ShieldCheck, HelpCircle, Loader2
+  ArrowRight, ShieldCheck, HelpCircle, Loader2, RotateCcw
 } from 'lucide-react';
 import '../../styles/booking-form.css';
 
@@ -25,6 +25,7 @@ export default function EditBookingPage() {
   const [booking, setBooking] = useState(null);
   const [resource, setResource] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -38,7 +39,7 @@ export default function EditBookingPage() {
     expectedAttendees: 1
   });
 
-  const [bookedSlots, setBookedSlots] = useState([]);
+  const [existingBookings, setExistingBookings] = useState([]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -67,6 +68,8 @@ export default function EditBookingPage() {
           throw new Error('Only pending bookings can be edited');
       }
 
+      const resourceId = bData.resourceId || (bData.resourceIds && bData.resourceIds[0]);
+      
       setBooking(bData);
       setFormData({
         date: bData.date,
@@ -74,13 +77,15 @@ export default function EditBookingPage() {
         endTime: bData.endTime.substring(0, 5),
         purpose: bData.purpose,
         expectedAttendees: bData.expectedAttendees,
-        resourceId: bData.resourceId
+        resourceId: resourceId
       });
 
       // 2. Fetch Resource
-      const rRes = await authFetch(`${API}/api/resources/${bData.resourceId}`);
-      if (rRes.ok) {
-        setResource(await rRes.json());
+      if (resourceId) {
+        const rRes = await authFetch(`${API}/api/resources/${resourceId}`);
+        if (rRes.ok) {
+          setResource(await rRes.json());
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -90,15 +95,19 @@ export default function EditBookingPage() {
   };
 
   const fetchAvailability = async () => {
+    if (!booking?.resourceId || !formData.date) return;
+    setCheckingAvailability(true);
     try {
       const res = await authFetch(`${API}/api/bookings/resource/${booking.resourceId}?date=${formData.date}`);
       if (res.ok) {
         const data = await res.json();
         // Exclude current booking from conflict checks
-        setBookedSlots(data.filter(b => b.id !== id));
+        setExistingBookings(data.filter(b => b.id !== id));
       }
     } catch (err) {
       console.error('Error fetching availability:', err);
+    } finally {
+      setCheckingAvailability(false);
     }
   };
 
@@ -116,7 +125,8 @@ export default function EditBookingPage() {
 
   const validateForm = () => {
     const now = new Date();
-    const selectedDate = new Date(formData.date);
+    const selectedDateStr = formData.date;
+    const selectedDate = new Date(selectedDateStr);
     
     if (selectedDate < now.setHours(0,0,0,0)) return "Date cannot be in the past";
     if (formData.startTime >= formData.endTime) return "Start time must be before end time";
@@ -124,18 +134,47 @@ export default function EditBookingPage() {
     
     if (resource) {
       if (resource.status !== 'ACTIVE') return `Resource is currently ${resource.status.replace(/_/g, ' ')}`;
-      if (formData.startTime < resource.availableFrom) return `Starts before opening (${resource.availableFrom})`;
-      if (formData.endTime > resource.availableTo) return `Ends after closing (${resource.availableTo})`;
+      
+      const dayName = new Date(selectedDateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+      const dayAvail = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayName.substring(0, 3)));
+      
+      if (!dayAvail && resource.availability?.length > 0) return "The facility is closed on the selected day.";
+      if (dayAvail && !dayAvail.isAvailable) return "The facility is closed on the selected date.";
+
+      // 1. Check if within operational slots
+      const isWithinSlots = dayAvail.slots?.some(slot => 
+        formData.startTime >= slot.startTime && formData.endTime <= slot.endTime
+      );
+      if (!isWithinSlots) return "Selected time is outside operational hours for this day.";
     }
 
-    const hasConflict = bookedSlots.some(b => 
+    // 2. Conflict check (excluding the current booking)
+    const hasConflict = existingBookings.some(b => 
       formData.startTime < b.endTime.substring(0, 5) && 
       formData.endTime > b.startTime.substring(0, 5)
     );
-    if (hasConflict) return "Selected time slot overlaps with another reservation";
+    if (hasConflict) return "Selected time overlaps with another reservation";
 
     return null;
   };
+
+  const getNoAvailabilityStatus = () => {
+    if (!resource || !formData.date) return false;
+    const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+    const dayData = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayShort.substring(0, 3)));
+    
+    if (!dayData) return resource.availability?.length > 0;
+    
+    const freeSlots = dayData.slots?.filter(slot => {
+        return !existingBookings.some(eb => 
+            (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
+        );
+    }) || [];
+    
+    return !dayData.isAvailable || freeSlots.length === 0;
+  };
+
+  const noAvailability = getNoAvailabilityStatus();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -146,10 +185,17 @@ export default function EditBookingPage() {
     }
 
     setSubmitting(true);
+    const payload = {
+      ...formData,
+      resourceIds: [formData.resourceId], // Wrap singular ID in array for DTO compliance
+    };
+    // Remove the singular key to stay clean
+    delete payload.resourceId;
+
     try {
       const res = await authFetch(`${API}/api/bookings/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
@@ -272,43 +318,96 @@ export default function EditBookingPage() {
             />
           </div>
 
-          <div className="availability-snapshot">
-            <h5><ShieldCheck size={14} style={{ marginRight: '8px' }} /> Availability on {formData.date}</h5>
-            
-            <div className="availability-info-grid">
-               <div className="availability-section">
-                  <h6>Operational Hours</h6>
-                  {resource?.availability ? (
-                    <div className="slots-chips">
-                      {resource.availability
-                        .find(a => a.day === new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' }))
-                        ?.slots.map((s, idx) => (
-                          <span key={idx} className="slot-chip available">{s.startTime} - {s.endTime}</span>
-                        )) || <span className="no-slots">Not available today</span>
-                      }
-                    </div>
-                  ) : (
-                    <p className="no-bookings-hint">Resource hours not specified.</p>
-                  )}
-               </div>
-
-               <div className="availability-section">
-                  <h6>Other Bookings</h6>
-                  {bookedSlots.length > 0 ? (
-                    <div className="slots-chips">
-                      {bookedSlots.map(b => (
-                        <span key={b.id} className="slot-chip booked">
-                          {b.startTime.substring(0, 5)} - {b.endTime.substring(0, 5)}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="no-bookings-hint" style={{ color: '#4ade80' }}>No conflicts found!</p>
-                  )}
-               </div>
+          <div className="availability-display-section" style={{ 
+            marginBottom: '32px', 
+            padding: '24px', 
+            background: 'rgba(15, 23, 42, 0.4)', 
+            borderRadius: '20px', 
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#818cf8', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Clock size={16} /> Real-Time Availability for {new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
+              </div>
+              <button 
+                type="button" 
+                onClick={fetchAvailability}
+                className="check-availability-mini-btn"
+                style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                {checkingAvailability ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />} Refresh
+              </button>
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '12px' }}>
-              Note: Your current reservation slot is not shown as a conflict.
+            
+            <div className="availability-segments-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+              {checkingAvailability || !resource ? (
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8' }}>
+                    <Loader2 size={16} className="animate-spin" /> Fetching latest availability...
+                 </div>
+              ) : (() => {
+                const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
+                const dayShortLower = dayShort.toLowerCase();
+                const dayData = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayShortLower.substring(0, 3)));
+                
+                if (!dayData) {
+                  return resource.availability?.length > 0
+                    ? <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on {dayShort}.</div>
+                    : <div style={{ color: '#4ade80', fontWeight: '800' }}>✅ Open for All-Day Booking</div>;
+                }
+
+                if (!dayData.isAvailable) {
+                  return <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on this day.</div>;
+                }
+
+                return (
+                  <>
+                    {(() => {
+                      const freeSlots = dayData.slots?.filter(slot => {
+                        const hasOverlap = existingBookings.some(eb => 
+                          (eb.startTime.substring(0, 5) < slot.endTime) && (eb.endTime.substring(0, 5) > slot.startTime)
+                        );
+                        return !hasOverlap;
+                      });
+
+                      if (!freeSlots || freeSlots.length === 0) {
+                        return (
+                          <div style={{ padding: '20px', background: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '100%', textAlign: 'center' }}>
+                            <span style={{ color: '#fca5a5', fontWeight: '800', fontSize: '0.9rem' }}>
+                              🚫 No available time slots left for this date.
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      return freeSlots.map((slot, idx) => (
+                        <div key={`slot-${idx}`} style={{ 
+                          padding: '16px 20px', 
+                          background: 'rgba(34, 197, 94, 0.05)',
+                          border: '2px solid rgba(34, 197, 94, 0.2)',
+                          borderRadius: '16px',
+                          minWidth: '200px',
+                          transition: 'all 0.3s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: '950', color: 'white' }}>{slot.startTime} — {slot.endTime}</span>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80' }}></div>
+                          </div>
+                          <span style={{ fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', color: '#22c55e', letterSpacing: '0.1em' }}>
+                            Open for Booking
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </>
+                );
+              })()}
+            </div>
+            <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '12px', fontStyle: 'italic' }}>
+              * Note: Your existing time slot is excluded from conflicts for easier modification.
             </p>
           </div>
 
@@ -358,9 +457,13 @@ export default function EditBookingPage() {
             <button 
               type="submit" 
               className="btn-submit-booking"
-              disabled={submitting || (resource && resource.status !== 'ACTIVE')}
+              disabled={submitting || (resource && resource.status !== 'ACTIVE') || noAvailability}
+              style={{ 
+                opacity: (submitting || (resource && resource.status !== 'ACTIVE') || noAvailability) ? 0.5 : 1,
+                cursor: (submitting || (resource && resource.status !== 'ACTIVE') || noAvailability) ? 'not-allowed' : 'pointer'
+              }}
             >
-              {submitting ? 'Updating...' : (resource && resource.status !== 'ACTIVE' ? 'Unavailable' : 'Save Changes')} <ArrowRight size={18} />
+              {submitting ? 'Updating...' : noAvailability ? 'Slot Unavailable' : 'Save Changes'} <ArrowRight size={18} />
             </button>
           </div>
         </form>

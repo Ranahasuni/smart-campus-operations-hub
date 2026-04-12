@@ -95,8 +95,8 @@ export default function MyBookingsPage() {
     <div className="my-bookings-container animate-fade-in">
       <header className="bookings-dashboard-header">
         <div>
-          <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Active Reservations</h1>
-          <p style={{ color: '#94a3b8' }}>Manage and track your upcoming campus bookings.</p>
+          <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Active Bookings</h1>
+          <p style={{ color: '#94a3b8' }}>Manage and track your upcoming campus reservations.</p>
         </div>
 
         <div className="bookings-tabs">

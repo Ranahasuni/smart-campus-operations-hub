@@ -14,29 +14,34 @@ import AvailabilityInfo from './components/AvailabilityInfo';
 import QRCodeDisplay from './components/QRCodeDisplay';
 import ActionButton from './components/ActionButton';
 import ResourceMaintenanceHistory from './components/ResourceMaintenanceHistory';
+import ReservedSlots from './components/ReservedSlots';
 
 export default function ResourceDetailsPage() {
   const { user } = useAuth();
   const { id } = useParams();
   const [resource, setResource] = useState(null);
   const [tickets, setTickets] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchData();
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, selectedDate]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resResponse, ticketsResponse] = await Promise.all([
+      const [resResponse, ticketsResponse, bookingsResponse] = await Promise.all([
         api.get(`/resources/${id}`),
-        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] }))
+        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] })),
+        api.get(`/bookings/resource/${id}?date=${selectedDate}`).catch(() => ({ data: [] }))
       ]);
       setResource(resResponse.data);
       setTickets(ticketsResponse.data || []);
+      setBookings(bookingsResponse.data || []);
     } catch (err) {
       setError('Operational synchronization error.');
     } finally {
@@ -130,6 +135,37 @@ export default function ResourceDetailsPage() {
 
           <div className="details-sidebar">
             <AvailabilityInfo availability={resource.availability} />
+            
+            <div className="availability-card" style={{ marginTop: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>CHECK AVAILABILITY</span>
+                <button 
+                  onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                  style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
+                >
+                  Reset Today
+                </button>
+              </div>
+              <input 
+                type="date" 
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '12px',
+                  color: 'var(--text-primary)',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+
+            <ReservedSlots bookings={bookings} selectedDate={selectedDate} />
+            
             <QRCodeDisplay resourceId={resource.id} />
             <ActionButton 
               status={resource.status} 

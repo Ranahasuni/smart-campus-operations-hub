@@ -16,13 +16,22 @@ const ADMIN_FEATURES = [
   { icon: '🔔', title: 'System Alerts', desc: 'Monitor failed login attempts and high-security system events.', link: '/notifications' }
 ];
 
+const LECTURER_FEATURES = [
+  { icon: '🏰', title: 'Facilities & Assets', desc: 'Browse and manage university lecture halls, labs, and catalogues.', link: '/resources' },
+  { icon: '📅', title: 'Reservations', desc: 'Reserve space for lectures, workshops, or study groups in real-time.', link: '/bookings' },
+  { icon: '🎫', title: 'Support Tickets', desc: 'Report facility issues or request technical support for campus assets.', link: '/tickets' },
+  { icon: '🔔', title: 'Notifications', desc: 'Real-time updates on booking approvals and ticket status.', link: '/notifications' }
+];
+
 export default function HomePage() {
   const { user } = useAuth();
-  const features = ['ADMIN', 'LECTURER'].includes(user?.role)
+  const features = user?.role === 'ADMIN' 
     ? ADMIN_FEATURES 
-    : user?.role === 'TECHNICIAN'
-      ? USER_FEATURES.filter(f => f.title !== 'Reservations')
-      : USER_FEATURES;
+    : user?.role === 'LECTURER'
+      ? LECTURER_FEATURES
+      : user?.role === 'TECHNICIAN'
+        ? USER_FEATURES.filter(f => f.title !== 'Reservations')
+        : USER_FEATURES;
 
   return (
     <div className="home-hero" style={{
@@ -40,10 +49,13 @@ export default function HomePage() {
           maxWidth: '800px',
           margin: '0 auto 60px'
         }}>
-          {['ADMIN', 'LECTURER'].includes(user?.role)
+          {user?.role === 'ADMIN'
             ? 'Administrator Portal: Oversee campus operations and maintain system integrity with full security authorization.'
-            : 'Experience a smarter way to manage university operations. Seamlessly book space, monitor assets, and stay informed.'}
+            : user?.role === 'LECTURER'
+              ? 'Lecturer Console: Manage your academic reservations and monitor campus facilities in real-time.'
+              : 'Experience a smarter way to manage university operations. Seamlessly book space, monitor assets, and stay informed.'}
         </p>
+
 
         {/* Feature Grid */}
         <div style={{
@@ -80,7 +92,7 @@ export default function HomePage() {
         </div>
 
         {/* Quick Help for Admin */}
-        {['ADMIN', 'LECTURER'].includes(user?.role) && (
+        {user?.role === 'ADMIN' && (
           <div className="glass-card" style={{
             marginTop: '60px',
             padding: '24px',
