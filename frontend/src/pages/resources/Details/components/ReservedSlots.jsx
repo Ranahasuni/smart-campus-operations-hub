@@ -1,7 +1,23 @@
 import React from 'react';
 import { Clock, CalendarX } from 'lucide-react';
 
-export default function ReservedSlots({ bookings, selectedDate }) {
+export default function ReservedSlots({ bookings, selectedDate, isUnavailable }) {
+  if (isUnavailable) {
+    return (
+      <div className="availability-card" style={{ marginTop: '20px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <CalendarX size={20} style={{ color: '#ef4444' }} />
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>Service Suspended</h3>
+        </div>
+        <div style={{ padding: '16px', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px' }}>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#ef4444', fontWeight: '600', lineHeight: '1.5' }}>
+            Reservations are temporarily disabled while technical repairs are in progress.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="availability-card" style={{ marginTop: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
