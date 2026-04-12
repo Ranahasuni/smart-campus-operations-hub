@@ -43,7 +43,8 @@ export default function Navbar() {
             {user?.role !== 'TECHNICIAN' && (
               <>
                 <Link to="/bookings" className="nav-link">Bookings</Link>
-                <Link to="/my-bookings" className="nav-link">My Bookings</Link>
+                <Link to="/my-bookings" className="nav-link">Active Bookings</Link>
+                <Link to="/booking-history" className="nav-link">Booking History</Link>
               </>
             )}
 
