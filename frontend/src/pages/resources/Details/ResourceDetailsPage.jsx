@@ -170,7 +170,8 @@ export default function ResourceDetailsPage() {
             <ActionButton 
               status={resource.status} 
               resourceId={resource.id} 
-              activeIssueTicket={activeIssueTicket} 
+              activeIssueTicket={activeIssueTicket}
+              selectedDate={selectedDate}
             />
           </div>
         </div>
