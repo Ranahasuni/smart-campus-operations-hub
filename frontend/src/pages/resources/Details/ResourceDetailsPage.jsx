@@ -14,6 +14,7 @@ import AvailabilityInfo from './components/AvailabilityInfo';
 import QRCodeDisplay from './components/QRCodeDisplay';
 import ActionButton from './components/ActionButton';
 import ResourceMaintenanceHistory from './components/ResourceMaintenanceHistory';
+import ReservedSlots from './components/ReservedSlots';
 
 export default function ResourceDetailsPage() {
   const { user } = useAuth();
@@ -134,6 +135,30 @@ export default function ResourceDetailsPage() {
 
           <div className="details-sidebar">
             <AvailabilityInfo availability={resource.availability} />
+            
+            <div className="availability-card" style={{ marginTop: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>CHECK AVAILABILITY</span>
+              </div>
+              <input 
+                type="date" 
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '12px',
+                  color: 'var(--text-primary)',
+                  fontWeight: '600'
+                }}
+              />
+            </div>
+
+            <ReservedSlots bookings={bookings} selectedDate={selectedDate} />
+            
             <QRCodeDisplay resourceId={resource.id} />
             <ActionButton 
               status={resource.status} 
