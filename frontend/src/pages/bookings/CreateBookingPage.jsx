@@ -82,8 +82,8 @@ export default function CreateBookingPage() {
       const isLecturer = role === 'LECTURER' || role === 'ROLE_LECTURER';
       const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
 
-      const studentCategories = ['LECTURE_THEATRE', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM'];
-      const lecturerCategories = [...studentCategories, 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM'];
+      const studentCategories = ['LECTURE_THEATRE', 'LECTURE_HALL', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM', 'SEMINAR_ROOM', 'FUNCTION_SPACE', 'TEACHING_VENUE'];
+      const lecturerCategories = [...studentCategories, 'VIDEO_CONFERENCE_ROOM'];
       
       let hasAccess = false;
       if (isAdmin) hasAccess = true;
