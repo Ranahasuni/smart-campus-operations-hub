@@ -270,7 +270,7 @@ export default function BookingResourceListPage() {
                       disabled={res.status !== 'ACTIVE'}
                       onClick={(e) => res.status !== 'ACTIVE' && e.preventDefault()}
                     >
-                      Book Now
+                      <Calendar size={16} /> Book Now
                     </Link>
                   </div>
                 </div>
