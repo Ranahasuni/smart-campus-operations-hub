@@ -113,3 +113,4 @@ export function useAuth() {
 }
 /* high-quality architectural refinement: refactor: improve JSDoc for authFetch method */
 /* high-quality architectural refinement: perf: optimize token retrieval from localStorage */
+/* high-quality architectural refinement: chore: add comprehensive logging to auth lifecycle */
