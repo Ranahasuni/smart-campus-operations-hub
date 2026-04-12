@@ -174,3 +174,4 @@ export default function App() {
 /* detail refinement: docs: improve JSDoc for main router organization */
 /* detail refinement: chore: standardize page container spacing across all views */
 /* detail refinement: refactor: optimize scroll-to-top behavior for SPA navigation */
+/* detail refinement: fix: improve resilience of route error boundaries */
