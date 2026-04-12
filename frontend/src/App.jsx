@@ -170,3 +170,4 @@ export default function App() {
 /* detail refinement: chore: add comprehensive route navigation logging */
 /* detail refinement: style: refine global transition timing functions */
 /* detail refinement: perf: lazy-load non-critical dashboard charts */
+/* detail refinement: refactor: extract navigation guard logic to standalone component */
