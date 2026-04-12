@@ -9,12 +9,16 @@ import {
 import '../../styles/resource-details.css';
 
 const CATEGORY_MAP = {
-  LAB: { name: 'Lab', icon: '🧪', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  TEACHING_VENUE: { name: 'Teaching Venue', icon: '📖', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️', roles: ['ADMIN', 'LECTURER'] },
   LECTURE_HALL: { name: 'Lecture Hall', icon: '🏛️', roles: ['ADMIN', 'LECTURER'] },
-  MEETING_ROOM: { name: 'Meeting Room', icon: '🤝', roles: ['ADMIN', 'STUDENT'] },
+  SEMINAR_ROOM: { name: 'Seminar Room', icon: '🗣️', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  MEETING_ROOM: { name: 'Meeting Room', icon: '🤝', roles: ['ADMIN', 'STUDENT', 'LECTURER'] },
+  FUNCTION_SPACE: { name: 'Function Space', icon: '🎉', roles: ['ADMIN', 'LECTURER'] },
+  VIDEO_CONFERENCE_ROOM: { name: 'Video Conference Room', icon: '🎥', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  LAB: { name: 'Lab', icon: '🧪', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   AUDITORIUM: { name: 'Auditorium', icon: '🎭', roles: ['ADMIN', 'LECTURER'] },
   SPORTS_FACILITY: { name: 'Sports Facility', icon: '🏀', roles: ['ADMIN', 'STUDENT'] },
-  EQUIPMENT: { name: 'Equipment', icon: '📽️', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
 };
 
 export default function BookingResourceDetailsPage() {

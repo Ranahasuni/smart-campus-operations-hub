@@ -40,42 +40,71 @@ public class BookingService {
 
     public List<BookingResponseDTO> getBookingsByResourceAndDate(String resourceId, LocalDate date) {
         List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.APPROVED);
-        return bookingRepository.findByResourceIdAndDateAndStatusIn(resourceId, date, activeStatuses)
+        return bookingRepository.findByResourceIdsInAndDateAndStatusIn(List.of(resourceId), date, activeStatuses)
                 .stream()
                 .map(this::mapToResponseDTOEnriched)
                 .collect(Collectors.toList());
     }
 
     public BookingResponseDTO createBooking(BookingRequestDTO dto, String userId) {
-        Resource resource = resourceRepository.findById(dto.getResourceId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
-
-        if (resource.getStatus() != ResourceStatus.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resource is currently unavailable");
+        // 1. Quota Check for Students
+        com.smartcampus.model.User requester = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        
+        if (requester.getRole() == com.smartcampus.model.Role.STUDENT) {
+            long activeBookings = bookingRepository.findByUserId(userId).stream()
+                    .filter(b -> b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.APPROVED)
+                    .count();
+            
+            if (activeBookings >= 3) {
+                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, 
+                    "Booking Quota Exceeded: Students are limited to 3 active reservations at a time to ensure fair access for all members.");
+            }
         }
 
-        if (dto.getExpectedAttendees() > resource.getCapacity()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Capacity exceeded");
+        // 2. Core Rule: Max 5 rooms
+        if (dto.getResourceIds().size() > 5) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maximum of 5 rooms per booking request.");
         }
 
-        validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
-        checkForConflicts(dto.getResourceId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), null);
+        // 2. Resource Existence and Status Check
+        List<Resource> resources = resourceRepository.findAllById(dto.getResourceIds());
+        if (resources.size() != dto.getResourceIds().size()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more resources not found.");
+        }
 
+        for (Resource resource : resources) {
+            if (resource.getStatus() != ResourceStatus.ACTIVE) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resource " + resource.getName() + " is currently unavailable");
+            }
 
+            if (dto.getExpectedAttendees() > resource.getCapacity()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Capacity exceeded for " + resource.getName());
+            }
+
+            validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
+        }
+
+        // 3. Conflict Detection
+        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), null);
+
+        // 4. Build Simplified Booking
         Booking booking = Booking.builder()
                 .userId(userId)
-                .resourceId(dto.getResourceId())
+                .resourceIds(dto.getResourceIds())
                 .date(dto.getDate())
                 .startTime(dto.getStartTime())
                 .endTime(dto.getEndTime())
                 .purpose(dto.getPurpose())
                 .expectedAttendees(dto.getExpectedAttendees())
                 .status(BookingStatus.PENDING)
+                .isExternalUser(false)
+                .isPaid(true) // Campus bookings are effectively pre-paid/free
+                .totalFee(0.0)
                 .build();
         
         Booking saved = bookingRepository.save(booking);
-        // Generate professional code: RSV-[YEAR]-[LAST 5 OF ID]
-        String code = "RSV-" + saved.getDate().getYear() + "-" + saved.getId().substring(saved.getId().length() - 5).toUpperCase();
+        String code = "RSV-" + saved.getDate().getYear() + "-" + saved.getId().substring(Math.max(0, saved.getId().length() - 5)).toUpperCase();
         saved.setBookingCode(code);
         
         return mapToResponseDTO(bookingRepository.save(saved));
@@ -92,8 +121,13 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending bookings can be modified");
         }
 
-        validateAvailability(resourceRepository.findById(dto.getResourceId()).orElseThrow(), dto.getDate(), dto.getStartTime(), dto.getEndTime());
-        checkForConflicts(dto.getResourceId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id);
+        List<Resource> resources = resourceRepository.findAllById(dto.getResourceIds());
+        if (resources.size() != dto.getResourceIds().size()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more resources not found.");
+        }
+        
+        validateAvailability(resources.get(0), dto.getDate(), dto.getStartTime(), dto.getEndTime());
+        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id);
 
 
         booking.setDate(dto.getDate());
@@ -101,20 +135,21 @@ public class BookingService {
         booking.setEndTime(dto.getEndTime());
         booking.setPurpose(dto.getPurpose());
         booking.setExpectedAttendees(dto.getExpectedAttendees());
+        booking.setResourceIds(dto.getResourceIds());
 
         return mapToResponseDTO(bookingRepository.save(booking));
     }
 
-    private void checkForConflicts(String resourceId, LocalDate date, java.time.LocalTime start, java.time.LocalTime end, String excludeId) {
+    private void checkForConflicts(List<String> resourceIds, LocalDate date, java.time.LocalTime start, java.time.LocalTime end, String excludeId) {
         List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.APPROVED);
-        List<Booking> activeBookings = bookingRepository.findByResourceIdAndDateAndStatusIn(resourceId, date, activeStatuses);
+        List<Booking> activeBookings = bookingRepository.findByResourceIdsInAndDateAndStatusIn(resourceIds, date, activeStatuses);
 
         boolean hasConflict = activeBookings.stream()
                 .filter(b -> excludeId == null || !b.getId().equals(excludeId))
                 .anyMatch(existing -> existing.getStartTime().isBefore(end) && existing.getEndTime().isAfter(start));
 
         if (hasConflict) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Time slot overlap detected.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "One or more selected rooms are occupied during this time.");
         }
     }
 
@@ -210,9 +245,11 @@ public class BookingService {
         Booking booking = getBookingByIdRaw(id);
         
         if (status == BookingStatus.APPROVED) {
-            // Check if resource still exists
-            if (!resourceRepository.existsById(booking.getResourceId())) {
-                throw new IllegalStateException("RESOURCE_MISSING: The associated facility has been decommissioned.");
+            // Check if resources still exist
+            for (String rId : booking.getResourceIds()) {
+                if (!resourceRepository.existsById(rId)) {
+                    throw new IllegalStateException("RESOURCE_MISSING: Facility " + rId + " has been decommissioned.");
+                }
             }
 
             List<Booking> conflicts = findConflicts(booking);
@@ -233,17 +270,18 @@ public class BookingService {
         auditService.log(adminId, "BOOKING_MODERATION", 
             "Admin " + status + " booking " + id + (status == BookingStatus.REJECTED ? " for Reason: " + reason : ""));
 
+        String notifyResourceId = booking.getResourceIds().isEmpty() ? "unknown" : booking.getResourceIds().get(0);
         if (status == BookingStatus.APPROVED) {
-            notificationService.notifyBookingApproved(booking.getUserId(), booking.getId(), booking.getResourceId());
+            notificationService.notifyBookingApproved(booking.getUserId(), booking.getId(), notifyResourceId);
         } else if (status == BookingStatus.REJECTED) {
-            notificationService.notifyBookingRejected(booking.getUserId(), booking.getId(), booking.getResourceId(), reason);
+            notificationService.notifyBookingRejected(booking.getUserId(), booking.getId(), notifyResourceId, reason);
         }
 
         return saved;
     }
 
     public List<Booking> findConflicts(Booking request) {
-        return bookingRepository.findByResourceId(request.getResourceId()).stream()
+        return bookingRepository.findByResourceIdIn(request.getResourceIds()).stream()
                 .filter(b -> !b.getId().equals(request.getId()))
                 .filter(b -> b.getStatus() == BookingStatus.APPROVED)
                 .filter(b -> b.getDate().equals(request.getDate()))
@@ -258,16 +296,23 @@ public class BookingService {
     }
 
     private BookingResponseDTO mapToResponseDTOEnriched(Booking booking) {
-        Resource resource = resourceRepository.findById(booking.getResourceId()).orElse(null);
-        com.smartcampus.model.User user = userRepository.findById(booking.getUserId()).orElse(null);
+        List<String> resIds = booking.getResourceIds();
+        List<Resource> resources = (resIds != null && !resIds.isEmpty())
+                ? resourceRepository.findAllById(resIds.stream().filter(id -> id != null).collect(Collectors.toList()))
+                : List.of();
+
+        com.smartcampus.model.User user = null;
+        if (booking.getUserId() != null) {
+            user = userRepository.findById(booking.getUserId()).orElse(null);
+        }
         
         return BookingResponseDTO.builder()
                 .id(booking.getId())
                 .userId(booking.getUserId())
                 .requesterName(user != null ? user.getFullName() : "Unknown User (" + booking.getUserId() + ")")
-                .resourceId(booking.getResourceId())
-                .resourceName(resource != null ? resource.getName() : "Unknown Resource [" + booking.getResourceId() + "]")
-                .resourceType(resource != null ? resource.getType() : null)
+                .resourceIds(resIds != null ? resIds : List.of())
+                .resourceNames(resources.stream().map(Resource::getName).collect(Collectors.toList()))
+                .resourceType(resources.isEmpty() ? null : resources.get(0).getType())
                 .date(booking.getDate())
                 .startTime(booking.getStartTime())
                 .endTime(booking.getEndTime())
@@ -275,7 +320,7 @@ public class BookingService {
                 .purpose(booking.getPurpose())
                 .expectedAttendees(booking.getExpectedAttendees())
                 .rejectionReason(booking.getRejectionReason())
-                .bookingCode(booking.getBookingCode() != null ? booking.getBookingCode() : "RSV-" + booking.getDate().getYear() + "-" + booking.getId().substring(Math.max(0, booking.getId().length() - 5)).toUpperCase())
+                .bookingCode(booking.getBookingCode())
                 .createdAt(booking.getCreatedAt())
                 .build();
     }

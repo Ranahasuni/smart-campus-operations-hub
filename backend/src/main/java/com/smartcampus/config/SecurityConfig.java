@@ -39,10 +39,10 @@ public class SecurityConfig {
                         
                         // ── Private Endpoints ────────────────
                         .requestMatchers("/api/bookings/**").authenticated()
-                        .requestMatchers("/api/resources/**").hasRole("ADMIN")
+                        .requestMatchers("/api/resources/**").hasAnyRole("ADMIN", "LECTURER")
                         .requestMatchers("/api/tickets/**").authenticated()
                         .requestMatchers("/api/notifications/**").authenticated()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "LECTURER")
                         
                         // ── Remaining ────────────────────────
                         .requestMatchers("/actuator/**").permitAll()

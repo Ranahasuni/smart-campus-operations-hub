@@ -102,6 +102,7 @@ export default function ResourcesPage() {
     fetchResources();
   }, []); // Fires once on mount
 
+
   const updateParams = (key, value) => {
     setSearchParams(prev => ({ ...prev, [key]: value }));
   };

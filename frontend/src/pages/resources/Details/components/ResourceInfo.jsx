@@ -1,19 +1,36 @@
-import React from 'react';
-import { Users, Building, MapPin, ShieldAlert } from 'lucide-react';
+import { Users, Building, Layers, AlertTriangle, ShieldAlert, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ResourceInfo({ resource }) {
+  // CONFIG: Map statuses to UI tokens from main
+  const statusMap = {
+    'ACTIVE': { label: 'Fully Operational', class: 'status-active' },
+    'MAINTENANCE': { label: 'Under Maintenance', class: 'status-maintenance' },
+    'OUT_OF_SERVICE': { label: 'Decommissioned', class: 'status-offline' }
+  };
+
+  const statusCfg = statusMap[resource.status] || { label: resource.status, class: 'status-offline' };
+
   return (
     <div className="resource-info-container">
       <div className="badge-row-meta">
         <span className="type-badge-premium">
           {resource.type?.replace(/_/g, ' ')?.toUpperCase()}
         </span>
-        <Link to={`/tickets/new?resourceId=${resource.id}`} style={{ textDecoration: 'none' }}>
-          <div className="report-issue-pill">
-            <ShieldAlert size={14} /> Report Issue?
-          </div>
-        </Link>
+        <span className={`status-badge-inline ${statusCfg.class}`}>
+          {statusCfg.label}
+        </span>
+        
+        {resource.status === 'ACTIVE' && (
+          <Link 
+            to={`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`} 
+            style={{ textDecoration: 'none', marginLeft: 'auto' }}
+          >
+            <div className="report-issue-pill">
+              <ShieldAlert size={14} /> Report Issue?
+            </div>
+          </Link>
+        )}
       </div>
 
       <h1 className="resource-title-premium">
@@ -21,7 +38,7 @@ export default function ResourceInfo({ resource }) {
       </h1>
       <p className="resource-desc-premium">{resource.description}</p>
 
-      {/* 📏 CLEAN GRID USING CSS CLASSES */}
+      {/* 📏 PREMIUM GRID */}
       <div className="resource-stats-grid-premium">
 
         {/* CAPACITY */}
@@ -58,7 +75,6 @@ export default function ResourceInfo({ resource }) {
             </span>
           </div>
         </div>
-
       </div>
     </div>
   );

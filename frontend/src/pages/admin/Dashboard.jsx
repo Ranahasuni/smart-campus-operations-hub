@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
   Users, ShieldAlert, Activity, TrendingUp, Clock,
   ShieldCheck, MailWarning, Ticket, Hammer, ArrowRight,
@@ -14,6 +15,7 @@ import MostBookedTable from './DashboardComponents/MostBookedTable';
 
 export default function Dashboard() {
   const { authFetch, user, API } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('OVERVIEW'); // OVERVIEW or ANALYTICS
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -30,8 +32,15 @@ export default function Dashboard() {
     fetchDashData();
   }, [user]);
 
+  useEffect(() => {
+    if (activeTab === 'ANALYTICS') {
+      const timer = setTimeout(() => navigate('/admin/dashboard'), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, navigate]);
+
   const fetchDashData = async () => {
-    if (user?.role !== 'ADMIN') return;
+    if (!['ADMIN', 'LECTURER'].includes(user?.role)) return;
 
     try {
       // 1. Fetch Users
@@ -105,7 +114,7 @@ export default function Dashboard() {
           border: '1px solid rgba(255,255,255,0.05)'
         }}>
           <button
-            onClick={() => window.location.href = '/admin'}
+            onClick={() => navigate('/admin')}
             style={{
               padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer',
               fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px',
@@ -117,7 +126,7 @@ export default function Dashboard() {
             <LayoutDashboard size={18} /> Overview
           </button>
           <button
-            onClick={() => window.location.href = '/admin/dashboard'}
+            onClick={() => navigate('/admin/dashboard')}
             style={{
               padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer',
               fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px',
@@ -193,7 +202,6 @@ export default function Dashboard() {
         <div style={{ padding: '80px', textAlign: 'center', color: '#64748b' }}>
           <Activity className="animate-pulse" size={48} style={{ margin: '0 auto 20px' }} />
           <p>Redirecting to dedicated Intelligence engine...</p>
-          <script>{`setTimeout(() => { window.location.href = '/admin/dashboard'; }, 1000);`}</script>
         </div>
       )}
 

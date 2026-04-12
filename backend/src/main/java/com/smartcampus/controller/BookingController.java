@@ -74,7 +74,7 @@ public class BookingController {
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
         
         boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_LECTURER"));
                 
         return ResponseEntity.ok(bookingService.getBookingByIdSecure(id, user.getId(), isAdmin));
     }
@@ -102,20 +102,20 @@ public class BookingController {
     // ── Admin Endpoints (Moderation) ───────────────────────────────────────────
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<List<BookingResponseDTO>> getAllBookingsAdmin() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
     @GetMapping("/conflicts/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<List<Booking>> getConflicts(@PathVariable String id) {
         Booking booking = bookingService.getBookingByIdRaw(id);
         return ResponseEntity.ok(bookingService.findConflicts(booking));
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<Booking> updateStatus(
             @PathVariable String id,
             @RequestBody StatusUpdateDTO request) {
