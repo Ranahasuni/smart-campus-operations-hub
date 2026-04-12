@@ -9,9 +9,7 @@ import {
 import '../../styles/booking-form.css';
 
 const CATEGORY_MAP = {
-  TEACHING_VENUE: { name: 'Teaching Venue', icon: '📖' },
   LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
-  SEMINAR_ROOM: { name: 'Seminar Room', icon: '🗣️' },
   MEETING_ROOM: { name: 'Meeting Room', icon: '🤝' },
   FUNCTION_SPACE: { name: 'Function Space', icon: '🎉' },
   VIDEO_CONFERENCE_ROOM: { name: 'Video Conference', icon: '🎥' },
@@ -54,16 +52,22 @@ export default function CreateBookingPage() {
   });
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     if (id) {
        fetchResource(id);
     }
   }, [id]);
 
   useEffect(() => {
-    if (id && formData.date) {
+    if (id && formData.date && user) {
       fetchExistingBookings(id, formData.date);
     }
-  }, [id, formData.date]);
+  }, [id, formData.date, user]);
 
   const fetchResource = async (resId) => {
     setLoading(true);
@@ -71,6 +75,30 @@ export default function CreateBookingPage() {
       const res = await authFetch(`${API}/api/resources/${resId}`);
       if (!res.ok) throw new Error('Resource not found');
       const data = await res.json();
+      
+      // 1. RBAC Check
+      const role = user?.role?.toUpperCase() || '';
+      const isStudent = role === 'STUDENT' || role === 'ROLE_STUDENT';
+      const isLecturer = role === 'LECTURER' || role === 'ROLE_LECTURER';
+      const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
+
+      const studentCategories = ['TEACHING_VENUE', 'SEMINAR_ROOM', 'LECTURE_THEATRE', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM'];
+      const lecturerCategories = [...studentCategories, 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM'];
+      
+      let hasAccess = false;
+      if (isAdmin) hasAccess = true;
+      else if (isLecturer) hasAccess = lecturerCategories.includes(data.type);
+      else if (isStudent) hasAccess = studentCategories.includes(data.type);
+
+      if (!hasAccess) {
+        throw new Error(`ACCESS_DENIED: Your account role (${role}) does not have permission to reserve ${data.type.replace('_', ' ')} facilities.`);
+      }
+
+      // 2. Status Check
+      if (data.status !== 'ACTIVE') {
+        throw new Error(`FACILITY_UNAVAILABLE: This resource is currently ${data.status.replace('_', ' ')} and is not accepting reservations.`);
+      }
+
       setResource(data);
     } catch (err) {
       setError(err.message);
@@ -136,6 +164,25 @@ export default function CreateBookingPage() {
 
     return null;
   };
+
+  // Helper calculation for UI disablement
+  const getNoAvailabilityStatus = () => {
+    if (!resource || !formData.date) return false;
+    const dayShort = new Date(formData.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const dayData = resource.availability?.find(a => a.day === dayShort);
+    
+    if (!dayData || !dayData.isAvailable) return true;
+    
+    const freeSlots = dayData.slots?.filter(slot => {
+        return !existingBookings.some(eb => 
+            (eb.startTime < slot.endTime) && (eb.endTime > slot.startTime)
+        );
+    }) || [];
+    
+    return freeSlots.length === 0;
+  };
+
+  const noAvailability = getNoAvailabilityStatus();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -296,66 +343,47 @@ export default function CreateBookingPage() {
 
                   return (
                     <>
-                      {/* Operational Slots with Smart Overlap Detection */}
-                      {dayData.slots?.map((slot, idx) => {
-                        const slotStart = slot.startTime;
-                        const slotEnd = slot.endTime;
+                      {/* Show only slots that are COMPLETELY free (zero overlap with existing bookings) */}
+                      {(() => {
+                        const freeSlots = dayData.slots?.filter(slot => {
+                          const hasOverlap = existingBookings.some(eb => 
+                            (eb.startTime < slot.endTime) && (eb.endTime > slot.startTime)
+                          );
+                          return !hasOverlap;
+                        });
 
-                        // Find all bookings that fall within or overlap this specific slot
-                        const bookingsInSlot = existingBookings.filter(eb => 
-                          (eb.startTime < slotEnd) && (eb.endTime > slotStart)
-                        );
-
-                        const isTotalConflict = bookingsInSlot.some(b => b.startTime <= slotStart && b.endTime >= slotEnd);
-                        const isPartialConflict = !isTotalConflict && bookingsInSlot.length > 0;
-                        
-                        let statusText = 'Available';
-                        let statusColor = '#4ade80';
-                        let bgColor = 'rgba(34, 197, 94, 0.05)';
-                        let borderColor = 'rgba(34, 197, 94, 0.2)';
-
-                        if (isTotalConflict) {
-                           statusText = 'Fully Booked';
-                           statusColor = '#f87171';
-                           bgColor = 'rgba(239, 68, 68, 0.1)';
-                           borderColor = 'rgba(239, 68, 68, 0.3)';
-                        } else if (isPartialConflict) {
-                           statusText = 'Partially Occupied';
-                           statusColor = '#fbbf24';
-                           bgColor = 'rgba(245, 158, 11, 0.08)';
-                           borderColor = 'rgba(245, 158, 11, 0.3)';
+                        if (!freeSlots || freeSlots.length === 0) {
+                          return (
+                            <div style={{ padding: '20px', background: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '12px', width: '100%', textAlign: 'center' }}>
+                              <span style={{ color: '#fca5a5', fontWeight: '800', fontSize: '0.9rem' }}>
+                                🚫 No available time slots left for this date.
+                              </span>
+                            </div>
+                          );
                         }
 
-                        return (
+                        return freeSlots.map((slot, idx) => (
                           <div key={`slot-${idx}`} style={{ 
                             padding: '16px 20px', 
-                            background: bgColor,
-                            border: `2px solid ${borderColor}`,
+                            background: 'rgba(34, 197, 94, 0.05)',
+                            border: '2px solid rgba(34, 197, 94, 0.2)',
                             borderRadius: '16px',
                             minWidth: '200px',
-                            transition: 'all 0.3s ease'
+                            transition: 'all 0.3s ease',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
                           }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ fontSize: '0.95rem', fontWeight: '900', color: 'white' }}>{slotStart} — {slotEnd}</span>
-                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: statusColor, boxShadow: `0 0 10px ${statusColor}` }}></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '1rem', fontWeight: '950', color: 'white' }}>{slot.startTime} — {slot.endTime}</span>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80' }}></div>
                             </div>
-                            <span style={{ fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase', color: statusColor, letterSpacing: '0.05em' }}>
-                              {statusText}
+                            <span style={{ fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', color: '#22c55e', letterSpacing: '0.1em' }}>
+                              Open for Booking
                             </span>
-                            
-                            {isPartialConflict && (
-                              <div style={{ marginTop: '10px', fontSize: '0.65rem', color: '#94a3b8', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '8px' }}>
-                                <strong>Occupied Segments:</strong>
-                                {bookingsInSlot.map((b, i) => (
-                                  <div key={i} style={{ color: '#fbbf24', marginTop: '2px' }}>• {b.startTime} - {b.endTime}</div>
-                                ))}
-                              </div>
-                            )}
                           </div>
-                        );
-                      })}
-
-                      {dayData.slots?.length === 0 && <div style={{ color: '#94a3b8' }}>No operational slots defined for this day.</div>}
+                        ));
+                      })()}
                     </>
                   );
                 })()}
@@ -456,9 +484,13 @@ export default function CreateBookingPage() {
             <button 
               type="submit" 
               className="btn-submit-booking"
-              disabled={submitting}
+              disabled={submitting || noAvailability}
+              style={{ 
+                opacity: (submitting || noAvailability) ? 0.5 : 1,
+                cursor: (submitting || noAvailability) ? 'not-allowed' : 'pointer'
+              }}
             >
-              {submitting ? 'Processing...' : 'Confirm Reservation'} <ArrowRight size={18} />
+              {submitting ? 'Processing...' : noAvailability ? 'Slot Unavailable' : 'Confirm Reservation'} <ArrowRight size={18} />
             </button>
           </div>
         </form>

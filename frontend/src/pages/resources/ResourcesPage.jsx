@@ -37,7 +37,10 @@ export default function ResourcesPage() {
       });
 
       const res = await api.get(`/resources?${query.toString()}`);
-      const data = res.data || [];
+      const rawData = res.data || [];
+      
+      // Filter out removed categories globally
+      const data = rawData.filter(r => r.type !== 'TEACHING_VENUE' && r.type !== 'SEMINAR_ROOM');
 
       sessionCache = data;
       setAllResources(data);
