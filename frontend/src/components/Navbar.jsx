@@ -24,11 +24,10 @@ export default function Navbar() {
       <div className="navbar-links">
         <Link to="/" className="nav-link">Home</Link>
 
-        {/* Admin Navigation */}
-        {['ADMIN', 'LECTURER'].includes(user?.role) ? (
+        {/* Admin Navigation (Restricted) */}
+        {user?.role === 'ADMIN' ? (
           <>
             <Link to="/admin" className="nav-link nav-link-admin">Overview</Link>
-
             <Link to="/admin/users" className="nav-link nav-link-admin">Accounts</Link>
             <Link to="/admin/resources" className="nav-link nav-link-admin">Facilities</Link>
             <Link to="/admin/bookings" className="nav-link nav-link-admin">Reservations</Link>
@@ -37,7 +36,7 @@ export default function Navbar() {
             <Link to="/notifications" className="nav-link nav-link-admin">Alerts</Link>
           </>
         ) : (
-          /* Student / Lecturer / Staff Navigation */
+          /* User / Lecturer / Staff Navigation */
           <>
             <Link to="/resources" className="nav-link">Resources</Link>
             
@@ -53,6 +52,10 @@ export default function Navbar() {
 
             {['STAFF', 'LECTURER', 'TECHNICIAN'].includes(user?.role) && (
               <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
+            )}
+
+            {user?.role === 'LECTURER' && (
+              <Link to="/admin" className="nav-link nav-link-admin">System Overview</Link>
             )}
           </>
         )}
