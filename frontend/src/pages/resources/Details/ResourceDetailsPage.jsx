@@ -164,7 +164,11 @@ export default function ResourceDetailsPage() {
               />
             </div>
 
-            <ReservedSlots bookings={bookings} selectedDate={selectedDate} />
+            <ReservedSlots 
+              bookings={bookings} 
+              selectedDate={selectedDate} 
+              isUnavailable={isMaintenance || isOffline}
+            />
             
             <QRCodeDisplay resourceId={resource.id} />
             <ActionButton 

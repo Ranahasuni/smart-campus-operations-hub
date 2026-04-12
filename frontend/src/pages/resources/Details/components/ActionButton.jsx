@@ -55,7 +55,6 @@ export default function ActionButton({ status, resourceId, activeIssueTicket, se
         <span>{buttonLabel}</span>
       </button>
       
-      {/* 🚀 REMOVED THE SUBJECT TO APPROVAL LINE AS REQUESTED */}
     </div>
   );
 }

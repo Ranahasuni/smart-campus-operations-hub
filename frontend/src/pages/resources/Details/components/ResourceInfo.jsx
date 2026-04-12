@@ -42,7 +42,6 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
           {statusCfg.label === 'ONLINE' && <span className="dot-white pulsing"></span>}
           {statusCfg.icon} {statusCfg.label}
         </span>
-
         {/* SMART TICKET LINK: Hide if system already knows there is an issue */}
         {resource.status === 'ACTIVE' && !activeIssueTicket && (
           <Link
