@@ -25,7 +25,7 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
     <div style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ padding: '8px 18px', background: 'var(--bg-elevated)', color: 'var(--accent-primary)', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '900', border: '1.5px solid var(--accent-primary)' }}>
-          {resource.type}
+          {resource.type.replace(/_/g, ' ')}
         </span>
         <span style={{ 
           padding: '8px 18px', 
