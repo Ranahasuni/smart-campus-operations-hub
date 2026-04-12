@@ -131,9 +131,28 @@ export default function ResourceDetailsPage() {
             {(user?.role === 'TECHNICIAN' || user?.role === 'ADMIN') && (
               <ResourceMaintenanceHistory tickets={tickets} loading={loading} />
             )}
+
+            {/* 🛡️ FACILITY INTELLIGENCE: Usage Protocol */}
+            <div style={{ marginTop: '40px', padding: '30px', background: 'rgba(99, 102, 241, 0.03)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '15px' }}>Facility Intelligence & Usage Protocol</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--accent-primary)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Security Protocol</span>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                    {resource.type === 'EQUIPMENT' 
+                      ? "Ensure the asset is handled with care and returned to its designated storage location after use." 
+                      : "Ensure the doors are locked and all equipment is powered down after your session concludes."}
+                  </p>
+                </div>
+                <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Capacity Management</span>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Observe the formal occupancy limit of {resource.capacity} users for safety and equipment performance.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="details-sidebar">
+          <div className="details-sidebar" style={{ position: 'sticky', top: '84px' }}>
             <AvailabilityInfo availability={resource.availability} />
             
             <div className="availability-card" style={{ marginTop: '20px' }}>

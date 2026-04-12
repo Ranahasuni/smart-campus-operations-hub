@@ -214,8 +214,6 @@
 /* ── Availability Sidebar ── */
 .availability-card {
   padding: 28px;
-  position: sticky;
-  top: 84px;
 }
 
 .availability-card h2 {
