@@ -1,8 +1,8 @@
+import React from 'react';
 import { Users, Building, Layers, AlertTriangle, ShieldAlert, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ResourceInfo({ resource }) {
-  // CONFIG: Map statuses to UI tokens from main
   const statusMap = {
     'ACTIVE': { label: 'Fully Operational', class: 'status-active' },
     'MAINTENANCE': { label: 'Under Maintenance', class: 'status-maintenance' },
@@ -38,10 +38,7 @@ export default function ResourceInfo({ resource }) {
       </h1>
       <p className="resource-desc-premium">{resource.description}</p>
 
-      {/* 📏 PREMIUM GRID */}
       <div className="resource-stats-grid-premium">
-
-        {/* CAPACITY */}
         <div className="stat-card-premium">
           <div className="stat-icon-wrapper-pro" style={{ color: '#8b5cf6' }}>
             <Users size={24} />
@@ -52,7 +49,6 @@ export default function ResourceInfo({ resource }) {
           </div>
         </div>
 
-        {/* BUILDING */}
         <div className="stat-card-premium">
           <div className="stat-icon-wrapper-pro" style={{ color: '#6366f1' }}>
             <Building size={24} />
@@ -63,7 +59,6 @@ export default function ResourceInfo({ resource }) {
           </div>
         </div>
 
-        {/* LOCATION */}
         <div className="stat-card-premium">
           <div className="stat-icon-wrapper-pro" style={{ color: '#0d9488' }}>
             <MapPin size={24} />
