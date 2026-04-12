@@ -132,21 +132,32 @@ export default function ResourceDetailsPage() {
               <ResourceMaintenanceHistory tickets={tickets} loading={loading} />
             )}
 
-            {/* 🛡️ FACILITY INTELLIGENCE: Usage Protocol */}
+            {/* 🛡️ FACILITY INTELLIGENCE: Specialized Usage Protocol */}
             <div style={{ marginTop: '40px', padding: '30px', background: 'rgba(99, 102, 241, 0.03)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '15px' }}>Facility Intelligence & Usage Protocol</h3>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '15px' }}>
+                {resource.type === 'EQUIPMENT' ? 'Asset Maintenance Protocol' : 
+                 resource.type === 'LAB' ? 'Laboratory Safety Protocol' : 
+                 resource.type === 'SPORTS_FACILITY' ? 'Athletic Safety Protocol' : 
+                 resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Instructional Space Protocol' : 
+                 'Professional Workspace Protocol'}
+              </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--accent-primary)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Security Protocol</span>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--accent-primary)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Security & Care</span>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                    {resource.type === 'EQUIPMENT' 
-                      ? "Ensure the asset is handled with care and returned to its designated storage location after use." 
-                      : "Ensure the doors are locked and all equipment is powered down after your session concludes."}
+                    {resource.type === 'EQUIPMENT' ? 'Ensure the asset is handled with care and returned to its storage location.' : 
+                     resource.type === 'LAB' ? 'Ensure specialized equipment is powered down and chemical/static hazards are checked.' : 
+                     resource.type === 'SPORTS_FACILITY' ? 'Ensure the court area is cleared and any sports gear is stored in lockers.' : 
+                     'Ensure the doors are locked and all AV/Computing equipment is powered down.'}
                   </p>
                 </div>
                 <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
                   <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Capacity Management</span>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Observe the formal occupancy limit of {resource.capacity} users for safety and equipment performance.</p>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                    {resource.type === 'EQUIPMENT' 
+                      ? `This asset supports simultaneous use for up to ${resource.capacity} registered users.` 
+                      : `Observe the formal occupancy limit of ${resource.capacity} users for safety and performance.`}
+                  </p>
                 </div>
               </div>
             </div>
