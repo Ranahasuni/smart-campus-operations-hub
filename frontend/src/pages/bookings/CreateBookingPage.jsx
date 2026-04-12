@@ -343,7 +343,7 @@ export default function CreateBookingPage() {
                   if (!dayData) {
                     return resource.availability?.length > 0
                       ? <div style={{ color: '#f87171', fontWeight: '700' }}>🔒 Facility is closed on {dayShort}.</div>
-                      : <div style={{ color: '#4ade80', fontWeight: '800' }}>Available (24/7 Policy)</div>;
+                      : <div style={{ color: '#4ade80', fontWeight: '800' }}>✅ Open for All-Day Booking</div>;
                   }
 
                   if (!dayData.isAvailable) {
