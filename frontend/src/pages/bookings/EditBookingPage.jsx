@@ -68,6 +68,8 @@ export default function EditBookingPage() {
           throw new Error('Only pending bookings can be edited');
       }
 
+      const resourceId = bData.resourceId || (bData.resourceIds && bData.resourceIds[0]);
+      
       setBooking(bData);
       setFormData({
         date: bData.date,
@@ -75,13 +77,15 @@ export default function EditBookingPage() {
         endTime: bData.endTime.substring(0, 5),
         purpose: bData.purpose,
         expectedAttendees: bData.expectedAttendees,
-        resourceId: bData.resourceId
+        resourceId: resourceId
       });
 
       // 2. Fetch Resource
-      const rRes = await authFetch(`${API}/api/resources/${bData.resourceId}`);
-      if (rRes.ok) {
-        setResource(await rRes.json());
+      if (resourceId) {
+        const rRes = await authFetch(`${API}/api/resources/${resourceId}`);
+        if (rRes.ok) {
+          setResource(await rRes.json());
+        }
       }
     } catch (err) {
       setError(err.message);
