@@ -113,18 +113,37 @@ public class TicketService {
 
     public Ticket updateTicketStatus(String ticketId, TicketStatus newStatus, String updatedBy, String resolutionNote) {
         Ticket ticket = getTicketById(ticketId);
+        User user = userRepository.findById(updatedBy).orElseThrow(() -> new RuntimeException("User not found"));
         TicketStatus oldStatus = ticket.getStatus();
+
+        // 🛡️ ROLE-BASED SAFETY GUARDS
+        if (user.getRole() == Role.TECHNICIAN) {
+            // Technicians cannot self-close or cancel without admin
+            if (newStatus == TicketStatus.CLOSED || newStatus == TicketStatus.REJECTED) {
+                throw new RuntimeException("Technicians cannot officially CLOSE or REJECT tickets. Please set to RESOLVED for verification.");
+            }
+        }
+
+        if (user.getRole() == Role.STUDENT || user.getRole() == Role.LECTURER) {
+            // Students can only CLOSE if it's RESOLVED, or CANCEL (handled by REJECTED) if it's OPEN
+            if (newStatus == TicketStatus.IN_PROGRESS && oldStatus != TicketStatus.RESOLVED) {
+                throw new RuntimeException("Unauthorized status transition for your role.");
+            }
+            if (newStatus == TicketStatus.RESOLVED) {
+                throw new RuntimeException("Only technical staff can mark a ticket as RESOLVED.");
+            }
+        }
+
         ticket.setStatus(newStatus);
         ticket.setUpdatedAt(LocalDateTime.now());
 
         // Intelligence: Auto-Assign if a technician starts work or resolves an unassigned ticket
         if ((newStatus == TicketStatus.RESOLVED || newStatus == TicketStatus.IN_PROGRESS) && 
             (ticket.getTechnicianId() == null || ticket.getTechnicianId().isEmpty())) {
-            User performer = userRepository.findById(updatedBy).orElse(null);
-            if (performer != null && performer.getRole() == Role.TECHNICIAN) {
+            if (user.getRole() == Role.TECHNICIAN) {
                 ticket.setTechnicianId(updatedBy);
-                ticket.setTechnicianFullName(performer.getFullName());
-                ticket.setTechnicianCampusId(performer.getCampusId());
+                ticket.setTechnicianFullName(user.getFullName());
+                ticket.setTechnicianCampusId(user.getCampusId());
                 ticket.setAssignmentMethod("SELF_CLAIMED");
                 ticket.setAssignedAt(LocalDateTime.now());
             }
@@ -135,6 +154,11 @@ public class TicketService {
             if (resolutionNote != null && !resolutionNote.isEmpty()) {
                 ticket.setResolutionNotes(resolutionNote);
             }
+        }
+
+        // Handle Re-Opening (Backward Flow)
+        if (oldStatus == TicketStatus.RESOLVED && newStatus == TicketStatus.IN_PROGRESS) {
+            auditService.log(updatedBy, "TICKET_REOPENED", "Fix rejected by reporter. Ticket sent back to IN_PROGRESS.");
         }
 
         Ticket updatedTicket = ticketRepository.save(ticket);
