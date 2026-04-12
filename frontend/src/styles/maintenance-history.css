@@ -1,0 +1,152 @@
+.maintenance-history-section-pro {
+  margin-top: 20px;
+  background: #ffffff !important;
+  border-radius: 24px;
+  padding: 0;
+  border: none;
+}
+
+.m-history-header-pro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.m-icon-bg {
+  width: 44px;
+  height: 44px;
+  background: #6366f1;
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+}
+
+.m-history-header-pro h3 {
+  font-size: 1.15rem;
+  font-weight: 950;
+  color: #000000 !important;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+.m-loading-pro {
+  color: #64748b;
+  font-weight: 600;
+  padding: 20px;
+  text-align: center;
+}
+
+.m-history-list-pro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.m-history-item-pro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  background: #f8fafc !important;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.m-history-item-pro:hover {
+  border-color: #6366f1;
+  background: #f0f4ff !important;
+  transform: translateX(6px);
+}
+
+.m-item-main-pro {
+  flex: 1;
+}
+
+.m-item-title-row-pro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.m-ticket-title-pro {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #000000 !important;
+}
+
+.m-item-meta-pro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.m-item-meta-pro span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.m-ticket-id {
+  color: #6366f1;
+  font-weight: 800;
+}
+
+.m-view-link-pro {
+  background: white;
+  color: #6366f1;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.m-view-link-pro:hover {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Status Badges - Matching Admin Theme */
+.m-status-badge-pro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 950;
+  padding: 4px 14px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+
+.m-status-badge-pro.open { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.m-status-badge-pro.in-progress { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.m-status-badge-pro.resolved, 
+.m-status-badge-pro.completed { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+.maintenance-empty-state-pro {
+  padding: 60px;
+  text-align: center;
+  background: #f1f5f9;
+  border-radius: 32px;
+  border: 2px dashed #cbd5e1;
+  color: #64748b;
+}
+
+.maintenance-empty-state-pro p {
+  margin-top: 16px;
+  font-weight: 700;
+}
