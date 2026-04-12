@@ -1,34 +1,41 @@
+/* ═══════════════════════════════════════════════════════════
+   BOOKINGS — Resource Selection Hub
+   ═══════════════════════════════════════════════════════════ */
+
 .bookings-container {
-  padding: 80px 24px;
+  padding: 48px 24px 80px;
   max-width: 1200px;
   margin: 0 auto;
+  animation: slideUp 0.5s var(--ease-out);
 }
 
 .bookings-header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 56px;
 }
 
 .bookings-header h1 {
-  font-size: 3rem;
-  margin-bottom: 12px;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
 }
 
 .bookings-header p {
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .resource-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  gap: 20px;
 }
 
 .resource-card {
-  padding: 32px;
+  padding: 28px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s var(--ease-smooth);
   position: relative;
   overflow: hidden;
   border: 1px solid var(--glass-border);
@@ -38,60 +45,55 @@
 }
 
 .resource-card:hover {
-  transform: translateY(-8px);
-  border-color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.05);
+  transform: translateY(-6px);
+  border-color: rgba(99,102,241,0.25);
+  background: rgba(99,102,241,0.04);
 }
 
 .resource-card.active {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
-  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 24px rgba(99,102,241,0.15);
+  background: rgba(99,102,241,0.06);
 }
 
 .resource-icon {
-  font-size: 3rem;
-  margin-bottom: 8px;
+  font-size: 2.5rem;
+  margin-bottom: 4px;
 }
 
 .resource-info h3 {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
   margin-bottom: 8px;
   color: var(--text-primary);
 }
 
 .resource-info p {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .book-btn {
   margin-top: auto;
   background: transparent;
-  border: 1.5px solid var(--accent-primary);
-  color: var(--accent-primary);
+  border: 1px solid rgba(99,102,241,0.25);
+  color: var(--accent-secondary);
   padding: 12px 24px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s var(--ease-smooth);
 }
 
 .resource-card:hover .book-btn {
-  background: var(--accent-primary);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 .booking-details {
-  margin-top: 60px;
-  padding: 40px;
-}
-
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.4s ease-out forwards;
+  margin-top: 48px;
+  padding: 36px;
 }
