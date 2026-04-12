@@ -35,6 +35,7 @@ public class TicketService {
     private final AuditService auditService;
     private final ResourceService resourceService;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public Ticket createTicket(Ticket ticket) {
         System.out.println("DEBUG: Creating ticket for user: " + ticket.getUserId());
@@ -182,6 +183,21 @@ public class TicketService {
             : technicianId;
             
         auditService.log(assignedBy, "TICKET_ASSIGNED", "Ticket " + ticket.getDisplayId() + " assigned to technician " + techLabel);
+        
+        // --- REAL-TIME NOTIFICATION ---
+        try {
+            notificationService.send(com.smartcampus.dto.CreateNotificationRequest.builder()
+                .userId(technicianId)
+                .title("New Ticket Assigned 🔧")
+                .message("You have been assigned to: " + ticket.getTitle() + " (" + ticket.getDisplayId() + ")")
+                .type(com.smartcampus.model.NotificationType.TICKET_UPDATED)
+                .priority(com.smartcampus.model.NotificationPriority.HIGH)
+                .referenceId(ticketId)
+                .build());
+        } catch (Exception e) {
+            System.err.println("Failed to send assignment notification: " + e.getMessage());
+        }
+
         return updatedTicket;
     }
 
@@ -210,6 +226,20 @@ public class TicketService {
         
         Ticket ticket = getTicketById(ticketId);
         auditService.log(comment.getUserId(), "TICKET_COMMENT_ADDED", "New comment added to ticket " + ticket.getDisplayId());
+
+        // --- REAL-TIME NOTIFICATION for Technician ---
+        if (ticket.getTechnicianId() != null && !ticket.getTechnicianId().equals(comment.getUserId())) {
+            try {
+                notificationService.notifyTicketUpdated(
+                    ticket.getTechnicianId(), 
+                    ticket.getDisplayId(), 
+                    "New comment added by " + savedComment.getUserFullName()
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to send comment notification: " + e.getMessage());
+            }
+        }
+
         return savedComment;
     }
 

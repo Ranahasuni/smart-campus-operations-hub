@@ -1,64 +1,106 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../../api/axiosInstance';
 import SearchBar from './Catalogue/SearchBar';
 import FilterPanel from './Catalogue/FilterPanel';
 import ResourceCard from './Catalogue/ResourceCard';
 import './Catalogue/Catalogue.css';
 
+// ADVANCED CACHE: Stores resources outside the component so they stay in memory during the session
+let sessionCache = null;
+
 export default function ResourcesPage() {
-  const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
+  const [allResources, setAllResources] = useState(sessionCache || []); // Initialize from cache
+  const [resources, setResources] = useState(sessionCache || []);      // Initialize from cache
+  const [loading, setLoading] = useState(!sessionCache);               // Only show spinner if cache is empty
+  const abortControllerRef = useRef(null);
+  const isInitialMount = useRef(true);
+
   const [searchParams, setSearchParams] = useState({
     name: '',
     building: '',
     floor: '',
     type: '',
     status: '',
-    capacity: ''
+    capacity: '',
+    features: ''
   });
 
   const fetchResources = async () => {
-    setLoading(true);
+    // If we have cached data, don't show the big spinner (Faster feel)
+    if (!sessionCache) setLoading(true);
+
     try {
-      // Intelligently build the query string ignoring empty string states and frontend-only params
       const query = new URLSearchParams();
-      Object.keys(searchParams).forEach(key => {
-        if (key !== 'features' && searchParams[key]) {
-          query.append(key, searchParams[key]);
-        }
+      // Only send category filters to server
+      ['building', 'floor', 'type', 'status', 'capacity'].forEach(key => {
+        if (searchParams[key]) query.append(key, searchParams[key]);
       });
-      
+
       const res = await api.get(`/resources?${query.toString()}`);
-      console.log('API Response (Catalogue):', res.data);
-      
-      // Perform Frontend-side array filtering for 'features'
-      let finalData = res.data || [];
-      if (searchParams.features) {
-        const requiredFeatures = searchParams.features.split(',');
-        finalData = finalData.filter(resource => {
-          if (!resource.equipment || resource.equipment.length === 0) return false;
-          // Resource MUST contain EVERY selected feature to show up
-          return requiredFeatures.every(rf => (resource.equipment || []).includes(rf));
-        });
-      }
-      
-      setResources(finalData);
+      const data = res.data || [];
+
+      sessionCache = data;
+      setAllResources(data);
+      applyInstantFilters(data, searchParams);
     } catch (err) {
-      console.error('Failed to fetch resources', err);
+      console.error('Fetch Error:', err);
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop spinner NO MATTER WHAT
     }
   };
 
-  // Trigger API network calls automatically whenever the User updates searchParams.
-  // Utilizing a slight 300ms debounce timer for optimal typing performance.
+  // MASTER FILTER LOGIC (100% Strict & Instant)
+  const applyInstantFilters = (sourceData, params) => {
+    if (!sourceData) return;
+    let filtered = [...sourceData];
+
+    // 1. Name Filter (Strict Start of Name)
+    if (params.name) {
+      const q = params.name.toLowerCase().trim();
+      filtered = filtered.filter(r => r.name.toLowerCase().startsWith(q));
+    }
+
+    // 2. Building Filter (Strict Match)
+    if (params.building && params.building !== '') {
+      filtered = filtered.filter(r => r.building === params.building);
+    }
+
+    // 3. Floor Filter (Strict Match)
+    if (params.floor !== undefined && params.floor !== '') {
+      filtered = filtered.filter(r => r.floor.toString() === params.floor.toString());
+    }
+
+    // 4. Type / Category Filter (STRICT MATCH)
+    if (params.type && params.type !== '') {
+      filtered = filtered.filter(r => r.type === params.type);
+    }
+
+    // 5. Capacity Filter (Minimum Seats)
+    if (params.capacity && params.capacity !== '') {
+      const minSeats = parseInt(params.capacity);
+      filtered = filtered.filter(r => (r.capacity || 0) >= minSeats);
+    }
+
+    // 6. Features (Multiple Amenities)
+    if (params.features) {
+      const req = params.features.split(',');
+      filtered = filtered.filter(r => req.every(f => (r.equipment || []).includes(f)));
+    }
+
+    setResources(filtered);
+  };
+
+  // Effect for ALL changes (Instant)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchResources();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchParams]);
+    if (!loading) {
+      applyInstantFilters(allResources, searchParams);
+    }
+  }, [searchParams, allResources, loading]);
+
+  // MANDATORY: Start fetching when the page opens
+  useEffect(() => {
+    fetchResources();
+  }, []); // Fires once on mount
 
 
   const updateParams = (key, value) => {
@@ -72,7 +114,8 @@ export default function ResourcesPage() {
       floor: '',
       type: '',
       status: '',
-      capacity: ''
+      capacity: '',
+      features: ''
     });
   };
 
@@ -80,35 +123,64 @@ export default function ResourcesPage() {
     <div className="catalogue-container">
       <div className="catalogue-header">
         <div>
-          <h1 className="catalogue-title">Resource Catalogue</h1>
-          <p className="catalogue-subtitle">Discover, evaluate, and dynamically provision premier campus facilities.</p>
+          <h1 className="catalogue-title">Facility <span className="text-indigo">Catalogue</span></h1>
+          <p className="catalogue-subtitle">Intelligently navigate and provision high-tier campus research assets and specialized learning environments.</p>
         </div>
         <SearchBar searchParams={searchParams} updateParams={updateParams} />
       </div>
 
       <div className="catalogue-layout">
-        <FilterPanel 
-          searchParams={searchParams} 
-          updateParams={updateParams} 
-          clearFilters={clearFilters} 
+        <FilterPanel
+          searchParams={searchParams}
+          updateParams={updateParams}
+          clearFilters={clearFilters}
         />
-        
-        {loading ? (
-           <div className="catalogue-loading">Syncing secure resources with Operations Hub...</div>
-        ) : (
-          <div className="resource-grid">
-            {resources.length > 0 ? (
-              resources.map(resource => (
-                <ResourceCard key={resource.id} resource={resource} />
-              ))
-            ) : (
-              <div style={{gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: '#64748b'}}>
-                <h3>No resources found</h3>
-                <p>No resources match your precise filters. Try adjusting your search or clearing the filters!</p>
+
+        <div className="resource-grid-container">
+          {loading ? (
+            <div className="catalogue-loading">
+              <div className="spinner"></div>
+              <p>SYNCHRONIZING SECURE FACILITY INVENTORY...</p>
+            </div>
+          ) : (
+            <>
+              {/* RESULTS COUNTER */}
+              <div className="results-header-metadata">
+                <span className="results-found-tag">
+                  {resources.length === 0 ? 'No Facilities' : `${resources.length} ${resources.length === 1 ? 'Facility' : 'Facilities'}`} Discovered
+                </span>
+                {searchParams.name && (
+                  <span className="search-term-tag">Searching for "{searchParams.name}"</span>
+                )}
               </div>
-            )}
-          </div>
-        )}
+
+              <div className="resource-grid">
+                {resources.length > 0 ? (
+                  resources.map(resource => (
+                    <ResourceCard key={resource.id} resource={resource} />
+                  ))
+                ) : (
+                  <div className="no-results-advanced">
+                    <div className="no-results-icon">
+                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.3-4.3" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                      </svg>
+                    </div>
+                    <h3 className="no-results-title">No Facilities Found</h3>
+                    <p className="no-results-text">
+                      No campus assets matching your criteria were found. 
+                      Please adjust your filters or reset your search to continue.
+                    </p>
+                    <button className="reset-shortcut-btn" onClick={clearFilters}>Reset All Search Filters</button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

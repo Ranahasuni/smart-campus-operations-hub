@@ -20,6 +20,7 @@ import TicketDetailsPage from './pages/tickets/TicketDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResourceEditorPage from './pages/resources/ResourceForm/ResourceEditorPage';
 import ResourceDetailsPage from './pages/resources/Details/ResourceDetailsPage';
+import StaffPortal from './pages/StaffPortal';
 
 import Dashboard from './pages/admin/Dashboard.jsx';
 import ManageUsers from './pages/admin/ManageUsers';
@@ -156,10 +157,7 @@ export default function App() {
             {/* Staff-related dashboard (Staff, Lecturers, Technicians) */}
             <Route path="/staff" element={
               <ProtectedRoute role={['STAFF', 'LECTURER', 'TECHNICIAN']}>
-                <div style={{ padding: '80px', textAlign: 'center', color: '#fff' }}>
-                  <h1>Staff Portal</h1>
-                  <p>Faculty, Maintenance & Academic staff resource hub.</p>
-                </div>
+                <StaffPortal />
               </ProtectedRoute>
             } />
           </Routes>

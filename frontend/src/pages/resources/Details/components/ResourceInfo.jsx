@@ -1,26 +1,24 @@
 import React from 'react';
-import { MapPin, Users, Building, Layers, AlertTriangle } from 'lucide-react';
+import { Users, Building, Layers, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ResourceInfo({ resource }) {
-  const getStatusConfig = (status) => {
-    switch (status) {
-      case 'ACTIVE': return { label: 'Online', bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' };
-      case 'MAINTENANCE': return { label: 'Maintenance', bg: 'rgba(234, 179, 8, 0.1)', color: '#eab308' };
-      case 'OUT_OF_SERVICE': return { label: 'Offline', bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' };
-      default: return { label: status, bg: '#f1f5f9', color: '#64748b' };
-    }
+  // CONFIG: Map statuses to UI tokens
+  const statusMap = {
+    'ACTIVE': { label: 'Fully Operational', class: 'status-active' },
+    'MAINTENANCE': { label: 'Under Maintenance', class: 'status-maintenance' },
+    'OUT_OF_SERVICE': { label: 'Decommissioned', class: 'status-offline' }
   };
 
-  const statusCfg = getStatusConfig(resource.status);
+  const statusCfg = statusMap[resource.status] || { label: resource.status, class: 'status-offline' };
 
   return (
     <div className="info-content">
-      <div className="badge-group">
-        <span className="type-badge">
+      <div className="badge-group" style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+        <span className="type-badge" style={{ padding: '6px 14px', background: 'rgba(99,102,241,0.1)', color: 'var(--accent-primary)', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {resource.type}
         </span>
-        <span className={`status-badge status-${resource.status?.toLowerCase()}`}>
+        <span className={`status-badge ${statusCfg.class}`} style={{ position: 'static' }}>
           {statusCfg.label}
         </span>
         
@@ -29,6 +27,7 @@ export default function ResourceInfo({ resource }) {
           <Link 
             to={`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`}
             className="report-issue-link"
+            style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', color: '#fca5a5', fontSize: '0.8rem', fontWeight: '700', textDecoration: 'none' }}
           >
             <AlertTriangle size={14} /> Report Issue?
           </Link>
