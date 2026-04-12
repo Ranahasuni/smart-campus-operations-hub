@@ -1,23 +1,22 @@
-import React from 'react';
-import { Users, Building, MapPin, AlertTriangle } from 'lucide-react';
+import { Users, Building, MapPin, AlertTriangle, CheckCircle, Settings, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function ResourceInfo({ resource }) {
+export default function ResourceInfo({ resource, activeIssueTicket }) {
   const statusMap = {
-    'ACTIVE': { label: 'Fully Operational', bg: '#22c55e' },
-    'MAINTENANCE': { label: 'Under Maintenance', bg: '#f59e0b' },
-    'OUT_OF_SERVICE': { label: 'Decommissioned', bg: '#ef4444' }
+    'ACTIVE': { label: 'ONLINE', bg: '#22c55e', icon: <CheckCircle size={14} /> },
+    'MAINTENANCE': { label: 'MAINTENANCE', bg: '#f59e0b', icon: <Settings size={14} /> },
+    'OUT_OF_SERVICE': { label: 'OFFLINE', bg: '#ef4444', icon: <Info size={14} /> }
   };
 
-  const statusCfg = statusMap[resource.status] || { label: resource.status, bg: '#64748b' };
+  const statusCfg = statusMap[resource.status] || { label: resource.status, bg: '#64748b', icon: null };
 
-  const statCardStyle = { 
-    background: 'var(--bg-tertiary)', 
-    padding: '24px', 
-    borderRadius: '24px', 
-    border: '1px solid var(--glass-border)', 
-    display: 'flex', 
-    alignItems: 'center', 
+  const statCardStyle = {
+    background: 'var(--bg-tertiary)',
+    padding: '24px',
+    borderRadius: '24px',
+    border: '1px solid var(--glass-border)',
+    display: 'flex',
+    alignItems: 'center',
     gap: '16px',
     boxShadow: 'var(--shadow-md)'
   };
@@ -28,13 +27,25 @@ export default function ResourceInfo({ resource }) {
         <span style={{ padding: '8px 18px', background: 'var(--bg-elevated)', color: 'var(--accent-primary)', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '900', border: '1.5px solid var(--accent-primary)' }}>
           {resource.type}
         </span>
-        <span style={{ padding: '8px 18px', background: statusCfg.bg, color: 'white', borderRadius: '99px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase' }}>
-          {statusCfg.label}
+        <span style={{ 
+          padding: '8px 18px', 
+          background: statusCfg.bg, 
+          color: 'white', 
+          borderRadius: '99px', 
+          fontSize: '0.65rem', 
+          fontWeight: '900', 
+          textTransform: 'uppercase',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          {statusCfg.label === 'ONLINE' && <span className="dot-white pulsing"></span>}
+          {statusCfg.icon} {statusCfg.label}
         </span>
-        
-        {/* SMART TICKET LINK */}
-        {resource.status === 'ACTIVE' && (
-          <Link 
+
+        {/* SMART TICKET LINK: Hide if system already knows there is an issue */}
+        {resource.status === 'ACTIVE' && !activeIssueTicket && (
+          <Link
             to={`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`}
             style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
           >
@@ -56,7 +67,7 @@ export default function ResourceInfo({ resource }) {
 
       {/* STATS GRID */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
-        
+
         {/* CAPACITY */}
         <div style={statCardStyle}>
           <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '14px', border: '1px solid var(--glass-border)', color: 'var(--accent-secondary)', display: 'flex' }}>
