@@ -56,7 +56,7 @@ export default function ResourceMaintenanceHistory({ tickets, loading }) {
                   <span>•</span>
                   <span>Priority: {ticket.priority}</span>
                   <span>•</span>
-                  <span className="m-ticket-id">#{ticket.displayId || ticket.id.substring(0, 8)}</span>
+                  <span className="m-ticket-id">{ticket.displayId || ticket.id.substring(0, 8)}</span>
                 </div>
               </div>
               <a href={`/tickets/${ticket.id}`} className="m-view-link-pro" title="View Intelligence Profile">

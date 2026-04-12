@@ -36,6 +36,7 @@ public class SecurityConfig {
                         // ── Public Endpoints ───────────────
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").permitAll()
+                        .requestMatchers("/api/uploads/**").permitAll()
                         
                         // ── Private Endpoints ────────────────
                         .requestMatchers("/api/bookings/**").authenticated()
