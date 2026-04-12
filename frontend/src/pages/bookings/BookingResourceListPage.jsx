@@ -256,7 +256,7 @@ export default function BookingResourceListPage() {
 
                   <div className="card-actions">
                     <Link to={`/resources/${res.id}`} className="action-btn btn-details">
-                      View Details
+                      <Info size={16} /> View Details
                     </Link>
                     <Link 
                       to={res.status === 'ACTIVE' ? `/bookings/create/${res.id}` : '#'} 
