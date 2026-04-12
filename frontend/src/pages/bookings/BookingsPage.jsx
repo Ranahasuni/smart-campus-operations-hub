@@ -9,25 +9,11 @@ import '../../styles/bookings.css';
  */
 const RESOURCE_TYPES = [
   { 
-    id: 'TEACHING_VENUE', 
-    name: 'Teaching Venues', 
-    icon: '📖', 
-    description: 'General purpose teaching spaces and classrooms across campuses.',
-    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
-  },
-  { 
     id: 'LECTURE_THEATRE', 
     name: 'Lecture Theatres', 
     icon: '🏛️', 
     description: 'Tiered theatres equipped with premium AV for large scale presentations.',
     roles: ['ADMIN', 'LECTURER'] 
-  },
-  { 
-    id: 'SEMINAR_ROOM', 
-    name: 'Seminar Rooms', 
-    icon: '🗣️', 
-    description: 'Formal spaces for collaborative academic seminars and workshops.',
-    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
   },
   { 
     id: 'MEETING_ROOM', 
