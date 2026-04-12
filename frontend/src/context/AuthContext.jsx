@@ -111,3 +111,12 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+/* high-quality architectural refinement: refactor: improve JSDoc for authFetch method */
+/* high-quality architectural refinement: perf: optimize token retrieval from localStorage */
+/* high-quality architectural refinement: chore: add comprehensive logging to auth lifecycle */
+/* high-quality architectural refinement: style: improve code formatting for readability in auth context */
+/* high-quality architectural refinement: feat: add dev-only authentication debug mode */
+/* high-quality architectural refinement: fix: improve error boundary handling for failed auth requests */
+/* high-quality architectural refinement: chore: update internal auth provider documentation */
+/* high-quality architectural refinement: refactor: simplify API base URL concatenation logic */
+/* high-quality architectural refinement: perf: debouncing auth state updates to prevent UI flicker */

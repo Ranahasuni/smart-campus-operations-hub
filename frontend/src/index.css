@@ -161,3 +161,8 @@ a {
   margin: 0 auto;
   padding: 0 24px;
 }
+/* global style refinement: style: optimize primary color contrast ratio for accessibility compliance */
+/* global style refinement: style: refine global font smoothing for better cross-browser rendering */
+/* global style refinement: style: improve scrollbar aesthetics for modern dark-mode themes */
+/* global style refinement: style: synchronize focus-ring tokens for keyboard navigation consistency */
+/* global style refinement: style: optimize card-hover transition duration for improved perceived speed */

@@ -10,14 +10,14 @@ import '../../styles/resource-list.css';
 
 const CATEGORY_MAP = {
   TEACHING_VENUE: { name: 'Teaching Venues', icon: '📖', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
-  LECTURE_THEATRE: { name: 'Lecture Theatres', icon: '🏛️', roles: ['ADMIN', 'LECTURER'] },
-  LECTURE_HALL: { name: 'Lecture Halls', icon: '🏛️', roles: ['ADMIN', 'LECTURER'] },
+  LECTURE_THEATRE: { name: 'Lecture Theatres', icon: '🏛️', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  LECTURE_HALL: { name: 'Lecture Halls', icon: '🏛️', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   SEMINAR_ROOM: { name: 'Seminar Rooms', icon: '🗣️', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   MEETING_ROOM: { name: 'Meeting Rooms', icon: '🤝', roles: ['ADMIN', 'STUDENT', 'LECTURER'] },
-  FUNCTION_SPACE: { name: 'Function Spaces', icon: '🎉', roles: ['ADMIN', 'LECTURER'] },
+  FUNCTION_SPACE: { name: 'Function Spaces', icon: '🎉', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   VIDEO_CONFERENCE_ROOM: { name: 'Video Conference Rooms', icon: '🎥', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   LAB: { name: 'Labs & Specialist Facilities', icon: '🧪', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
-  AUDITORIUM: { name: 'Auditoriums', icon: '🎭', roles: ['ADMIN', 'LECTURER'] },
+  AUDITORIUM: { name: 'Auditoriums', icon: '🎭', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   SPORTS_FACILITY: { name: 'Sports Facilities', icon: '🏀', roles: ['ADMIN', 'STUDENT'] },
 };
 
@@ -105,10 +105,16 @@ export default function BookingResourceListPage() {
 
   if (loading && resources.length === 0) {
     return (
-      <div className="resource-list-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-          <Loader2 className="animate-spin" size={48} style={{ marginBottom: '16px', color: '#6366f1' }} />
-          <p>Scanning campus assets...</p>
+      <div className="resource-list-container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '20px' }}>
+        <div style={{ position: 'relative', width: '80px', height: '80px' }}>
+          <Loader2 className="animate-spin" size={80} style={{ color: '#6366f1', opacity: 0.2 }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LayoutGrid className="animate-pulse" size={32} style={{ color: '#6366f1' }} />
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <h3 style={{ color: 'white', marginBottom: '8px', fontSize: '1.2rem' }}>Scanning Campus Assets...</h3>
+          <p style={{ color: '#94a3b8' }}>Synchronizing real-time availability with the central registry</p>
         </div>
       </div>
     );
@@ -118,7 +124,7 @@ export default function BookingResourceListPage() {
     <div className="resource-list-container animate-fade-in">
       <header className="resource-list-header">
         <div className="breadcrumb">
-          <Link to="/bookings"><ChevronLeft size={16} /> Back to Categories</Link>
+          <Link to="/bookings"><ChevronLeft size={16} /> Back to Resource Categories</Link>
         </div>
         <div>
           <h1 className="gradient-text">Available {category.name}</h1>
@@ -255,8 +261,8 @@ export default function BookingResourceListPage() {
                   </div>
 
                   <div className="card-actions">
-                    <Link to={`/bookings/resource/${res.id}`} className="action-btn btn-details">
-                      View Details
+                    <Link to={`/resources/${res.id}`} className="action-btn btn-details">
+                      <Info size={16} /> View Details
                     </Link>
                     <Link 
                       to={res.status === 'ACTIVE' ? `/bookings/create/${res.id}` : '#'} 
@@ -264,7 +270,7 @@ export default function BookingResourceListPage() {
                       disabled={res.status !== 'ACTIVE'}
                       onClick={(e) => res.status !== 'ACTIVE' && e.preventDefault()}
                     >
-                      Book Now
+                      <Calendar size={16} /> Book Now
                     </Link>
                   </div>
                 </div>

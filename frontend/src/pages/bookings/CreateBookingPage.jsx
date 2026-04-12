@@ -7,6 +7,7 @@ import {
   ArrowRight, Loader2, FileText, RotateCcw
 } from 'lucide-react';
 import '../../styles/booking-form.css';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 const CATEGORY_MAP = {
   LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
@@ -26,13 +27,7 @@ export default function CreateBookingPage() {
 
   const queryParams = new URLSearchParams(location.search);
   
-  const getLocalDate = () => {
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    return new Date(now - offset).toISOString().split('T')[0];
-  };
-
-  const initialDate = queryParams.get('date') || getLocalDate();
+  const initialDate = queryParams.get('date') || getLocalDateString();
 
   const [resource, setResource] = useState(null);
   const [existingBookings, setExistingBookings] = useState([]);
@@ -82,8 +77,8 @@ export default function CreateBookingPage() {
       const isLecturer = role === 'LECTURER' || role === 'ROLE_LECTURER';
       const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
 
-      const studentCategories = ['LECTURE_THEATRE', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM'];
-      const lecturerCategories = [...studentCategories, 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM'];
+      const studentCategories = ['LECTURE_THEATRE', 'LECTURE_HALL', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM', 'SEMINAR_ROOM', 'FUNCTION_SPACE', 'TEACHING_VENUE'];
+      const lecturerCategories = [...studentCategories, 'VIDEO_CONFERENCE_ROOM'];
       
       let hasAccess = false;
       if (isAdmin) hasAccess = true;
@@ -256,8 +251,11 @@ export default function CreateBookingPage() {
 
       <div className="glass-card booking-form-card">
         <header className="form-header" style={{ marginBottom: '32px' }}>
-          <h1 className="gradient-text">Campus Facility Reservation</h1>
-          <p style={{ color: '#94a3b8' }}>Internal Booking System (Students & Staff)</p>
+          <h1 className="gradient-text">Reservation for {new Date(formData.date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</h1>
+          <p style={{ color: '#94a3b8' }}>
+            Confirming your schedule for {resource?.name || 'this facility'}. 
+            <Link to={`/resources/${id}`} style={{ color: '#6366f1', marginLeft: '10px', textDecoration: 'none', fontWeight: '800' }}>Change Date?</Link>
+          </p>
           
           {resource && (
             <div className="resource-summary-box" style={{ marginTop: '32px' }}>
@@ -290,7 +288,7 @@ export default function CreateBookingPage() {
                     className="form-input"
                     value={formData.date}
                     onChange={handleInputChange}
-                    min={getLocalDate()}
+                    min={getLocalDateString()}
                     required
                 />
             </div>
