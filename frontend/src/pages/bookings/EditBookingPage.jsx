@@ -126,10 +126,11 @@ export default function EditBookingPage() {
     if (resource) {
       if (resource.status !== 'ACTIVE') return `Resource is currently ${resource.status.replace(/_/g, ' ')}`;
       
-      const dayName = new Date(selectedDateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
-      const dayAvail = resource.availability?.find(a => a.day === dayName);
+      const dayName = new Date(selectedDateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+      const dayAvail = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayName.substring(0, 3)));
       
-      if (!dayAvail || !dayAvail.isAvailable) return "The facility is closed on the selected date.";
+      if (!dayAvail && resource.availability?.length > 0) return "The facility is closed on the selected day.";
+      if (dayAvail && !dayAvail.isAvailable) return "The facility is closed on the selected date.";
 
       // 1. Check if within operational slots
       const isWithinSlots = dayAvail.slots?.some(slot => 
@@ -150,10 +151,10 @@ export default function EditBookingPage() {
 
   const getNoAvailabilityStatus = () => {
     if (!resource || !formData.date) return false;
-    const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
-    const dayData = resource.availability?.find(a => a.day === dayShort);
+    const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+    const dayData = resource.availability?.find(a => a.day?.toLowerCase().startsWith(dayShort.substring(0, 3)));
     
-    if (!dayData || !dayData.isAvailable) return true;
+    if (!dayData) return resource.availability?.length > 0;
     
     const freeSlots = dayData.slots?.filter(slot => {
         return !bookedSlots.some(eb => 
@@ -161,7 +162,7 @@ export default function EditBookingPage() {
         );
     }) || [];
     
-    return freeSlots.length === 0;
+    return !dayData.isAvailable || freeSlots.length === 0;
   };
 
   const noAvailability = getNoAvailabilityStatus();
@@ -306,9 +307,16 @@ export default function EditBookingPage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
               {(() => {
                 const dayShort = new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
-                const dayData = resource?.availability?.find(a => a.day === dayShort);
+                const dayShortLower = dayShort.toLowerCase();
+                const dayData = resource?.availability?.find(a => a.day?.toLowerCase().startsWith(dayShortLower.substring(0, 3)));
                 
-                if (!dayData || !dayData.isAvailable) {
+                if (!dayData) {
+                   return resource?.availability?.length > 0 
+                     ? <div style={{ color: '#ef4444', fontWeight: '800' }}>Closed on {dayShort}</div>
+                     : <div style={{ color: '#4ade80', fontWeight: '800' }}>Available (24/7 Policy)</div>;
+                }
+
+                if (!dayData.isAvailable) {
                    return <div style={{ color: '#ef4444', fontWeight: '800' }}>Closed on {dayShort}</div>;
                 }
 
