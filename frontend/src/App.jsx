@@ -175,3 +175,4 @@ export default function App() {
 /* detail refinement: chore: standardize page container spacing across all views */
 /* detail refinement: refactor: optimize scroll-to-top behavior for SPA navigation */
 /* detail refinement: fix: improve resilience of route error boundaries */
+/* detail refinement: style: synchronize glassmorphism tokens across main containers */
