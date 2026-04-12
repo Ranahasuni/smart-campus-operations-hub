@@ -3,17 +3,18 @@ import { Clock, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function AvailabilityInfo({ availability }) {
   // HARD-CODED FORCE STYLES (FROM MAIN BRANCH)
-  const boxBackground = { background: '#e2e8f0', borderRadius: '32px', padding: '28px', border: '2px solid #6366f1', marginBottom: '32px' };
-  const titleStyle = { color: '#000000', fontSize: '1.25rem', fontWeight: '950', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' };
-  const cardStyle = { background: '#ffffff', borderRadius: '20px', padding: '16px', marginBottom: '14px', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' };
-  const dayStyle = { color: '#000000', fontWeight: '950', fontSize: '0.85rem', width: '70px', flexShrink: 0, textAlign: 'center' };
-  const timeStyle = { color: '#6366f1', fontSize: '0.95rem', fontWeight: '950' };
+  // UNIFIED DARK THEME STYLES
+  const boxBackground = { background: 'var(--bg-tertiary)', borderRadius: '32px', padding: '28px', border: '1px solid var(--glass-border)', marginBottom: '32px' };
+  const titleStyle = { color: 'var(--text-primary)', fontSize: '1.25rem', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' };
+  const cardStyle = { background: 'var(--bg-secondary)', borderRadius: '20px', padding: '16px', marginBottom: '14px', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center' };
+  const dayStyle = { color: 'var(--text-primary)', fontWeight: '800', fontSize: '0.85rem', width: '70px', flexShrink: 0, textAlign: 'center' };
+  const timeStyle = { color: 'var(--accent-primary)', fontSize: '0.95rem', fontWeight: '800' };
 
   if (!availability || availability.length === 0) {
     return (
       <div style={boxBackground}>
         <h3 style={titleStyle}><Clock size={18} /> Weekly Schedule</h3>
-        <p style={{ color: '#64748b', fontWeight: '800' }}>Waiting for operational data...</p>
+        <p style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>Waiting for operational data...</p>
       </div>
     );
   }
@@ -38,7 +39,7 @@ export default function AvailabilityInfo({ availability }) {
             </div>
 
             {/* DIVIDER */}
-            <div style={{ width: '1.5px', height: '40px', background: '#e2e8f0', margin: '0 16px' }} />
+            <div style={{ width: '1.5px', height: '40px', background: 'var(--glass-border)', margin: '0 16px' }} />
 
             {/* RIGHT: TIMES */}
             <div style={{ flexGrow: 1 }}>
@@ -51,7 +52,7 @@ export default function AvailabilityInfo({ availability }) {
                   ))}
                 </div>
               ) : (
-                <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '900' }}>NOT AVAILABLE</span>
+                <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', fontWeight: '800' }}>NOT AVAILABLE</span>
               )}
             </div>
           </div>
