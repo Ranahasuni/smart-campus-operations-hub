@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Building2, Trash2, Edit3, MapPin,
-  Power, HardDrive, AlertCircle, CheckCircle2, X
+  Power, HardDrive, AlertCircle, CheckCircle2, X, Loader2,
+  SearchX
 } from 'lucide-react';
 
-export default function ResourceTable({ resources, onUpdateStatus, onDeleteResource }) {
+export default function ResourceTable({ resources, loading, onUpdateStatus, onDeleteResource, clearFilters }) {
   const [confirmModal, setConfirmModal] = useState({ show: false, type: '', id: null, title: '', message: '', nextStatus: null });
   const [successModal, setSuccessModal] = useState({ show: false, title: '', message: '' });
 
   const getStatusStyle = (status) => {
-    // ... same logic ...
     const s = String(status || '').toUpperCase();
     switch (s) {
       case 'ACTIVE': return { bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', label: 'Online' };
@@ -21,7 +21,10 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
   };
 
   const getNextStatus = (current) => {
-    return current === 'ACTIVE' ? 'MAINTENANCE' : 'ACTIVE';
+    const s = String(current || '').toUpperCase();
+    if (s === 'ACTIVE') return 'MAINTENANCE';
+    if (s === 'MAINTENANCE') return 'ACTIVE';
+    return 'ACTIVE'; // Fallback for OUT_OF_SERVICE or unknown
   };
 
   const openDeleteModal = (id, name) => {
@@ -61,117 +64,209 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
 
   return (
     <div style={{ position: 'relative' }}>
+        {/* Elite Table Container */}
       <div style={{
-        background: '#fff',
+        background: 'rgba(255, 255, 255, 0.02)',
         borderRadius: '24px',
-        border: '1px solid #e2e8f0',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
         overflow: 'hidden',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)'
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+        position: 'relative',
+        minHeight: '450px',
+        display: 'flex',
+        flexDirection: 'column',
+        backdropFilter: 'blur(10px)'
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '20px 24px', textAlign: 'left', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '35%' }}>Facility Details</th>
-              <th style={{ padding: '20px 24px', textAlign: 'left', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '25%' }}>Location</th>
-              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '10%' }}>Capacity</th>
-              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '15%' }}>Status</th>
-              <th style={{ padding: '20px 24px', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '15%' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resources.map(r => {
-              const status = getStatusStyle(r.status);
-              return (
-                <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s', cursor: 'default' }} onMouseOver={e => e.currentTarget.style.background = '#fcfdff'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                  <td style={{ padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{
-                        width: '48px', height: '48px', borderRadius: '12px',
-                        background: 'rgba(99, 102, 241, 0.05)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#6366f1', overflow: 'hidden', border: '1px solid #f1f5f9'
-                      }}>
-                        {r.imageUrls && r.imageUrls[0] && (r.imageUrls[0].startsWith('http') || r.imageUrls[0].startsWith('data:')) ? (
-                          <img src={r.imageUrls[0]} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <Building2 size={24} />
-                        )}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '1rem' }}>{r.name}</div>
-                        <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600' }}>
-                          {(() => {
-                            const t = String(r.type || 'FACILITY');
-                            if (t === 'LECTURE_HALL') return 'LECTURE HALL';
-                            return t.replace('_', ' ').toUpperCase();
-                          })()}
+        {loading ? (
+          /* ELITE GHOST SKELETON - THE PROFESSIONAL WAY */
+          <div style={{ padding: '0' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', height: '60px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+              <div style={skeletonLineStyle('120px')} />
+              <div style={{ ...skeletonLineStyle('100px'), marginLeft: 'auto' }} />
+              <div style={{ ...skeletonLineStyle('60px'), marginLeft: 'auto' }} />
+              <div style={{ ...skeletonLineStyle('100px'), marginLeft: 'auto' }} />
+              <div style={{ ...skeletonLineStyle('120px'), marginLeft: 'auto' }} />
+            </div>
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} style={{ height: '92px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: '16px', opacity: 1 - (i * 0.15) }}>
+                <div style={{ width: '52px', height: '52px', background: 'rgba(255,255,255,0.05)', borderRadius: '14px' }} className="animate-pulse" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={skeletonLineStyle('180px')} />
+                  <div style={skeletonLineStyle('100px')} />
+                </div>
+                <div style={{ ...skeletonLineStyle('140px'), marginLeft: 'auto' }} />
+                <div style={{ ...skeletonLineStyle('40px'), marginLeft: 'auto' }} />
+                <div style={{ ...skeletonLineStyle('80px'), marginLeft: 'auto' }} />
+                <div style={{ ...skeletonLineStyle('110px'), marginLeft: 'auto' }} />
+              </div>
+            ))}
+          </div>
+        ) : resources.length > 0 ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <th style={{ padding: '20px 24px', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '35%' }}>Facility Details</th>
+                <th style={{ padding: '20px 24px', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '25%' }}>Location</th>
+                <th style={{ padding: '20px 24px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '10%' }}>Capacity</th>
+                <th style={{ padding: '20px 24px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '15%' }}>Status</th>
+                <th style={{ padding: '20px 24px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', width: '15%' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {resources.map(r => {
+                const status = getStatusStyle(r.status);
+                return (
+                  <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                    <td style={{ padding: '20px 24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{
+                          width: '52px', height: '52px', borderRadius: '14px',
+                          background: 'rgba(99, 102, 241, 0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#6366f1', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)'
+                        }}>
+                          {r.imageUrls && r.imageUrls[0] && (r.imageUrls[0].startsWith('http') || r.imageUrls[0].startsWith('data:')) ? (
+                            <img src={r.imageUrls[0]} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <Building2 size={26} />
+                          )}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: '800', color: '#fff', fontSize: '1.05rem' }}>{r.name}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>
+                            {r.type ? r.type.replace(/_/g, ' ') : 'FACILITY'}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <MapPin size={16} color="#3b82f6" fill="#3b82f620" />
-                        <span style={{ fontWeight: '800', color: '#1e293b', fontSize: '0.95rem' }}>{r.building}</span>
+                    </td>
+                    <td style={{ padding: '20px 24px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <MapPin size={16} color="#6366f1" />
+                          <span style={{ fontWeight: '800', color: '#e2e8f0', fontSize: '0.95rem' }}>{r.building}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '24px' }}>
+                          <span style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase' }}>
+                            {getOrdinalFloor(r.floor)}
+                          </span>
+                          <span style={{ color: '#475569', fontSize: '0.75rem' }}>•</span>
+                          <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '500' }}>{r.roomNumber || 'N/A'}</span>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '24px' }}>
-                        <span style={{ padding: '2px 8px', background: '#f1f5f9', borderRadius: '6px', fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>
-                          {getOrdinalFloor(r.floor)}
-                        </span>
-                        <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>•</span>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '500' }}>{r.roomNumber || 'N/A'}</span>
+                    </td>
+                    <td style={{ padding: '20px 24px', textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', height: '24px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: '800', fontSize: '0.95rem' }}>
+                        {r.capacity}
                       </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '20px 24px', textAlign: 'center' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', height: '24px', padding: '10px', borderRadius: '8px', background: '#f1f5f9', color: '#0f172a', fontWeight: '800', fontSize: '0.9rem' }}>
-                      {r.capacity}
-                    </div>
-                  </td>
-                  <td style={{ padding: '20px 24px', textAlign: 'center' }}>
-                    <span style={{ padding: '6px 12px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '800', background: status.bg.replace('0.1', '0.08'), color: status.color, border: `1px solid ${status.color}20`, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {status.label}
-                    </span>
-                  </td>
-                  <td style={{ padding: '20px 24px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                      <button
-                        onClick={() => openStatusModal(r.id, r.status, r.name)}
-                        title="Toggle Status"
-                        style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                        onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#6366f1'; }}
-                        onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#64748b'; }}
-                      >
-                        <Power size={18} />
-                      </button>
-                      <Link to={`/admin/resources/edit/${r.id}`}
-                        title="Edit Resource"
-                        style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                        onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
-                        onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
-                      >
-                        <Edit3 size={18} />
-                      </Link>
-                      <button onClick={() => openDeleteModal(r.id, r.name)}
-                        title="Delete Resource"
-                        style={{ background: '#fff', border: '1px solid #fecaca', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                        onMouseOver={e => { e.currentTarget.style.background = '#fef2f2'; }}
-                        onMouseOut={e => { e.currentTarget.style.background = '#fff'; }}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {resources.length === 0 && (
-          <div style={{ padding: '80px', textAlign: 'center', color: '#94a3b8' }}>
-            <HardDrive size={48} style={{ marginBottom: '16px', opacity: 0.3 }} />
-            <p style={{ fontSize: '1.1rem', fontWeight: '500' }}>No facilities found matching your criteria.</p>
+                    </td>
+                    <td style={{ padding: '20px 24px', textAlign: 'center' }}>
+                      <span style={{ padding: '8px 16px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '800', background: status.bg.replace('0.1', '0.15'), color: status.color, border: `1px solid ${status.color}40`, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {status.label}
+                      </span>
+                    </td>
+                    <td style={{ padding: '20px 24px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                        <button
+                          onClick={() => openStatusModal(r.id, r.status, r.name)}
+                          title="Toggle Status"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', cursor: 'pointer', transition: 'all 0.2s' }}
+                          onMouseOver={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'; }}
+                          onMouseOut={e => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                        >
+                          <Power size={20} />
+                        </button>
+                        <Link to={`/admin/resources/edit/${r.id}`}
+                          title="Edit Resource"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e2e8f0', cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none' }}
+                          onMouseOver={e => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                          onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                        >
+                          <Edit3 size={20} />
+                        </Link>
+                        <button onClick={() => openDeleteModal(r.id, r.name)}
+                          title="Delete Resource"
+                          style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s' }}
+                          onMouseOver={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; }}
+                          onMouseOut={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)'; }}
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          /* IDENTICAL TO STUDENT CATALOGUE EMPTY STATE (ONLY SHOWN AFTER LOAD) */
+          <div style={{
+            padding: '100px 40px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+            animation: 'fadeIn 0.3s'
+          }}>
+            <div style={{
+              width: '100px', height: '100px', borderRadius: '50%',
+              background: '#f8fafc', border: '1px solid #e2e8f0',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: '32px', color: '#94a3b8'
+            }}>
+              <SearchX size={48} strokeWidth={1.5} />
+            </div>
+            
+            <h2 style={{
+              fontSize: '2rem', fontWeight: '900', color: '#0f172a',
+              marginBottom: '16px', letterSpacing: '-0.5px'
+            }}>
+              No Facilities Found
+            </h2>
+            
+            <p style={{
+              maxWidth: '500px', fontSize: '1.1rem', color: '#64748b',
+              lineHeight: '1.6', marginBottom: '32px', fontWeight: '500'
+            }}>
+              No campus assets matching your specific registry criteria were found. 
+              Please adjust your filters or reset your search to continue.
+            </p>
+            
+            <button 
+              onClick={clearFilters}
+              style={{
+                padding: '16px 40px', borderRadius: '16px', background: '#6366f1',
+                color: '#fff', fontSize: '1.05rem', fontWeight: '800', border: 'none',
+                cursor: 'pointer', transition: 'all 0.3s',
+                boxShadow: '0 10px 20px -5px rgba(99, 102, 241, 0.4)'
+              }}
+              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 30px -5px rgba(99, 102, 241, 0.5)'; }}
+              onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(99, 102, 241, 0.4)'; }}
+            >
+              Reset All Search Filters
+            </button>
+          </div>
+        )}
+
+        {/* PROFESSIONAL REGISTRY STATUS STRIP */}
+        {resources.length > 0 && (
+          <div style={{
+            padding: '16px 24px',
+            background: '#f8fafc',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 'auto'
+          }}>
+            <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Showing <span style={{ color: '#0f172a' }}>{resources.length}</span> {resources.length === 1 ? 'facility' : 'facilities'} in current view
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '400', fontStyle: 'italic' }}>
+              Registry snapshot is real-time and synchronized.
+            </div>
           </div>
         )}
       </div>
@@ -179,7 +274,6 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
       {/* Confirm Modal */}
       {confirmModal.show && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, animation: 'fadeIn 0.2s' }}>
-          {/* ... modal content ... */}
           <div style={{ background: '#fff', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: confirmModal.type === 'DELETE' ? '#fef2f2' : '#f0f9ff', color: confirmModal.type === 'DELETE' ? '#ef4444' : '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               {confirmModal.type === 'DELETE' ? <AlertCircle size={32} /> : <CheckCircle2 size={32} />}
@@ -234,3 +328,11 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
     </div>
   );
 }
+
+// ELITE SKELETON CSS UTILITIES
+const skeletonLineStyle = (width) => ({
+  width: width,
+  height: '12px',
+  background: '#f1f5f9',
+  borderRadius: '6px'
+});
