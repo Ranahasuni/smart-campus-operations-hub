@@ -108,6 +108,7 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
             <option value="50" style={{ background: '#1e293b' }}>50+ Seats</option>
             <option value="100" style={{ background: '#1e293b' }}>100+ Seats</option>
             <option value="200" style={{ background: '#1e293b' }}>200+ Seats</option>
+            <option value="500" style={{ background: '#1e293b' }}>500+ Seats</option>
           </select>
           <ChevronDown size={14} style={chevronStyle} />
         </div>
