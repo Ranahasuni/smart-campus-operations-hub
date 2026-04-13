@@ -1,85 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { Loader2, AlertCircle } from 'lucide-react';
-import PageHeader from './Admin/components/PageHeader';
+import { Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../api/axiosInstance';
 import FilterPanel from './Admin/components/FilterPanel';
 import ResourceTable from './Admin/components/ResourceTable';
-import api from '../../api/axiosInstance';
 
 export default function ResourceManagementPage() {
-  const { authFetch, API } = useAuth();
-  const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
+  const navigate = useNavigate();
+  const [allResources, setAllResources] = useState(() => {
+    const cached = sessionStorage.getItem('admin_registry_cache');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [filteredResources, setFilteredResources] = useState([]);
+  const [loading, setLoading] = useState(() => !sessionStorage.getItem('admin_registry_cache'));
   const [filters, setFilters] = useState({
     name: '',
     building: '',
     floor: '',
     type: '',
     status: '',
-    capacity: '',
+    capacity: ''
   });
 
-  const isInitialMount = React.useRef(true);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      // First load happens instantly
-      fetchResources();
-      isInitialMount.current = false;
-    } else {
-      // Subsequent filter changes are debounced for performance
-      const timer = setTimeout(() => {
-        fetchResources();
-      }, 300); 
-      return () => clearTimeout(timer);
-    }
-  }, [filters]);
-
-  const fetchResources = async () => {
-    setLoading(true);
+  const fetchAllResources = async () => {
     try {
-      const query = new URLSearchParams();
-      Object.keys(filters).forEach(key => {
-        if (filters[key]) query.append(key, filters[key]);
-      });
-
-      const res = await api.get(`/resources?${query.toString()}`);
-      setResources(Array.isArray(res.data) ? res.data : []);
-      setError('');
+      const res = await api.get('/resources');
+      setAllResources(res.data || []);
+      sessionStorage.setItem('admin_registry_cache', JSON.stringify(res.data || []));
     } catch (err) {
       console.error('Fetch error:', err);
-      const msg = err.response?.data?.message || err.message || 'Unknown network error';
-      setError(`Failed to synchronize facilities inventory: ${msg}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateStatus = async (id, newStatus) => {
-    try {
-      const res = await authFetch(`${API}/api/resources/${id}/status?status=${newStatus}`, {
-        method: 'PATCH'
-      });
-      if (res.ok) {
-        fetchResources(); // Refresh list
+  useEffect(() => {
+    fetchAllResources();
+  }, []);
+
+  useEffect(() => {
+    if (allResources.length >= 0) {
+      let filtered = [...allResources];
+      if (filters.name) {
+        const q = filters.name.toLowerCase().trim();
+        filtered = filtered.filter(r => (r.name || '').toLowerCase().startsWith(q));
       }
+      if (filters.building) filtered = filtered.filter(r => r.building === filters.building);
+      if (filters.floor) filtered = filtered.filter(r => String(r.floor) === String(filters.floor));
+      if (filters.type) filtered = filtered.filter(r => r.type === filters.type);
+      if (filters.status) filtered = filtered.filter(r => r.status === filters.status);
+      if (filters.capacity) {
+        const minCap = parseInt(filters.capacity);
+        filtered = filtered.filter(r => (r.capacity || 0) >= minCap);
+      }
+      setFilteredResources(filtered);
+    }
+  }, [filters, allResources]);
+
+  const handleUpdateStatus = async (id, nextStatus) => {
+    try {
+      await api.patch(`/resources/${id}/status?status=${nextStatus}`);
+      setAllResources(prev => prev.map(r => r.id === id ? { ...r, status: nextStatus } : r));
     } catch (err) {
-      console.error('Status Update error:', err);
+      console.error('Status update error:', err);
     }
   };
 
   const handleDeleteResource = async (id) => {
     try {
-      const res = await authFetch(`${API}/api/resources/${id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        setResources(prev => prev.filter(r => r.id !== id));
-      }
+      await api.delete(`/resources/${id}`);
+      const updated = allResources.filter(r => r.id !== id);
+      setAllResources(updated);
+      sessionStorage.setItem('admin_registry_cache', JSON.stringify(updated));
     } catch (err) {
-      console.error('Deletion error:', err);
+      console.error('Delete error:', err);
     }
   };
 
@@ -87,34 +81,71 @@ export default function ResourceManagementPage() {
     setFilters({ name: '', building: '', floor: '', type: '', status: '', capacity: '' });
   };
 
-  if (loading && resources.length === 0) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#64748b' }}>
-      <Loader2 className="animate-spin" size={48} style={{ marginBottom: '16px', color: '#6366f1' }} />
-      <p style={{ fontSize: '1.2rem', letterSpacing: '1px' }}>SYNCHRONIZING SECURE INVENTORY...</p>
-    </div>
-  );
-
   return (
-    <div style={{ padding: '60px 40px', maxWidth: '1400px', margin: '0 auto', minHeight: '100vh', background: '#f8fafc' }}>
-      <PageHeader />
+    <div style={{
+      minHeight: '100vh',
+      background: '#0f172a', // ELITE MIDNIGHT BACKGROUND
+      color: '#fff',
+      padding: '40px'
+    }}>
+      <div style={{ maxWidth: '1440px', margin: '0 auto' }}>
 
-      {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', padding: '20px', borderRadius: '16px', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <AlertCircle size={20} /> <strong>Error:</strong> {error}
+        {/* ELITE DARK HEADER */}
+        <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: '2.8rem', fontWeight: '900', color: '#fff', margin: '0 0 8px 0', letterSpacing: '-1.5px' }}>
+              Resource <span style={{ color: '#6366f1' }}>Management</span>
+            </h1>
+            <p style={{ color: '#94a3b8', fontSize: '1.2rem', margin: 0, fontWeight: '500' }}>
+              Centralized Operational Control for Campus Facilities.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <div style={{ position: 'relative', width: '400px' }}>
+              <Search size={20} style={{ position: 'absolute', left: '18px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <input
+                placeholder="Search by name..."
+                value={filters.name || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
+                style={{
+                  width: '100%', height: '56px', padding: '12px 12px 12px 56px',
+                  borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)',
+                  color: '#fff', fontSize: '1rem', fontWeight: '600', outline: 'none', transition: 'all 0.2s',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                }}
+              />
+            </div>
+
+            <button
+              onClick={() => navigate('/admin/resources/new')}
+              style={{
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                color: '#fff', padding: '0 36px', borderRadius: '18px', border: 'none',
+                height: '56px', fontSize: '1rem', fontWeight: '800', cursor: 'pointer',
+                boxShadow: '0 10px 30px -5px rgba(99, 102, 241, 0.4)',
+                transition: 'all 0.3s', whiteSpace: 'nowrap'
+              }}
+            >
+              + Add New Resource
+            </button>
+          </div>
         </div>
-      )}
 
-      <FilterPanel
-        filters={filters}
-        setFilters={setFilters}
-        clearFilters={clearFilters}
-      />
+        <FilterPanel
+          filters={filters}
+          setFilters={setFilters}
+          clearFilters={clearFilters}
+        />
 
-      <ResourceTable
-        resources={resources}
-        onUpdateStatus={handleUpdateStatus}
-        onDeleteResource={handleDeleteResource}
-      />
+        <ResourceTable
+          resources={filteredResources}
+          loading={loading}
+          onUpdateStatus={handleUpdateStatus}
+          onDeleteResource={handleDeleteResource}
+          clearFilters={clearFilters}
+        />
+      </div>
     </div>
   );
 }
