@@ -93,7 +93,11 @@ public class ResourceService {
         List<Resource> all = resourceRepository.findAll();
 
         return all.stream()
-                .filter(r -> name == null || r.getName().toLowerCase().contains(name.toLowerCase()))
+                .filter(r -> {
+                    if (name == null || name.trim().isEmpty()) return true;
+                    if (r.getName() == null) return false;
+                    return r.getName().toLowerCase().startsWith(name.toLowerCase());
+                })
                 .filter(r -> building == null || r.getBuilding().equalsIgnoreCase(building))
                 .filter(r -> floor == null || r.getFloor().equals(floor))
                 .filter(r -> type == null || r.getType() == type)
