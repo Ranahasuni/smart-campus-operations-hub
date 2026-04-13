@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '../../../api/axiosInstance';
-import { Building2, Map, Layout, Users, RotateCcw } from 'lucide-react';
+import { Building2, Map, Layout, Users, RotateCcw, ChevronDown } from 'lucide-react';
 import './Catalogue.css';
 
 const RESOURCE_TYPES = [
-  'LECTURE_THEATRE', 'MEETING_ROOM', 'FUNCTION_SPACE', 'VIDEO_CONFERENCE_ROOM', 'LAB', 'AUDITORIUM', 'SPORTS_FACILITY'
+  'LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'
 ];
 
-const FEATURES = ['Projector', 'Microsoft Teams', 'Cisco Webex', 'Whiteboard', 'Sound System', 'Video Conferencing'];
+const FEATURES = ['Projector', 'Whiteboard', 'Core i7 PCs', 'Central AC'];
 
 export default function FilterPanel({ searchParams, updateParams, clearFilters }) {
   const [buildings, setBuildings] = useState([]);
@@ -78,9 +78,10 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.building || ''}
               onChange={handleChange}
             >
-              <option value="">Any Building</option>
+              <option value="">All Buildings</option>
               {buildings.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
@@ -96,9 +97,10 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               onChange={handleChange}
               disabled={!searchParams.building}
             >
-              <option value="">Any Floor</option>
+              <option value="">All Floors</option>
               {floors.map(f => <option key={f} value={f}>Floor {f}</option>)}
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
@@ -113,13 +115,14 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.type || ''}
               onChange={handleChange}
             >
-              <option value="">All Types</option>
-              {RESOURCE_TYPES.map(t => (
-                <option key={t} value={t}>
-                  {t.toLowerCase().split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                </option>
-              ))}
+              <option value="">All Categories</option>
+              {RESOURCE_TYPES.map(t => {
+                let displayName = t.replace(/_/g, ' ').toUpperCase();
+                if (t === 'LECTURE_HALL') displayName = 'LECTURE HALL';
+                return <option key={t} value={t}>{displayName}</option>;
+              })}
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
@@ -134,19 +137,20 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.capacity || ''}
               onChange={handleChange}
             >
-              <option value="">Any Capacity</option>
+              <option value="">Any Occupancy</option>
               <option value="10">10+ Seats</option>
               <option value="50">50+ Seats</option>
               <option value="100">100+ Seats</option>
               <option value="200">200+ Seats</option>
               <option value="500">500+ Seats</option>
             </select>
+            <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>
         </div>
 
-        {/* Features Split Section */}
-        <div className="filter-group" style={{ marginTop: '32px' }}>
-          <label className="filter-label" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+        {/* Popular Amenities Filter */}
+        <div className="filter-group" style={{ display: 'block', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--glass-border)' }}>
+          <label className="filter-label" style={{ display: 'block', marginBottom: '16px', width: '100%' }}>
             Popular Amenities
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, CheckCircle } from 'lucide-react';
+import { MapPin, Users, CheckCircle, Settings, AlertTriangle } from 'lucide-react';
 import './Catalogue.css';
 
 export default function ResourceCard({ resource }) {
@@ -13,10 +13,10 @@ export default function ResourceCard({ resource }) {
 
   const getStatusConfig = (status) => {
     switch (status) {
-      case 'ACTIVE': return { label: 'ONLINE', class: 'st-active' };
-      case 'MAINTENANCE': return { label: 'MAINTENANCE', class: 'st-maint' };
-      case 'OUT_OF_SERVICE': return { label: 'OFFLINE', class: 'st-offline' };
-      default: return { label: status, class: '' };
+      case 'ACTIVE': return { label: 'ONLINE', class: 'st-active', icon: <span className="dot-white pulsing"></span> };
+      case 'MAINTENANCE': return { label: 'MAINTENANCE', class: 'st-maint', icon: <Settings size={12} /> };
+      case 'OUT_OF_SERVICE': return { label: 'OFFLINE', class: 'st-offline', icon: <AlertTriangle size={12} /> };
+      default: return { label: status, class: '', icon: null };
     }
   };
 
@@ -38,14 +38,13 @@ export default function ResourceCard({ resource }) {
           </div>
         )}
         <div className={`status-pill-final ${status.class}`}>
-          <span className="dot-white"></span>
-          <CheckCircle size={10} className="check-icon-mini" />
+          {status.icon}
           <span>{status.label}</span>
         </div>
       </div>
 
       <div className="card-info-section">
-        <div className="card-type-mini">{(resource.type || 'FACILITY').replace('_', ' ')}</div>
+        <div className="card-type-mini">{resource.type?.replace(/_/g, ' ')?.toUpperCase() || 'FACILITY'}</div>
         <h3 className="card-name-h3">{resource.name || 'Unnamed Resource'}</h3>
 
         <div className="card-meta-final-layout">

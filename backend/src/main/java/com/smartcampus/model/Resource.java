@@ -45,10 +45,6 @@ public class Resource {
 
     private List<DayAvailability> availability;
 
-    private boolean cateringAllowed;
-
-    private String videoConferenceLevel; // Basic, Standard, Advanced
-
     private String qrCodeUrl;
 
     @Builder.Default

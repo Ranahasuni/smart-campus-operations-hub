@@ -57,7 +57,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> updateStatus(
             @PathVariable String id,
             @RequestBody java.util.Map<String, String> request) {

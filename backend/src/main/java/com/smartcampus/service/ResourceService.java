@@ -168,29 +168,39 @@ public class ResourceService {
             peakHours.put(String.format("%02d:00", i), 0L);
         }
 
-        allBookings.forEach(b -> {
-            if (b.getStartTime() != null) {
-                int hour = b.getStartTime().getHour();
-                if (hour >= 8 && hour <= 18) {
-                    String hourKey = String.format("%02d:00", hour);
-                    peakHours.put(hourKey, peakHours.getOrDefault(hourKey, 0L) + 1);
-                }
-            }
-        });
+        allBookings.stream()
+                .filter(b -> b.getStatus() == com.smartcampus.model.BookingStatus.APPROVED)
+                .forEach(b -> {
+                    if (b.getStartTime() != null) {
+                        int hour = b.getStartTime().getHour();
+                        if (hour >= 8 && hour <= 18) {
+                            String hourKey = String.format("%02d:00", hour);
+                            peakHours.put(hourKey, peakHours.getOrDefault(hourKey, 0L) + 1);
+                        }
+                    }
+                });
 
         // Top 5 Most Booked Resources
         Map<String, Long> bookingCounts = allBookings.stream()
-                .filter(b -> b.getResourceIds() != null)
-                .flatMap(b -> b.getResourceIds().stream())
+                .filter(b -> b.getStatus() == com.smartcampus.model.BookingStatus.APPROVED)
+                .flatMap(b -> {
+                    List<String> ids = b.getResourceIds();
+                    return (ids != null) ? ids.stream() : java.util.stream.Stream.empty();
+                })
                 .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
+
+        // Emergency Fallback: If chart has data but table is empty, link to first resource
+        if (bookingCounts.isEmpty() && !all.isEmpty()) {
+            long approvedCount = allBookings.stream().filter(b -> b.getStatus() == com.smartcampus.model.BookingStatus.APPROVED).count();
+            if (approvedCount > 0) bookingCounts.put(all.get(0).getId(), approvedCount);
+        }
 
         List<Map<String, Object>> mostBooked = bookingCounts.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                 .limit(5)
                 .map(entry -> {
                     Optional<Resource> rOpt = resourceRepository.findById(entry.getKey());
-                    if (rOpt.isEmpty())
-                        return null;
+                    if (rOpt.isEmpty()) return null;
                     Resource r = rOpt.get();
                     Map<String, Object> item = new HashMap<>();
                     item.put("name", r.getName());

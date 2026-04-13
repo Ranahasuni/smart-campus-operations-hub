@@ -99,7 +99,13 @@ export default function ResourceTable({ resources, onUpdateStatus, onDeleteResou
                       </div>
                       <div>
                         <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '1rem' }}>{r.name}</div>
-                        <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600' }}>{String(r.type || 'FACILITY').replace('_', ' ')}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600' }}>
+                          {(() => {
+                            const t = String(r.type || 'FACILITY');
+                            if (t === 'LECTURE_HALL') return 'LECTURE HALL';
+                            return t.replace('_', ' ').toUpperCase();
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </td>

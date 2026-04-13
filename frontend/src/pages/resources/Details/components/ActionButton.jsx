@@ -41,14 +41,20 @@ export default function ActionButton({ status, resourceId, activeIssueTicket, se
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '12px'
+          gap: '12px',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: isAvailable ? 'scale(1)' : 'scale(1)',
+          filter: 'brightness(1)'
         }}
+        onMouseEnter={(e) => isAvailable && (e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)')}
+        onMouseLeave={(e) => isAvailable && (e.currentTarget.style.transform = 'translateY(0) scale(1)')}
+        aria-label={buttonLabel}
+        title={isAvailable ? 'Click to proceed with your booking' : 'This facility is currently unavailable'}
       >
         {buttonIcon}
         <span>{buttonLabel}</span>
       </button>
       
-      {/* 🚀 REMOVED THE SUBJECT TO APPROVAL LINE AS REQUESTED */}
     </div>
   );
 }

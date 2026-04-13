@@ -51,20 +51,20 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
   };
 
   return (
-    <div style={{ 
-      background: '#fff', 
-      padding: '24px', 
-      borderRadius: '24px', 
+    <div style={{
+      background: '#fff',
+      padding: '24px',
+      borderRadius: '24px',
       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04)',
       border: '1px solid #f1f5f9',
       marginBottom: '32px'
     }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 0.8fr 1fr 0.8fr 0.5fr', gap: '12px', alignItems: 'center' }}>
-        
+
         {/* 1. Name Search - Indigo */}
         <div style={{ position: 'relative' }}>
           <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#6366f1' }} />
-          <input 
+          <input
             name="name"
             placeholder="Search by name..."
             value={filters.name || ''}
@@ -96,7 +96,11 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
           <Layout size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b5cf6' }} />
           <select name="type" value={filters.type || ''} onChange={handleChange} style={{ ...selectStyle, paddingLeft: '44px' }}>
             <option value="" style={optionStyle}>All Types</option>
-            {RESOURCE_TYPES.map(t => <option key={t} value={t} style={optionStyle}>{t.replace('_', ' ')}</option>)}
+            {RESOURCE_TYPES.map(t => {
+                let displayName = t.replace(/_/g, ' ').toUpperCase();
+                if (t === 'LECTURE_HALL') displayName = 'LECTURE HALL';
+                return <option key={t} value={t} style={optionStyle}>{displayName}</option>;
+            })}
           </select>
         </div>
 
@@ -112,7 +116,7 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
         {/* 6. Capacity - Amber */}
         <div style={{ position: 'relative' }}>
           <Users size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#f59e0b' }} />
-          <input 
+          <input
             type="number"
             name="capacity"
             placeholder="Min. Cap"
@@ -123,12 +127,12 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
         </div>
 
         {/* 7. Reset */}
-        <button 
+        <button
           onClick={clearFilters}
           title="Reset Filters"
-          style={{ 
+          style={{
             height: '48px', width: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', 
+            borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0',
             color: '#64748b', cursor: 'pointer', transition: 'all 0.2s'
           }}
           onMouseOver={e => { e.currentTarget.style.color = '#6366f1'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#6366f1'; }}

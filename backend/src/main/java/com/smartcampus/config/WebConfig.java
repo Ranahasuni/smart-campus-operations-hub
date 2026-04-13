@@ -21,6 +21,6 @@ public class WebConfig implements WebMvcConfigurer {
         
         // This makes images accessible via http://localhost:8082/api/uploads/filename.jpg
         registry.addResourceHandler("/api/uploads/**")
-                .addResourceLocations("file:/" + uploadAbsolutePath + "/");
+                .addResourceLocations(uploadPath.toUri().toString());
     }
 }

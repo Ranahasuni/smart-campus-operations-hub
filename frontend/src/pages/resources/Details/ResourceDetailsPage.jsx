@@ -124,16 +124,52 @@ export default function ResourceDetailsPage() {
         <div className="details-grid">
           <div className="details-main-card">
             <ImageGallery images={resource.imageUrls} name={resource.name} status={resource.status} />
-            <ResourceInfo resource={resource} />
+            <ResourceInfo resource={resource} activeIssueTicket={activeIssueTicket} />
             <EquipmentList equipment={resource.equipment} />
             
             {/* 🛠️ TECHNICIAN INTELLIGENCE: Maintenance History Log */}
             {(user?.role === 'TECHNICIAN' || user?.role === 'ADMIN') && (
               <ResourceMaintenanceHistory tickets={tickets} loading={loading} />
             )}
+
+            {/* 🛡️ FACILITY INTELLIGENCE: Specialized Usage Protocol */}
+            <div style={{ marginTop: '40px', padding: '30px', background: 'rgba(99, 102, 241, 0.03)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '15px' }}>
+                {resource.type === 'EQUIPMENT' ? 'Asset Maintenance Protocol' : 
+                 resource.type === 'LAB' ? 'Laboratory Safety Protocol' : 
+                 resource.type === 'SPORTS_FACILITY' ? 'Athletic Safety Protocol' : 
+                 resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Instructional Space Protocol' : 
+                 'Professional Workspace Protocol'}
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--accent-primary)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Security & Care</span>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                    {resource.type === 'EQUIPMENT' ? 'Ensure the asset is handled with care and returned to its storage location.' : 
+                     resource.type === 'LAB' ? 'Ensure specialized equipment is powered down and chemical/static hazards are checked.' : 
+                     resource.type === 'SPORTS_FACILITY' ? 'Ensure the court area is cleared and any sports gear is stored in lockers.' : 
+                     'Ensure the doors are locked and all AV/Computing equipment is powered down.'}
+                  </p>
+                </div>
+                <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+                    {resource.type === 'EQUIPMENT' ? 'Concurrent Usage' : 
+                     resource.type === 'LAB' ? 'Research Capacity' : 
+                     resource.type === 'SPORTS_FACILITY' ? 'Athlete Occupancy' : 
+                     resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Seating Capacity' : 
+                     'Workspace Limit'}
+                  </span>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                    {resource.type === 'EQUIPMENT' 
+                      ? `This specialized asset supports simultaneous access for up to ${resource.capacity} authorized users.` 
+                      : `Observe the formal facility limit of ${resource.capacity} occupants for safety and optimal performance.`}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="details-sidebar">
+          <div className="details-sidebar" style={{ position: 'sticky', top: '84px' }}>
             <AvailabilityInfo availability={resource.availability} />
             
             <div className="availability-card" style={{ marginTop: '20px' }}>
@@ -164,7 +200,11 @@ export default function ResourceDetailsPage() {
               />
             </div>
 
-            <ReservedSlots bookings={bookings} selectedDate={selectedDate} />
+            <ReservedSlots 
+              bookings={bookings} 
+              selectedDate={selectedDate} 
+              isUnavailable={isMaintenance || isOffline}
+            />
             
             <QRCodeDisplay resourceId={resource.id} />
             <ActionButton 

@@ -10,7 +10,8 @@ import {
   AlertCircle,
   ArrowRight,
   User,
-  MapPin
+  MapPin,
+  X
 } from 'lucide-react';
 import '../../styles/tickets.css';
 
@@ -51,7 +52,8 @@ export default function TicketsPage() {
       OPEN: { bg: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', color: '#f59e0b', icon: <AlertCircle size={14} /> },
       IN_PROGRESS: { bg: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', color: '#3b82f6', icon: <Clock size={14} /> },
       RESOLVED: { bg: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', icon: <CheckCircle2 size={14} /> },
-      CLOSED: { bg: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.2)', color: '#ec4899', icon: <CheckCircle2 size={14} /> }
+      CLOSED: { bg: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.2)', color: '#ec4899', icon: <CheckCircle2 size={14} /> },
+      REJECTED: { bg: 'rgba(225, 29, 72, 0.1)', border: '1px solid rgba(225, 29, 72, 0.2)', color: '#fb7185', icon: <X size={14} /> }
     };
     const s = styles[status] || styles.OPEN;
     return (
@@ -67,7 +69,7 @@ export default function TicketsPage() {
         border: s.border,
         color: s.color
       }}>
-        {s.icon} {status}
+        {s.icon} {status === 'REJECTED' ? 'CANCELLED' : status}
       </span>
     );
   };

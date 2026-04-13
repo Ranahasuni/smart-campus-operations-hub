@@ -38,7 +38,7 @@ export default function ResourcesPage() {
 
       const res = await api.get(`/resources?${query.toString()}`);
       const rawData = res.data || [];
-      
+
       // Filter out removed categories globally
       const data = rawData.filter(r => r.type !== 'TEACHING_VENUE' && r.type !== 'SEMINAR_ROOM');
 
@@ -124,12 +124,22 @@ export default function ResourcesPage() {
 
   return (
     <div className="catalogue-container">
-      <div className="catalogue-header">
-        <div>
+      <div className="catalogue-header" style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        gap: '40px',
+        marginBottom: '40px' 
+      }}>
+        <div style={{ flex: '1', minWidth: '0' }}>
           <h1 className="catalogue-title">Facility <span className="text-indigo">Catalogue</span></h1>
-          <p className="catalogue-subtitle">Intelligently navigate and provision high-tier campus research assets and specialized learning environments.</p>
+          <p className="catalogue-subtitle" style={{ whiteSpace: 'nowrap' }}>
+            Intelligently navigate and provision high-tier campus research assets and specialized learning environments.
+          </p>
         </div>
-        <SearchBar searchParams={searchParams} updateParams={updateParams} />
+        <div style={{ width: '350px', flexShrink: 0 }}>
+          <SearchBar searchParams={searchParams} updateParams={updateParams} />
+        </div>
       </div>
 
       <div className="catalogue-layout">
@@ -174,7 +184,7 @@ export default function ResourcesPage() {
                     </div>
                     <h3 className="no-results-title">No Facilities Found</h3>
                     <p className="no-results-text">
-                      No campus assets matching your criteria were found. 
+                      No campus assets matching your criteria were found.
                       Please adjust your filters or reset your search to continue.
                     </p>
                     <button className="reset-shortcut-btn" onClick={clearFilters}>Reset All Search Filters</button>

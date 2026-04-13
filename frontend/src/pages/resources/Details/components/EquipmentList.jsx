@@ -13,7 +13,7 @@ export default function EquipmentList({ equipment }) {
       <h3 style={titleStyle}>
         <Cpu size={24} color="var(--accent-primary)" /> Technical Amenities
       </h3>
-      
+
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
         {equipment.map((item, index) => (
           <div key={index} style={chipStyle}>
