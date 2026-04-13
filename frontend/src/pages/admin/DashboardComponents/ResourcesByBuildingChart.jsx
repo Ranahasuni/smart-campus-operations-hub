@@ -44,17 +44,17 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
 
   return (
     <div style={{ 
-      background: isDark ? 'rgba(30, 41, 59, 0.7)' : '#fff', 
+      background: 'rgba(255, 255, 255, 0.02)', 
       padding: '30px', 
       borderRadius: '32px', 
-      border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid #e2e8f0', 
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)', 
-      height: '400px', // Match PeakBookingHoursChart height
-      backdropFilter: isDark ? 'blur(10px)' : 'none',
+      border: '1px solid rgba(255, 255, 255, 0.05)', 
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', 
+      height: '400px',
+      backdropFilter: 'blur(10px)',
       position: 'relative'
     }}>
       <div style={{ marginBottom: '15px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: isDark ? '#fff' : '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#fff', margin: 0, letterSpacing: '-0.5px' }}>
           Building-Wide Asset Distribution
         </h3>
         <p style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600, marginTop: '4px' }}>
@@ -72,10 +72,10 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
             outerRadius={80}
             paddingAngle={2}
             dataKey="value"
-            stroke={isDark ? '#1e293b' : '#fff'}
+            stroke="#0f172a"
             strokeWidth={3}
-            label={renderCustomizedLabel}
-            labelLine={{ stroke: '#cbd5e1', strokeWidth: 1.5 }}
+            label={(props) => renderCustomizedLabel({ ...props, isDark: true })}
+            labelLine={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1.5 }}
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -83,8 +83,8 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
           </Pie>
           <Tooltip 
             contentStyle={{ 
-              borderRadius: '20px', border: 'none', 
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', 
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
               fontWeight: 900,
               background: '#0f172a',
               color: '#fff',

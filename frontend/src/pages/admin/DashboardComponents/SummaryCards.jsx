@@ -37,21 +37,23 @@ export default function SummaryCards({ stats }) {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
       {cards.map((card, i) => (
         <div key={i} style={{
-          background: '#fff',
+          background: 'rgba(255, 255, 255, 0.03)',
           padding: '24px',
           borderRadius: '24px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>{card.title}</p>
-              <h3 style={{ fontSize: '2rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>{card.value}</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>{card.title}</p>
+              <h3 style={{ fontSize: '2rem', fontWeight: '900', color: '#fff', margin: 0 }}>{card.value}</h3>
             </div>
             <div style={{
-              width: '48px', height: '48px', borderRadius: '14px',
+              width: '54px', height: '54px', borderRadius: '16px',
               background: card.bg, color: card.color,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1px solid ${card.color}30`,
+              boxShadow: `0 0 20px ${card.color}20`
             }}>
               {card.icon}
             </div>
