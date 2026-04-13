@@ -24,28 +24,43 @@ export default function ResourceDetailsPage() {
   const [bookings, setBookings] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchData();
+    fetchMainData();
     window.scrollTo(0, 0);
+  }, [id]);
+
+  useEffect(() => {
+    if (id) fetchBookingData();
   }, [id, selectedDate]);
 
-  const fetchData = async () => {
+  const fetchMainData = async () => {
     setLoading(true);
     try {
-      const [resResponse, ticketsResponse, bookingsResponse] = await Promise.all([
+      const [resResponse, ticketsResponse] = await Promise.all([
         api.get(`/resources/${id}`),
-        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] })),
-        api.get(`/bookings/resource/${id}?date=${selectedDate}`).catch(() => ({ data: [] }))
+        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] }))
       ]);
       setResource(resResponse.data);
       setTickets(ticketsResponse.data || []);
-      setBookings(bookingsResponse.data || []);
     } catch (err) {
       setError('Operational synchronization error.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBookingData = async () => {
+    setBookingLoading(true);
+    try {
+      const bookingsResponse = await api.get(`/bookings/resource/${id}?date=${selectedDate}`).catch(() => ({ data: [] }));
+      setBookings(bookingsResponse.data || []);
+    } catch (err) {
+      console.error('Temporal sync failed', err);
+    } finally {
+      setBookingLoading(false);
     }
   };
 
@@ -67,7 +82,14 @@ export default function ResourceDetailsPage() {
     : "This facility is currently undergoing scheduled maintenance or upgrades by the administration.";
 
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-  if (!resource && loading) return null;
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: 'var(--text-secondary)' }}>
+        <Loader2 className="animate-spin" size={48} style={{ marginBottom: '16px', color: 'var(--accent-primary)' }} />
+        <p style={{ fontWeight: '600', letterSpacing: '0.05em' }}>SYNCHRONIZING OPERATIONAL DATA...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="resource-details-container">
@@ -126,7 +148,7 @@ export default function ResourceDetailsPage() {
             <ImageGallery images={resource.imageUrls} name={resource.name} status={resource.status} />
             <ResourceInfo resource={resource} activeIssueTicket={activeIssueTicket} />
             <EquipmentList equipment={resource.equipment} />
-            
+
             {/* 🛠️ TECHNICIAN INTELLIGENCE: Maintenance History Log */}
             {(user?.role === 'TECHNICIAN' || user?.role === 'ADMIN') && (
               <ResourceMaintenanceHistory tickets={tickets} loading={loading} />
@@ -135,33 +157,33 @@ export default function ResourceDetailsPage() {
             {/* 🛡️ FACILITY INTELLIGENCE: Specialized Usage Protocol */}
             <div style={{ marginTop: '40px', padding: '30px', background: 'rgba(99, 102, 241, 0.03)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '15px' }}>
-                {resource.type === 'EQUIPMENT' ? 'Asset Maintenance Protocol' : 
-                 resource.type === 'LAB' ? 'Laboratory Safety Protocol' : 
-                 resource.type === 'SPORTS_FACILITY' ? 'Athletic Safety Protocol' : 
-                 resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Instructional Space Protocol' : 
-                 'Professional Workspace Protocol'}
+                {resource.type === 'EQUIPMENT' ? 'Asset Maintenance Protocol' :
+                  resource.type === 'LAB' ? 'Laboratory Safety Protocol' :
+                    resource.type === 'SPORTS_FACILITY' ? 'Athletic Safety Protocol' :
+                      resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Instructional Space Protocol' :
+                        'Professional Workspace Protocol'}
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
                   <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--accent-primary)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Security & Care</span>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                    {resource.type === 'EQUIPMENT' ? 'Ensure the asset is handled with care and returned to its storage location.' : 
-                     resource.type === 'LAB' ? 'Ensure specialized equipment is powered down and chemical/static hazards are checked.' : 
-                     resource.type === 'SPORTS_FACILITY' ? 'Ensure the court area is cleared and any sports gear is stored in lockers.' : 
-                     'Ensure the doors are locked and all AV/Computing equipment is powered down.'}
+                    {resource.type === 'EQUIPMENT' ? 'Ensure the asset is handled with care and returned to its storage location.' :
+                      resource.type === 'LAB' ? 'Ensure specialized equipment is powered down and chemical/static hazards are checked.' :
+                        resource.type === 'SPORTS_FACILITY' ? 'Ensure the court area is cleared and any sports gear is stored in lockers.' :
+                          'Ensure the doors are locked and all AV/Computing equipment is powered down.'}
                   </p>
                 </div>
                 <div style={{ background: 'var(--bg-secondary)', padding: '15px', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
                   <span style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-                    {resource.type === 'EQUIPMENT' ? 'Concurrent Usage' : 
-                     resource.type === 'LAB' ? 'Research Capacity' : 
-                     resource.type === 'SPORTS_FACILITY' ? 'Athlete Occupancy' : 
-                     resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Seating Capacity' : 
-                     'Workspace Limit'}
+                    {resource.type === 'EQUIPMENT' ? 'Concurrent Usage' :
+                      resource.type === 'LAB' ? 'Research Capacity' :
+                        resource.type === 'SPORTS_FACILITY' ? 'Athlete Occupancy' :
+                          resource.type === 'AUDITORIUM' || resource.type === 'LECTURE_HALL' ? 'Seating Capacity' :
+                            'Workspace Limit'}
                   </span>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                    {resource.type === 'EQUIPMENT' 
-                      ? `This specialized asset supports simultaneous access for up to ${resource.capacity} authorized users.` 
+                    {resource.type === 'EQUIPMENT'
+                      ? `This specialized asset supports simultaneous access for up to ${resource.capacity} authorized users.`
                       : `Observe the formal facility limit of ${resource.capacity} occupants for safety and optimal performance.`}
                   </p>
                 </div>
@@ -171,45 +193,49 @@ export default function ResourceDetailsPage() {
 
           <div className="details-sidebar" style={{ position: 'sticky', top: '84px' }}>
             <AvailabilityInfo availability={resource.availability} />
-            
-            <div className="availability-card" style={{ marginTop: '20px' }}>
+
+            <div className="availability-card" style={{ marginTop: '20px', opacity: (isMaintenance || isOffline) ? 0.6 : 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>CHECK AVAILABILITY</span>
-                <button 
+                <button
                   onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                  style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
+                  disabled={isMaintenance || isOffline}
+                  style={{ background: 'none', border: 'none', color: (isMaintenance || isOffline) ? '#94a3b8' : '#6366f1', fontSize: '0.75rem', fontWeight: '800', cursor: (isMaintenance || isOffline) ? 'not-allowed' : 'pointer' }}
                 >
                   Reset Today
                 </button>
               </div>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
+                disabled={isMaintenance || isOffline}
                 style={{
                   width: '100%',
                   padding: '12px',
-                  background: 'var(--bg-secondary)',
+                  background: (isMaintenance || isOffline) ? 'rgba(0,0,0,0.1)' : 'var(--bg-secondary)',
                   border: '1px solid var(--glass-border)',
                   borderRadius: '12px',
-                  color: 'var(--text-primary)',
+                  color: (isMaintenance || isOffline) ? 'var(--text-secondary)' : 'var(--text-primary)',
                   fontWeight: '600',
-                  cursor: 'pointer'
+                  cursor: (isMaintenance || isOffline) ? 'not-allowed' : 'pointer'
                 }}
               />
             </div>
 
-            <ReservedSlots 
-              bookings={bookings} 
-              selectedDate={selectedDate} 
-              isUnavailable={isMaintenance || isOffline}
+            <ReservedSlots
+              bookings={bookings}
+              selectedDate={selectedDate}
+              isMaintenance={isMaintenance}
+              isOffline={isOffline}
+              loading={bookingLoading}
             />
-            
+
             <QRCodeDisplay resourceId={resource.id} />
-            <ActionButton 
-              status={resource.status} 
-              resourceId={resource.id} 
+            <ActionButton
+              status={resource.status}
+              resourceId={resource.id}
               activeIssueTicket={activeIssueTicket}
               selectedDate={selectedDate}
             />
