@@ -39,17 +39,18 @@ export default function ResourceAnalyticsPage() {
   if (!stats) return <div style={{ padding: '40px', color: '#fff' }}>No analytics data found.</div>;
 
   return (
-    <div style={{ padding: '40px', minHeight: '100vh', background: '#0f172a', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ padding: '40px 24px', minHeight: '100vh', background: '#020617', fontFamily: 'Inter, sans-serif' }}>
 
-      {/* Master Content Container (The One-Page UI) */}
+      {/* Master Content Container (The Elite Dark UI) */}
       <div style={{
-        background: '#ffffff',
+        background: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(20px)',
         borderRadius: '40px',
         padding: '50px',
-        boxShadow: '0 40px 100px -20px rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 40px 100px -20px rgba(0, 0, 0, 0.7)',
         maxWidth: '1450px',
         margin: '0 auto',
-        border: '1px solid #e2e8f0'
+        border: '1px solid rgba(255, 255, 255, 0.05)'
       }}>
 
         {/* Top Header Row inside the Master Box */}
@@ -59,31 +60,32 @@ export default function ResourceAnalyticsPage() {
           alignItems: 'center',
           marginBottom: '50px',
           paddingBottom: '30px',
-          borderBottom: '2px solid #f1f5f9'
+          borderBottom: '1px solid rgba(255,255,255,0.05)'
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '12px' }}>
               <Activity size={38} color="#6366f1" strokeWidth={2.5} />
-              <h1 style={{ fontSize: '3.2rem', fontWeight: '950', color: '#0f172a', margin: 0, letterSpacing: '-2px' }}>
-                Resource Analytics
+              <h1 style={{ fontSize: '3.2rem', fontWeight: '950', color: '#fff', margin: 0, letterSpacing: '-2px' }}>
+                Resource <span style={{ color: '#6366f1' }}>Analytics</span>
               </h1>
             </div>
-            <p style={{ fontSize: '1.1rem', color: '#64748b', margin: 0, fontWeight: '500', maxWidth: '600px' }}>
-              In-depth evaluation of campus asset performance and occupancy metrics.
+            <p style={{ fontSize: '1.1rem', color: '#94a3b8', margin: 0, fontWeight: '500', maxWidth: '600px' }}>
+              High-fidelity evaluations of campus facility utilization and asset performance metrics.
             </p>
           </div>
 
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <div style={{ display: 'flex', background: '#f8fafc', padding: '6px', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', padding: '6px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.05)' }}>
               <button onClick={() => window.location.href = '/admin'} style={navButtonStyle}>
                 <LayoutDashboard size={16} /> Overview
               </button>
-              <button style={{ ...navButtonStyle, background: '#10b981', color: '#fff', boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)' }}>
+              <button style={{ ...navButtonStyle, background: '#10b981', color: '#fff', boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.3)' }}>
                 <TrendingUp size={16} /> Analytics
               </button>
             </div>
             <div style={{
-              background: '#0f172a', color: '#fff', padding: '15px 25px', borderRadius: '18px',
+              background: 'rgba(99, 102, 241, 0.1)', color: '#fff', padding: '15px 25px', borderRadius: '18px',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
               fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px'
             }}>
               <Calendar size={18} color="#6366f1" />
@@ -94,29 +96,29 @@ export default function ResourceAnalyticsPage() {
 
         {/* 1. Summary Block */}
         <div style={{ marginBottom: '50px' }}>
-          <SummaryCards stats={stats} isDark={false} />
+          <SummaryCards stats={stats} />
         </div>
 
         {/* 2. Visual Intelligence Block (Charts) */}
         <div style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '35px', marginBottom: '40px',
-          padding: '40px', background: '#f8fafc', borderRadius: '35px', border: '1px solid #f1f5f9'
+          padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '35px', border: '1px solid rgba(255,255,255,0.03)'
         }}>
-          <PeakBookingHoursChart data={stats.peakBookingHours} isDark={false} />
-          <ResourcesByBuildingChart data={stats.distributionByBuilding} isDark={false} />
+          <PeakBookingHoursChart data={stats.peakBookingHours} isDark={true} />
+          <ResourcesByBuildingChart data={stats.distributionByBuilding} isDark={true} />
         </div>
 
         {/* 3. Detailed Data Table Block */}
         <div style={{ marginTop: '40px' }}>
-          <MostBookedTable data={stats.mostBooked} isDark={false} />
+          <MostBookedTable data={stats.mostBooked} isDark={true} />
         </div>
 
         {/* Unified Footer */}
         <footer style={{
-          marginTop: '60px', paddingTop: '30px', borderTop: '2px solid #f1f5f9',
-          textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '2px'
+          marginTop: '60px', paddingTop: '30px', borderTop: '1px solid rgba(255,255,255,0.05)',
+          textAlign: 'center', color: '#475569', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '2px'
         }}>
-          DECISION SUPPORT ENGINE | POWERED BY SMART CAMPUS OPERATIONS HUB © 2026
+          DECISION SUPPORT ENGINE | POWERED BY SMART CAMPUS OPERATIONS HUB © {new Date().getFullYear()}
         </footer>
       </div>
     </div>
