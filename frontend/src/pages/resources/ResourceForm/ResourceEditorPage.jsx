@@ -180,11 +180,11 @@ export default function ResourceEditorPage() {
     if (!data.building) vErrors.building = "Please select a building.";
     if (!data.floor && data.floor !== 0) vErrors.floor = "Please select a floor.";
 
-    const roomPattern = /^[A-Z][0-9]{3,4}$/;
+    const roomPattern = /^[A-Z0-9-]+$/;
     if (!data.roomNumber) {
-      vErrors.roomNumber = "Room Number is required. (e.g., A405 or G1102)";
+      vErrors.roomNumber = "Room number is required (e.g., A405, AUD-01, or IT-STORE).";
     } else if (!roomPattern.test(data.roomNumber)) {
-      vErrors.roomNumber = "Invalid format. Use one letter and 3-4 digits (e.g., A405 or G1102).";
+      vErrors.roomNumber = "Invalid format. Use uppercase letters and numbers (hyphens allowed).";
     }
 
     // 🖼️ Image Validation (1 to 5)
