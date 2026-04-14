@@ -137,11 +137,11 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               value={searchParams.capacity || ''}
               onChange={handleChange}
             >
-              <option value="">Any Occupancy</option>
+              <option value="">Any Capacity</option>
+              <option value="2">2+ Seats</option>
               <option value="10">10+ Seats</option>
               <option value="50">50+ Seats</option>
               <option value="100">100+ Seats</option>
-              <option value="200">200+ Seats</option>
               <option value="500">500+ Seats</option>
             </select>
             <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />

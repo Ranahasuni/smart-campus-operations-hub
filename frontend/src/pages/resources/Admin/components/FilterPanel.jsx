@@ -103,11 +103,11 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
         <div style={filterBoxStyle}>
           <Users size={16} style={iconStyle('#f59e0b')} />
           <select name="capacity" value={filters.capacity || ''} onChange={handleChange} style={selectStyle}>
-            <option value="" style={{ background: '#1e293b' }}>Any Seats</option>
+            <option value="" style={{ background: '#1e293b' }}>Any Capacity</option>
+            <option value="2" style={{ background: '#1e293b' }}>2+ Seats</option>
             <option value="10" style={{ background: '#1e293b' }}>10+ Seats</option>
             <option value="50" style={{ background: '#1e293b' }}>50+ Seats</option>
             <option value="100" style={{ background: '#1e293b' }}>100+ Seats</option>
-            <option value="200" style={{ background: '#1e293b' }}>200+ Seats</option>
             <option value="500" style={{ background: '#1e293b' }}>500+ Seats</option>
           </select>
           <ChevronDown size={14} style={chevronStyle} />

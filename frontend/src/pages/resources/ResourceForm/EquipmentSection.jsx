@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function EquipmentSection({ formData, setFormValue }) {
+export default function EquipmentSection({ formData, setFormValue, errors = {} }) {
   const [inputValue, setInputValue] = useState('');
   const equipmentList = formData.equipment || [];
 
@@ -23,19 +23,19 @@ export default function EquipmentSection({ formData, setFormValue }) {
   };
 
   return (
-    <div className="form-section">
-      <h3>Equipment & Features</h3>
+    <div className="form-section" style={{ border: errors.equipment ? '1px solid #ef4444' : '1px solid #bfdbfe' }}>
+      <h3 style={{ color: errors.equipment ? '#ef4444' : '#334155' }}>Equipment & Features</h3>
       <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '-10px', marginBottom: '15px' }}>
         Type an item and press Enter to add it.
       </p>
-      
-      <div className="tag-input-container">
+
+      <div className="tag-input-container" style={{ borderColor: errors.equipment ? '#fca5a5' : '#cbd5e1' }}>
         {equipmentList.map((tag, index) => (
           <span key={index} className="tag-pill">
             {tag}
-            <button 
-              type="button" 
-              className="tag-remove" 
+            <button
+              type="button"
+              className="tag-remove"
               onClick={() => removeTag(tag)}
             >
               &times;
@@ -51,6 +51,11 @@ export default function EquipmentSection({ formData, setFormValue }) {
           onKeyDown={handleKeyDown}
         />
       </div>
+      {errors.equipment && (
+        <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '10px', fontWeight: '700' }}>
+          {errors.equipment}
+        </p>
+      )}
     </div>
   );
 }
