@@ -40,7 +40,7 @@ public class ResourceRequestDTO {
     private Integer floor;
 
     @NotBlank(message = "Room number is required")
-    @Pattern(regexp = "^[A-Z][0-9]{3,4}$", message = "Room number must be one uppercase letter followed by 3 or 4 digits (e.g., A405 or G1102)")
+    @Pattern(regexp = "^[A-Z0-9-]+$", message = "Room number must use uppercase letters and numbers. Hyphens are allowed (e.g., A405, AUD-01).")
     private String roomNumber;
 
     private ResourceStatus status;
