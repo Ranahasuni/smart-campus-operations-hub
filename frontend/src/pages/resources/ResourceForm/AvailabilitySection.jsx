@@ -1,6 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 
-export default function AvailabilitySection({ formData, setFormValue }) {
+export default function AvailabilitySection({ formData, setFormValue, errors = {} }) {
   const availability = (formData.availability && formData.availability.length > 0) ? formData.availability : [
     { day: 'Mon', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
     { day: 'Tue', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
@@ -44,10 +44,17 @@ export default function AvailabilitySection({ formData, setFormValue }) {
   };
 
   return (
-    <div className="form-section">
+    <div className="form-section" style={{ border: errors.availability ? '1px solid #ef4444' : '1px solid #bfdbfe' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h3>Operational Availability</h3>
-        <span style={{ fontSize: '0.85rem', color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: '20px', fontWeight: '500' }}>
+        <h3 style={{ color: errors.availability ? '#ef4444' : '#334155' }}>Operational Availability</h3>
+        <span style={{
+          fontSize: '0.85rem',
+          color: errors.availability ? '#ef4444' : '#64748b',
+          background: errors.availability ? '#fff1f2' : '#f1f5f9',
+          padding: '4px 12px',
+          borderRadius: '20px',
+          fontWeight: '500'
+        }}>
           Multiple slots supported per day
         </span>
       </div>
@@ -63,13 +70,13 @@ export default function AvailabilitySection({ formData, setFormValue }) {
               gap: '12px',
               padding: '20px',
               background: item.isAvailable ? '#f8fafc' : '#fff',
-              border: item.isAvailable ? '1px solid #6366f1' : '1px dashed #e2e8f0',
+              border: item.isAvailable ? '1px solid #6366f1' : (errors.availability ? '1px solid #fca5a5' : '1px dashed #e2e8f0'),
               borderRadius: '20px',
               transition: 'all 0.2s ease'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div style={{ width: '60px', fontWeight: '800', color: item.isAvailable ? '#0f172a' : '#94a3b8', fontSize: '1.1rem' }}>
+              <div style={{ width: '60px', fontWeight: '800', color: item.isAvailable ? '#0f172a' : (errors.availability ? '#fca5a5' : '#94a3b8'), fontSize: '1.1rem' }}>
                 {item.day}
               </div>
 
@@ -109,43 +116,60 @@ export default function AvailabilitySection({ formData, setFormValue }) {
 
             {item.isAvailable && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px', animation: 'fadeIn 0.3s' }}>
-                {item.slots.map((slot, slotIndex) => (
-                  <div key={slotIndex} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#fff', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                    <div className="time-picker-mini" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#64748b' }}>Start</span>
-                      <input
-                        type="time"
-                        value={slot.startTime}
-                        onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'startTime', e.target.value)}
-                        style={{ border: 'none', background: '#f1f5f9', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}
-                      />
+                {item.slots.map((slot, slotIndex) => {
+                  const isTimeInvalid = slot.startTime >= slot.endTime;
+                  return (
+                    <div key={slotIndex} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      background: '#fff',
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: isTimeInvalid ? '1px solid #ef4444' : '1px solid #e2e8f0'
+                    }}>
+                      <div className="time-picker-mini" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: '600', color: isTimeInvalid ? '#ef4444' : '#64748b' }}>Start</span>
+                        <input
+                          type="time"
+                          value={slot.startTime}
+                          onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'startTime', e.target.value)}
+                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#f1f5f9', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}
+                        />
+                      </div>
+                      <span style={{ color: isTimeInvalid ? '#ef4444' : '#94a3b8', fontWeight: '900' }}>→</span>
+                      <div className="time-picker-mini" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: '600', color: isTimeInvalid ? '#ef4444' : '#64748b' }}>End</span>
+                        <input
+                          type="time"
+                          value={slot.endTime}
+                          onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'endTime', e.target.value)}
+                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#f1f5f9', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}
+                        />
+                      </div>
+                      {item.slots.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTimeSlot(dayIndex, slotIndex)}
+                          style={{ marginLeft: 'auto', padding: '8px', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#ef4444', cursor: 'pointer' }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
-                    <span style={{ color: '#94a3b8', fontWeight: '900' }}>→</span>
-                    <div className="time-picker-mini" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#64748b' }}>End</span>
-                      <input
-                        type="time"
-                        value={slot.endTime}
-                        onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'endTime', e.target.value)}
-                        style={{ border: 'none', background: '#f1f5f9', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}
-                      />
-                    </div>
-                    {item.slots.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTimeSlot(dayIndex, slotIndex)}
-                        style={{ marginLeft: 'auto', padding: '8px', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#ef4444', cursor: 'pointer' }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {errors.availability && (
+        <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '15px', fontWeight: '700', textAlign: 'center' }}>
+          {errors.availability}
+        </p>
+      )}
     </div>
   );
 }
