@@ -128,7 +128,9 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more resources not found.");
         }
         
-        validateAvailability(resources.get(0), dto.getDate(), dto.getStartTime(), dto.getEndTime());
+        for (Resource resource : resources) {
+            validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
+        }
         checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id);
 
 
