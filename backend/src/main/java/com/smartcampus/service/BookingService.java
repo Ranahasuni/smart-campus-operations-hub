@@ -46,6 +46,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public BookingResponseDTO createBooking(BookingRequestDTO dto, String userId) {
         // 1. Quota Check for Students
         com.smartcampus.model.User requester = userRepository.findById(userId)
