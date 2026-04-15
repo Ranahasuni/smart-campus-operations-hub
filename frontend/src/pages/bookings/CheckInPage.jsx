@@ -7,6 +7,30 @@ export default function CheckInPage() {
     const [status, setStatus] = useState('loading'); // loading, success, error
     const [message, setMessage] = useState('');
 
+    useEffect(() => {
+        const performCheckIn = async () => {
+            try {
+                const response = await fetch(`http://localhost:8082/api/check-in/${bookingId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setStatus('success');
+                    setMessage(data.message);
+                } else {
+                    setStatus('error');
+                    setMessage(data.error || 'Verification failed');
+                }
+            } catch (err) {
+                setStatus('error');
+                setMessage('Network error. Could not connect to the verification server.');
+            }
+        };
+
+        if (bookingId) performCheckIn();
+    }, [bookingId]);
+
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center border border-slate-100">
