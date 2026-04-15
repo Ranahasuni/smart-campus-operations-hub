@@ -22,6 +22,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ResourceEditorPage from './pages/resources/ResourceForm/ResourceEditorPage';
 import ResourceDetailsPage from './pages/resources/Details/ResourceDetailsPage';
 import StaffPortal from './pages/StaffPortal';
+import CheckInPage from './pages/bookings/CheckInPage';
 
 import Dashboard from './pages/admin/Dashboard.jsx';
 import ManageUsers from './pages/admin/ManageUsers';
