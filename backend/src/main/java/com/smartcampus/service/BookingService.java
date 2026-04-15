@@ -111,6 +111,7 @@ public class BookingService {
         return mapToResponseDTO(bookingRepository.save(saved));
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public BookingResponseDTO updateBooking(String id, BookingRequestDTO dto, String userId) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
