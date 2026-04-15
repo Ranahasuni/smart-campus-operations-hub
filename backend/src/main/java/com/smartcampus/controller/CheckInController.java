@@ -18,6 +18,7 @@ import java.util.Map;
 public class CheckInController {
 
     private final BookingRepository bookingRepository;
+    private final com.smartcampus.service.NotificationService notificationService;
 
     @PostMapping("/{bookingId}")
     public ResponseEntity<?> checkIn(@PathVariable String bookingId) {
@@ -26,7 +27,7 @@ public class CheckInController {
             return ResponseEntity.status(404).body(Map.of("error", "Booking not found"));
         }
 
-        if (booking.getStatus() != BookingStatus.APPROVED) {
+        if (booking.getStatus() != com.smartcampus.model.BookingStatus.APPROVED) {
             return ResponseEntity.status(400).body(Map.of("error", "Only approved bookings can be checked in. Current status: " + booking.getStatus()));
         }
 
@@ -42,6 +43,19 @@ public class CheckInController {
         booking.setCheckedIn(true);
         booking.setCheckInTime(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        // Notify user of successful check-in
+        try {
+            notificationService.sendNotification(
+                booking.getUserId(),
+                "Check-in Successful",
+                "You have successfully checked in for your booking: " + booking.getBookingCode(),
+                com.smartcampus.model.NotificationType.BOOKING,
+                com.smartcampus.model.NotificationPriority.MEDIUM
+            );
+        } catch (Exception e) {
+            // Log error but don't fail the check-in
+        }
 
         return ResponseEntity.ok(Map.of(
             "message", "Check-in successful",
