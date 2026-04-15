@@ -39,6 +39,14 @@ public class CheckInController {
             return ResponseEntity.status(400).body(Map.of("error", "Check-in failed. Booking is for " + booking.getDate() + ", but today is " + today));
         }
 
-        return ResponseEntity.ok(Map.of("message", "Validation successful"));
+        booking.setCheckedIn(true);
+        booking.setCheckInTime(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        return ResponseEntity.ok(Map.of(
+            "message", "Check-in successful",
+            "checkInTime", booking.getCheckInTime(),
+            "bookingCode", booking.getBookingCode()
+        ));
     }
 }
