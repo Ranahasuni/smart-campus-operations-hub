@@ -46,12 +46,10 @@ public class CheckInController {
 
         // Notify user of successful check-in
         try {
-            notificationService.sendNotification(
+            notificationService.notifyCheckIn(
                 booking.getUserId(),
-                "Check-in Successful",
-                "You have successfully checked in for your booking: " + booking.getBookingCode(),
-                com.smartcampus.model.NotificationType.CHECK_IN,
-                com.smartcampus.model.NotificationPriority.MEDIUM
+                booking.getId(),
+                booking.getBookingCode()
             );
         } catch (Exception e) {
             // Log error but don't fail the check-in
