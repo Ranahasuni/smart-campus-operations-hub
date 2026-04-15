@@ -58,6 +58,9 @@ public class Booking {
     /** Only filled if status = REJECTED */
     private String rejectionReason;
 
+    @Builder.Default
+    private boolean isCheckedIn = false;
+
     private String bookingCode;
 
     @Builder.Default
