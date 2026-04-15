@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import UserProfile from './pages/auth/UserProfile';
+import OAuth2CallbackPage from './pages/auth/OAuth2CallbackPage';
 import NotificationPage from './pages/NotificationPage';
 import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/oauth2/callback" element={<OAuth2CallbackPage />} />
 
             {/* Authenticated Routes */}
             <Route path="/profile" element={

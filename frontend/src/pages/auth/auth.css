@@ -191,3 +191,86 @@ select option {
   background: #1e293b;
   color: #fff;
 }
+
+/* ── OR Divider ──────────────────────────────── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 1.25rem;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Google OAuth Button ─────────────────────── */
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-google::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.08), rgba(234, 67, 53, 0.06));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.btn-google:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(66, 133, 244, 0.45);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(66, 133, 244, 0.2);
+}
+
+.btn-google:hover::before {
+  opacity: 1;
+}
+
+.btn-google:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-google svg {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-google span,
+.btn-google > * {
+  position: relative;
+  z-index: 1;
+}
+

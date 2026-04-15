@@ -4,6 +4,8 @@ import { User, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './auth.css';
 
+const BACKEND = 'http://localhost:8082';
+
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -35,12 +37,16 @@ export default function Login() {
         navigate('/profile');
       }
 
-
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMicrosoftLogin = () => {
+    // Redirect to Spring Security's OAuth2 initiation endpoint for Microsoft
+    window.location.href = `${BACKEND}/oauth2/authorization/microsoft`;
   };
 
   return (
@@ -114,8 +120,45 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Public registration is disabled - accounts are created by Admin */}
+        {/* Divider */}
+        <div className="auth-divider">
+          <span>or continue with</span>
+        </div>
+
+        {/* Microsoft OAuth2 Button (Disabled until credentials configured) */}
+        <button
+          id="btn-microsoft-login"
+          onClick={handleMicrosoftLogin}
+          className="btn-microsoft"
+          style={{ 
+            borderColor: 'rgba(100, 116, 139, 0.4)',
+            background: 'rgba(100, 116, 139, 0.05)',
+            opacity: 0.6,
+            cursor: 'not-allowed'
+          }}
+          type="button"
+          disabled
+          title="Microsoft Sign-in is coming soon"
+        >
+          <svg width="20" height="20" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+            <rect fill="#f3f3f3" width="10.5" height="10.5"/>
+            <rect fill="#f3f3f3" x="12.5" width="10.5" height="10.5"/>
+            <rect fill="#f3f3f3" y="12.5" width="10.5" height="10.5"/>
+            <rect fill="#f3f3f3" x="12.5" y="12.5" width="10.5" height="10.5"/>
+            <path fill="#f25022" d="M0 0h10.5v10.5H0z"/>
+            <path fill="#7fba00" d="M12.5 0H23v10.5H12.5z"/>
+            <path fill="#00a1f1" d="M0 12.5h10.5V23H0z"/>
+            <path fill="#ffb900" d="M12.5 12.5H23V23H12.5z"/>
+          </svg>
+          Continue with Microsoft (Coming Soon)
+        </button>
+
+        <div className="auth-footer">
+          Don't have an account?{' '}
+          <Link to="/register">Create one here</Link>
+        </div>
       </div>
     </div>
   );
 }
+

@@ -72,6 +72,18 @@ export function AuthProvider({ children }) {
     setUser(userInfo);
   };
 
+  /**
+   * Persists a session received from the OAuth2 callback page.
+   * Accepts a flat object: { token, id, fullName, campusEmail, role, campusId }
+   */
+  const persistOAuthSession = ({ token: oauthToken, id, fullName, campusEmail, role, campusId }) => {
+    const userInfo = { id, fullName, campusEmail, role, campusId };
+    localStorage.setItem('sc_token', oauthToken);
+    localStorage.setItem('sc_user', JSON.stringify(userInfo));
+    setToken(oauthToken);
+    setUser(userInfo);
+  };
+
   /** Authenticated fetch helper — auto-attaches Bearer token and handles expiration */
   const authFetch = async (url, options = {}) => {
     // Proactive check: if token is null/empty, session is effectively gone
@@ -102,7 +114,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, authFetch, API }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, authFetch, persistOAuthSession, API }}>
       {children}
     </AuthContext.Provider>
   );
