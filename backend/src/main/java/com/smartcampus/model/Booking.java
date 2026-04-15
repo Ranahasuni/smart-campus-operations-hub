@@ -60,6 +60,7 @@ public class Booking {
 
     @Builder.Default
     private boolean isCheckedIn = false;
+    private LocalDateTime checkInTime;
 
     private String bookingCode;
 
