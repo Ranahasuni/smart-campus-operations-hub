@@ -23,6 +23,7 @@ export default function ResourceEditorPage() {
   const [initLoading, setInitLoading] = useState(isEdit);
   const [error, setError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -104,16 +105,148 @@ export default function ResourceEditorPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
+    }
   };
 
   const setFormValue = (field, value) => {
+    if (field === 'images_error') {
+      setValidationErrors(prev => ({ ...prev, images: value }));
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [field]: value }));
+
+    // Clear or update the red error state as soon as the admin interacts with these sections
+    const errorKey = field === 'imageUrls' ? 'images' : field;
+    const specialSections = ['images', 'equipment', 'availability'];
+
+    if (specialSections.includes(errorKey)) {
+      const vErrors = runValidation({ ...formData, [field]: value });
+
+      if (!vErrors[errorKey]) {
+        // Corrected! Remove from state
+        setValidationErrors(prev => {
+          const updated = { ...prev };
+          delete updated[errorKey];
+          return updated;
+        });
+      } else {
+        // Still error? Update message/color in state
+        setValidationErrors(prev => ({ ...prev, [errorKey]: vErrors[errorKey] }));
+      }
+      return;
+    }
+
+    // Default cleanup for text inputs
+    if (validationErrors[errorKey]) {
+      setValidationErrors(prev => {
+        const updated = { ...prev };
+        delete updated[errorKey];
+        return updated;
+      });
+    }
+  };
+
+  // Manual Validation Brain (Accessible to both Submit and Blur)
+  const runValidation = (data) => {
+    const vErrors = {};
+    if (!data.name || data.name.trim().length < 3) {
+      vErrors.name = data.name?.trim().length === 0
+        ? "This field is required. Please fill it to continue."
+        : "Name is too short. Please enter at least 3 characters.";
+    }
+    if (!data.description || data.description.trim().length < 10) {
+      vErrors.description = data.description?.trim().length === 0
+        ? "This field is required. Please fill it to continue."
+        : "Please provide a more detailed description (min. 10 characters).";
+    }
+    if (!data.type) vErrors.type = "Please select a category.";
+
+    if (!data.capacity && data.capacity !== 0) {
+      vErrors.capacity = "This field is required. Please enter a number.";
+    } else if (Number(data.capacity) < 1) {
+      vErrors.capacity = "Minimum capacity is 1.";
+    } else if (Number(data.capacity) > 1000) {
+      vErrors.capacity = "Total capacity exceeds the maximum campus limit of 1,000 seats.";
+    }
+
+    if (!data.building) vErrors.building = "Please select a building.";
+    if (!data.floor && data.floor !== 0) vErrors.floor = "Please select a floor.";
+
+    const roomPattern = /^[A-Z0-9-]+$/;
+    if (!data.roomNumber) {
+      vErrors.roomNumber = "Room number is required (e.g., A405, AUD-01, or IT-STORE).";
+    } else if (!roomPattern.test(data.roomNumber)) {
+      vErrors.roomNumber = "Invalid format. Use uppercase letters and numbers (hyphens allowed).";
+    }
+
+    // 🖼️ Image Validation (1 to 5)
+    if (!data.imageUrls || data.imageUrls.length === 0) {
+      vErrors.images = "At least one image is required to showcase the facility.";
+    } else if (data.imageUrls.length > 5) {
+      vErrors.images = "You can only upload a maximum of 5 images.";
+    }
+
+    // 🛠️ Equipment Validation (Min 1)
+    if (!data.equipment || data.equipment.length === 0) {
+      vErrors.equipment = "Smart Campus Requirement: Please list at least one feature or piece of equipment.";
+    }
+
+    // 🕒 Availability Validation (Real-World Logic)
+    const activeDays = data.availability?.filter(d => d.isAvailable) || [];
+    if (activeDays.length === 0) {
+      vErrors.availability = "Operational Status: You must enable at least one day for this resource to be registered as functional.";
+    } else {
+      // Check if any active day has ZERO slots
+      const dayWithNoSlots = activeDays.find(day => !day.slots || day.slots.length === 0);
+      if (dayWithNoSlots) {
+        vErrors.availability = `Critical Logic Error: ${dayWithNoSlots.day} is set to 'Available' but has no time slots. Please add a slot or disable the day.`;
+      } else {
+        // Check if all active days have valid time ranges
+        const hasInvalidTime = activeDays.some(day =>
+          day.slots?.some(slot => !slot.startTime || !slot.endTime || slot.startTime >= slot.endTime)
+        );
+        if (hasInvalidTime) {
+          vErrors.availability = "Time Logic Error: Ensure every 'Start Time' is earlier than the 'End Time'.";
+        }
+      }
+    }
+
+    return vErrors;
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    const vErrors = runValidation(formData);
+    if (vErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: vErrors[name] }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+
+    // Clear previous errors
     setError(null);
+    setValidationErrors({});
+
+    const newErrors = runValidation(formData);
+
+    if (Object.keys(newErrors).length > 0) {
+      setValidationErrors(newErrors);
+      setError("Registration Incomplete: Some fields require your attention. Please fill required fields.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setLoading(true);
 
     try {
       // Ensure numeric fields are sent as Numbers (Integers) for Spring Boot DTO
@@ -192,15 +325,19 @@ export default function ResourceEditorPage() {
         {isEdit ? 'Update Resource Details' : 'New Resource Registration'}
       </h2>
 
-      {error && <div className="error-banner">{error}</div>}
+      {error && (
+        <div className="error-banner">
+          <Zap size={20} fill="#e11d48" /> {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit}>
-        <BasicInfoSection formData={formData} handleChange={handleChange} />
-        <LocationSection formData={formData} handleChange={handleChange} />
+      <form onSubmit={handleSubmit} noValidate>
+        <BasicInfoSection formData={formData} handleChange={handleChange} handleBlur={handleBlur} errors={validationErrors} />
+        <LocationSection formData={formData} handleChange={handleChange} handleBlur={handleBlur} errors={validationErrors} />
         <StatusSection formData={formData} handleChange={handleChange} />
-        <EquipmentSection formData={formData} setFormValue={setFormValue} />
-        <ImagesSection formData={formData} setFormValue={setFormValue} />
-        <AvailabilitySection formData={formData} handleChange={handleChange} setFormValue={setFormValue} />
+        <EquipmentSection formData={formData} setFormValue={setFormValue} errors={validationErrors} />
+        <ImagesSection formData={formData} setFormValue={setFormValue} errors={validationErrors} />
+        <AvailabilitySection formData={formData} handleChange={handleChange} setFormValue={setFormValue} errors={validationErrors} />
 
         <FormButtons isEdit={isEdit} loading={loading} />
       </form>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, RotateCcw, Building2, Map, Users, Layout, Activity } from 'lucide-react';
+import { RotateCcw, Building2, Map, Users, Layout, Activity, ChevronDown } from 'lucide-react';
 import api from '../../../../api/axiosInstance';
 
 const RESOURCE_TYPES = ['LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'];
@@ -44,99 +44,82 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  const optionStyle = {
-    background: '#f8fafc',
-    color: '#334155',
-    padding: '12px'
-  };
-
   return (
     <div style={{
-      background: '#fff',
-      padding: '24px',
+      background: 'rgba(255, 255, 255, 0.02)',
+      padding: '16px',
       borderRadius: '24px',
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04)',
-      border: '1px solid #f1f5f9',
-      marginBottom: '32px'
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      marginBottom: '32px',
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
     }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 0.8fr 1fr 0.8fr 0.5fr', gap: '12px', alignItems: 'center' }}>
-
-        {/* 1. Name Search - Indigo */}
-        <div style={{ position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#6366f1' }} />
-          <input
-            name="name"
-            placeholder="Search by name..."
-            value={filters.name || ''}
-            onChange={handleChange}
-            style={inputStyle}
-          />
-        </div>
-
-        {/* 2. Building - Teal */}
-        <div style={{ position: 'relative' }}>
-          <Building2 size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#0d9488' }} />
-          <select name="building" value={filters.building || ''} onChange={handleChange} style={{ ...selectStyle, paddingLeft: '44px' }}>
-            <option value="" style={optionStyle}>Any Building</option>
-            {buildings.map(b => <option key={b} value={b} style={optionStyle}>{b}</option>)}
+      {/* ELITE FILTER TOOLBAR - MIDNIGHT EDITION */}
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        
+        {/* 1. Building */}
+        <div style={{ ...filterBoxStyle, flex: '1.4' }}>
+          <Building2 size={16} style={iconStyle('#6366f1')} />
+          <select name="building" value={filters.building || ''} onChange={handleChange} style={selectStyle}>
+            <option value="" style={{ background: '#1e293b' }}>All Buildings</option>
+            {buildings.map(b => <option key={b} value={b} style={{ background: '#1e293b' }}>{b}</option>)}
           </select>
+          <ChevronDown size={14} style={chevronStyle} />
         </div>
 
-        {/* 3. Floor - Teal */}
-        <div style={{ position: 'relative' }}>
-          <Map size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#0d9488' }} />
-          <select name="floor" value={filters.floor || ''} onChange={handleChange} disabled={!filters.building} style={{ ...selectStyle, paddingLeft: '44px', background: !filters.building ? '#f8fafc' : '#fff' }}>
-            <option value="" style={optionStyle}>Any Floor</option>
-            {floors.map(f => <option key={f} value={f} style={optionStyle}>Floor {f}</option>)}
+        {/* 2. Floor */}
+        <div style={{ ...filterBoxStyle, flex: '0.9' }}>
+          <Map size={16} style={iconStyle('#0ea5e9')} />
+          <select name="floor" value={filters.floor || ''} onChange={handleChange} disabled={!filters.building} style={{ ...selectStyle, opacity: !filters.building ? 0.3 : 1 }}>
+            <option value="" style={{ background: '#1e293b' }}>All Floors</option>
+            {floors.map(f => <option key={f} value={f} style={{ background: '#1e293b' }}>Floor {f}</option>)}
           </select>
+          <ChevronDown size={14} style={chevronStyle} />
         </div>
 
-        {/* 4. Type - Violet */}
-        <div style={{ position: 'relative' }}>
-          <Layout size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b5cf6' }} />
-          <select name="type" value={filters.type || ''} onChange={handleChange} style={{ ...selectStyle, paddingLeft: '44px' }}>
-            <option value="" style={optionStyle}>All Types</option>
-            {RESOURCE_TYPES.map(t => {
-                let displayName = t.replace(/_/g, ' ').toUpperCase();
-                if (t === 'LECTURE_HALL') displayName = 'LECTURE HALL';
-                return <option key={t} value={t} style={optionStyle}>{displayName}</option>;
-            })}
+        {/* 3. Category */}
+        <div style={{ ...filterBoxStyle, flex: '1.2' }}>
+          <Layout size={16} style={iconStyle('#8b5cf6')} />
+          <select name="type" value={filters.type || ''} onChange={handleChange} style={selectStyle}>
+            <option value="" style={{ background: '#1e293b' }}>All Categories</option>
+            {RESOURCE_TYPES.map(t => (
+              <option key={t} value={t} style={{ background: '#1e293b' }}>{t.replace(/_/g, ' ')}</option>
+            ))}
           </select>
+          <ChevronDown size={14} style={chevronStyle} />
         </div>
 
-        {/* 5. Status - Slate */}
-        <div style={{ position: 'relative' }}>
-          <Activity size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-          <select name="status" value={filters.status || ''} onChange={handleChange} style={{ ...selectStyle, paddingLeft: '44px' }}>
-            <option value="" style={optionStyle}>All Statuses</option>
-            {STATUSES.map(s => <option key={s} value={s} style={optionStyle}>{s.replace('_', ' ')}</option>)}
+        {/* 4. Status */}
+        <div style={filterBoxStyle}>
+          <Activity size={16} style={iconStyle('#94a3b8')} />
+          <select name="status" value={filters.status || ''} onChange={handleChange} style={selectStyle}>
+            <option value="" style={{ background: '#1e293b' }}>All Statuses</option>
+            {STATUSES.map(s => <option key={s} value={s} style={{ background: '#1e293b' }}>{s.replace(/_/g, ' ')}</option>)}
           </select>
+          <ChevronDown size={14} style={chevronStyle} />
         </div>
 
-        {/* 6. Capacity - Amber */}
-        <div style={{ position: 'relative' }}>
-          <Users size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#f59e0b' }} />
-          <input
-            type="number"
-            name="capacity"
-            placeholder="Min. Cap"
-            value={filters.capacity || ''}
-            onChange={handleChange}
-            style={{ ...inputStyle, paddingLeft: '36px', fontSize: '0.85rem' }}
-          />
+        {/* 5. Capacity */}
+        <div style={filterBoxStyle}>
+          <Users size={16} style={iconStyle('#f59e0b')} />
+          <select name="capacity" value={filters.capacity || ''} onChange={handleChange} style={selectStyle}>
+            <option value="" style={{ background: '#1e293b' }}>Any Capacity</option>
+            <option value="2" style={{ background: '#1e293b' }}>2+ Seats</option>
+            <option value="10" style={{ background: '#1e293b' }}>10+ Seats</option>
+            <option value="50" style={{ background: '#1e293b' }}>50+ Seats</option>
+            <option value="100" style={{ background: '#1e293b' }}>100+ Seats</option>
+            <option value="500" style={{ background: '#1e293b' }}>500+ Seats</option>
+          </select>
+          <ChevronDown size={14} style={chevronStyle} />
         </div>
 
-        {/* 7. Reset */}
+        {/* 6. Professional Reset */}
         <button
           onClick={clearFilters}
-          title="Reset Filters"
-          style={{
-            height: '48px', width: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0',
-            color: '#64748b', cursor: 'pointer', transition: 'all 0.2s'
-          }}
-          onMouseOver={e => { e.currentTarget.style.color = '#6366f1'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#6366f1'; }}
-          onMouseOut={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+          title="Reset Register Filters"
+          style={resetBtnStyle}
+          onMouseOver={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; }}
+          onMouseOut={e => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
         >
           <RotateCcw size={18} />
         </button>
@@ -145,31 +128,60 @@ export default function FilterPanel({ filters, setFilters, clearFilters }) {
   );
 }
 
-const inputStyle = {
-  width: '100%',
-  height: '48px',
-  padding: '12px 12px 12px 44px',
-  borderRadius: '12px',
-  background: '#fff',
-  border: '1px solid #e2e8f0',
-  color: '#0f172a',
-  fontWeight: '600',
-  outline: 'none',
-  fontSize: '0.9rem',
-  transition: 'border-color 0.2s',
+const filterBoxStyle = {
+  flex: '1',
+  position: 'relative',
+  minWidth: '0'
 };
 
 const selectStyle = {
   width: '100%',
-  height: '48px',
-  borderRadius: '12px',
-  background: '#fff',
-  border: '1px solid #e2e8f0',
-  color: '#475569',
+  height: '52px',
+  padding: '10px 24px 10px 48px',
+  borderRadius: '16px',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  background: 'rgba(255, 255, 255, 0.03)',
+  color: '#cbd5e1',
   cursor: 'pointer',
   outline: 'none',
   fontWeight: '600',
-  fontSize: '0.85rem',
+  fontSize: '0.92rem',
   appearance: 'none',
+  transition: 'all 0.2s',
+  whiteSpace: 'nowrap',
+  textOverflow: 'ellipsis',
+  overflow: 'hidden',
 };
 
+const iconStyle = (color) => ({
+  position: 'absolute',
+  left: '18px',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  color: color,
+  zIndex: 2
+});
+
+const chevronStyle = {
+  position: 'absolute',
+  right: '14px',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  color: '#64748b',
+  pointerEvents: 'none'
+};
+
+const resetBtnStyle = {
+  height: '52px',
+  width: '52px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '16px',
+  background: 'rgba(255, 255, 255, 0.03)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  color: '#94a3b8',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  flexShrink: 0
+};

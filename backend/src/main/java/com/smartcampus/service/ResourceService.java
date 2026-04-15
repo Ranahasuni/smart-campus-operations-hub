@@ -93,7 +93,11 @@ public class ResourceService {
         List<Resource> all = resourceRepository.findAll();
 
         return all.stream()
-                .filter(r -> name == null || r.getName().toLowerCase().contains(name.toLowerCase()))
+                .filter(r -> {
+                    if (name == null || name.trim().isEmpty()) return true;
+                    if (r.getName() == null) return false;
+                    return r.getName().toLowerCase().startsWith(name.toLowerCase());
+                })
                 .filter(r -> building == null || r.getBuilding().equalsIgnoreCase(building))
                 .filter(r -> floor == null || r.getFloor().equals(floor))
                 .filter(r -> type == null || r.getType() == type)
@@ -225,6 +229,8 @@ public class ResourceService {
 
     // ── CREATE ──────────────────────────────────────────
     public ResourceResponseDTO createResource(ResourceRequestDTO dto) {
+        validateBuildingLimits(dto.getBuilding(), dto.getFloor());
+
         Resource resource = Resource.builder()
                 .name(sanitize(dto.getName()))
                 .description(sanitize(dto.getDescription()))
@@ -259,6 +265,8 @@ public class ResourceService {
 
     // ── UPDATE ──────────────────────────────────────────
     public ResourceResponseDTO updateResource(String id, ResourceRequestDTO dto) {
+        validateBuildingLimits(dto.getBuilding(), dto.getFloor());
+
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
 
@@ -318,6 +326,28 @@ public class ResourceService {
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
         resourceRepository.delete(resource);
+    }
+
+    private void validateBuildingLimits(String building, Integer floor) {
+        if (building == null || floor == null) return;
+
+        String b = building.toUpperCase();
+        if (b.equals("MAIN BUILDING") && floor > 7) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST, "Main Building only has floors up to 7.");
+        }
+        if ((b.contains("F BLOCK") || b.contains("G BLOCK")) && floor > 14) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST, "New Buildings F/G Block only have floors up to 14.");
+        }
+        if (b.equals("SPORTS COMPLEX") && floor > 2) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST, "Sports Complex only has floors up to 2.");
+        }
+        if (floor < 0) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid floor number.");
+        }
     }
 
     @EventListener(ContextRefreshedEvent.class)

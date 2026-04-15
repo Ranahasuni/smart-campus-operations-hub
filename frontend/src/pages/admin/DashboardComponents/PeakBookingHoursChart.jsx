@@ -11,21 +11,21 @@ export default function PeakBookingHoursChart({ data }) {
   }));
 
   return (
-    <div style={{ background: '#fff', padding: '30px', borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', height: '400px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '30px', borderRadius: '32px', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)', height: '400px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>Peak Booking Hours</h3>
-        <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>Hourly utilization intelligence for campus resources</p>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#fff', margin: 0 }}>Peak Booking Hours</h3>
+        <p style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Hourly utilization intelligence for campus resources</p>
       </div>
 
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.6} />
               <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.05)" />
           <XAxis
             dataKey="name"
             axisLine={false}
@@ -40,12 +40,14 @@ export default function PeakBookingHoursChart({ data }) {
           />
           <Tooltip
             contentStyle={{
-              borderRadius: '16px', border: 'none',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              background: '#0f172a',
+              borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
               fontWeight: 800,
-              padding: '12px'
+              padding: '12px',
+              color: '#fff'
             }}
-            itemStyle={{ color: '#6366f1' }}
+            itemStyle={{ color: '#818cf8' }}
           />
           <Area
             type="monotone"

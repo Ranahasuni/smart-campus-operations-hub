@@ -1,17 +1,56 @@
 import React from 'react';
-import { Clock, CalendarX } from 'lucide-react';
+import { Clock, CalendarX, Loader2, Info } from 'lucide-react';
 
-export default function ReservedSlots({ bookings, selectedDate, isUnavailable }) {
-  if (isUnavailable) {
+export default function ReservedSlots({ bookings, selectedDate, isMaintenance, isOffline, loading }) {
+  if (loading) {
     return (
-      <div className="availability-card" style={{ marginTop: '20px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)' }}>
+      <div className="availability-card" style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '30px', gap: '12px' }}>
+        <Loader2 className="animate-spin" size={24} style={{ color: 'var(--accent-primary)' }} />
+        <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>SYNCING SCHEDULE...</span>
+      </div>
+    );
+  }
+
+  // 🏥 THE "CORRECT WAY": Distinguish between Technical repairs and Administrative offline
+  if (isMaintenance || isOffline) {
+    const isMaint = !!isMaintenance;
+    return (
+      <div className="availability-card" style={{ 
+        marginTop: '20px', 
+        border: '1px solid ' + (isMaint ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.3)'), 
+        background: isMaint ? 'rgba(239, 68, 68, 0.05)' : 'rgba(99, 102, 241, 0.05)' 
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <CalendarX size={20} style={{ color: '#ef4444' }} />
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>Service Suspended</h3>
+          {isMaint ? (
+            <CalendarX size={20} style={{ color: '#ef4444' }} />
+          ) : (
+            <Info size={20} style={{ color: '#6366f1' }} />
+          )}
+          <h3 style={{ 
+            margin: 0, 
+            fontSize: '1.1rem', 
+            fontWeight: '800', 
+            color: isMaint ? '#ef4444' : '#6366f1' 
+          }}>
+            {isMaint ? 'Service Suspended' : 'Facility Offline'}
+          </h3>
         </div>
-        <div style={{ padding: '16px', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px' }}>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#ef4444', fontWeight: '600', lineHeight: '1.5' }}>
-            Reservations are temporarily disabled while technical repairs are in progress.
+        <div style={{ 
+          padding: '16px', 
+          textAlign: 'center', 
+          background: isMaint ? 'rgba(239, 68, 68, 0.1)' : 'rgba(99, 102, 241, 0.1)', 
+          borderRadius: '12px' 
+        }}>
+          <p style={{ 
+            margin: 0, 
+            fontSize: '0.85rem', 
+            color: isMaint ? '#ef4444' : '#6366f1', 
+            fontWeight: '600', 
+            lineHeight: '1.5' 
+          }}>
+            {isMaint 
+              ? 'Reservations are temporarily disabled while technical repairs or active maintenance tickets are in progress.' 
+              : 'This facility is currently offline for administrative scheduling and is not accepting new reservations.'}
           </p>
         </div>
       </div>
