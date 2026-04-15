@@ -32,9 +32,11 @@ export default function CheckInPage() {
     }, [bookingId]);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center border border-slate-100">
-                <h1 className="text-2xl font-bold text-slate-900 mb-6">Booking Verification</h1>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-slate-50 to-slate-50">
+            <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] p-10 text-center border border-white/20">
+                <h1 className="text-[0.75rem] font-black uppercase tracking-[0.2em] text-indigo-600/60 mb-8">Smart Campus OS Hub</h1>
+                <h2 className="text-3xl font-black text-slate-900 mb-2 leading-tight">Booking<br/>Verification</h2>
+                <div className="w-12 h-1 bg-indigo-600/10 rounded-full mx-auto mb-10"></div>
                 
                 {status === 'loading' && (
                     <div className="flex flex-col items-center gap-4 py-8">
