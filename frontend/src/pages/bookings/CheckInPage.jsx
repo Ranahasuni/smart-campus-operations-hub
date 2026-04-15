@@ -50,8 +50,14 @@ export default function CheckInPage() {
                         </div>
                         <h2 className="text-2xl font-bold text-emerald-700">Verification Successful</h2>
                         <p className="text-slate-600">{message}</p>
-                        <div className="mt-8 pt-6 border-t border-slate-100 w-full">
+                        <div className="mt-8 pt-6 border-t border-slate-100 w-full flex flex-col gap-3">
                             <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Authorized Access</p>
+                            <button 
+                                onClick={() => window.location.href = '/profile'}
+                                className="mt-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 py-2 px-4 rounded-xl transition-colors"
+                            >
+                                Continue to Dashboard
+                            </button>
                         </div>
                     </div>
                 )}
