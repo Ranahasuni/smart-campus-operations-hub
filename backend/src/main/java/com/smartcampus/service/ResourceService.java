@@ -46,7 +46,7 @@ public class ResourceService {
 
     // ── HELPER — Generate QR Code URL ──────────────────
     private String generateQRCode(String resourceId) {
-        String resourceUrl = "https://smartcampus.com/resources/" + resourceId;
+        String resourceUrl = "http://localhost:5173/resources/" + resourceId;
         return "https://api.qrserver.com/v1/create-qr-code/"
                 + "?size=200x200&data=" + resourceUrl;
     }

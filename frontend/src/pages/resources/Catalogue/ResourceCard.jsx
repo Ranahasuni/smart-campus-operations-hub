@@ -60,7 +60,11 @@ export default function ResourceCard({ resource }) {
           </div>
         </div>
 
-        <Link to={`/resources/${resource.id}`} className="view-details-btn-final">
+        <Link 
+          to={`/resources/${resource.id}`} 
+          state={{ resource }} 
+          className="view-details-btn-final"
+        >
           View Details
         </Link>
       </div>
