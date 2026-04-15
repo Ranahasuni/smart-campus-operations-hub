@@ -129,6 +129,9 @@ public class BookingService {
         }
         
         for (Resource resource : resources) {
+            if (dto.getExpectedAttendees() > resource.getCapacity()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Capacity exceeded for " + resource.getName());
+            }
             validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
         }
         checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id);
