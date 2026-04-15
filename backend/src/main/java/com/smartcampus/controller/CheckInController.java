@@ -50,7 +50,7 @@ public class CheckInController {
                 booking.getUserId(),
                 "Check-in Successful",
                 "You have successfully checked in for your booking: " + booking.getBookingCode(),
-                com.smartcampus.model.NotificationType.BOOKING,
+                com.smartcampus.model.NotificationType.CHECK_IN,
                 com.smartcampus.model.NotificationPriority.MEDIUM
             );
         } catch (Exception e) {
