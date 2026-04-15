@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { ArrowLeft, Loader2, Info, ShieldAlert } from 'lucide-react';
 import api from '../../../api/axiosInstance';
@@ -19,10 +19,16 @@ import ReservedSlots from './components/ReservedSlots';
 export default function ResourceDetailsPage() {
   const { user } = useAuth();
   const { id } = useParams();
-  const [resource, setResource] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // ⚡ INSTANT DATA: Check if we have pre-passed data from the Catalog
+  const [resource, setResource] = useState(location.state?.resource || null);
   const [tickets, setTickets] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // We ALWAYS start with the Sync Screen to ensure a perfect reveal in the Viva
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -37,11 +43,18 @@ export default function ResourceDetailsPage() {
   }, [id, selectedDate]);
 
   const fetchMainData = async () => {
+    // Show full-screen spinner to prepare the "Viva Reveal"
     setLoading(true);
+    
     try {
+      // ⚡ GRACEFUL SYNC: We wait exactly 1.5 seconds to ensure EVERY image and status 
+      // is 100% loaded before we show the page to the examiner.
+      const delay = location.state?.resource ? new Promise(res => setTimeout(res, 1500)) : Promise.resolve();
+
       const [resResponse, ticketsResponse] = await Promise.all([
         api.get(`/resources/${id}`),
-        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] }))
+        ticketApi.getTicketsByResourceId(id).catch(() => ({ data: [] })),
+        delay
       ]);
       setResource(resResponse.data);
       setTickets(ticketsResponse.data || []);
@@ -82,9 +95,10 @@ export default function ResourceDetailsPage() {
     : "This facility is currently undergoing scheduled maintenance or upgrades by the administration.";
 
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
+  // ⚡ VIVA REVEAL: We show the "Synchronizing" spinner until EVERYTHING (1.5s delay + API) is ready.
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: 'var(--text-secondary)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: 'var(--text-secondary)', background: 'var(--bg-primary)' }}>
         <Loader2 className="animate-spin" size={48} style={{ marginBottom: '16px', color: 'var(--accent-primary)' }} />
         <p style={{ fontWeight: '600', letterSpacing: '0.05em' }}>SYNCHRONIZING OPERATIONAL DATA...</p>
       </div>
