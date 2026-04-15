@@ -63,8 +63,14 @@ export default function CheckInPage() {
                         </div>
                         <h2 className="text-2xl font-bold text-rose-700">Verification Failed</h2>
                         <p className="text-slate-600">{message}</p>
-                        <div className="mt-8 pt-6 border-t border-slate-100 w-full">
+                        <div className="mt-8 pt-6 border-t border-slate-100 w-full flex flex-col gap-3">
                             <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Unauthorized / Invalid</p>
+                            <button 
+                                onClick={() => window.location.href = '/support'}
+                                className="mt-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 py-2 px-4 rounded-xl transition-colors"
+                            >
+                                Contact Staff for Assistance
+                            </button>
                         </div>
                     </div>
                 )}
