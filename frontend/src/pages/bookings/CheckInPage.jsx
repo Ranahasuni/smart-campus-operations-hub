@@ -42,6 +42,19 @@ export default function CheckInPage() {
                         <p className="text-slate-500 font-medium">Verifying your reservation...</p>
                     </div>
                 )}
+
+                {status === 'success' && (
+                    <div className="flex flex-col items-center gap-4 py-8 animate-in fade-in zoom-in duration-300">
+                        <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
+                            <CheckCircle className="w-12 h-12 text-emerald-600" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-emerald-700">Verification Successful</h2>
+                        <p className="text-slate-600">{message}</p>
+                        <div className="mt-8 pt-6 border-t border-slate-100 w-full">
+                            <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Authorized Access</p>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
