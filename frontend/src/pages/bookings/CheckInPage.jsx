@@ -40,8 +40,15 @@ export default function CheckInPage() {
                 
                 {status === 'loading' && (
                     <div className="flex flex-col items-center gap-4 py-8">
-                        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-                        <p className="text-slate-500 font-medium">Verifying your reservation...</p>
+                        <div className="relative">
+                            <Loader2 className="w-16 h-16 text-indigo-600 animate-spin" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></div>
+                            </div>
+                        </div>
+                        <div className="bg-indigo-50 px-4 py-1.5 rounded-full border border-indigo-100">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Verification in progress</p>
+                        </div>
                     </div>
                 )}
 
