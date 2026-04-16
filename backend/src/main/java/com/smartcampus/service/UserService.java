@@ -1,5 +1,6 @@
 package com.smartcampus.service;
 
+import com.smartcampus.model.Role;
 import com.smartcampus.model.User;
 import com.smartcampus.model.UserStatus;
 import com.smartcampus.repository.UserRepository;
@@ -29,22 +30,20 @@ public class UserService {
             throw new IllegalArgumentException("Email already exists: " + user.getCampusEmail());
         }
 
-        // 0. Privilege Escalation / Deprecated Role Prevention
-        if (user.getRole() == com.smartcampus.model.Role.ADMIN || user.getRole() == com.smartcampus.model.Role.STAFF) {
-            throw new IllegalArgumentException("Security Violation: Assignment of ADMIN or STAFF roles is restricted in this dashboard.");
+        // Security Validation
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("Security Violation: Direct creation of ADMINs is restricted.");
         }
 
-        // Set default values for admin-created accounts
         user.setStatus(UserStatus.ACTIVE);
         user.setFailedAttempts(0);
         
-        // Hash the initial password if provided, else use a default or throw
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
         User saved = userRepository.save(user);
-        auditService.log(adminId, "USER_CREATE", "Admin created new account: " + user.getCampusId());
+        auditService.log(adminId, "USER_CREATE", "Admin created account: " + user.getCampusId());
         return saved;
     }
 
@@ -52,7 +51,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public List<User> getUsersByRole(com.smartcampus.model.Role role) {
+    public List<User> getUsersByRole(Role role) {
         return userRepository.findByRole(role);
     }
 
@@ -64,54 +63,54 @@ public class UserService {
     public User updateUser(String id, User updatedUser, String adminId) {
         User existing = getUserById(id);
         
-        // 2. Privilege Escalation / Deprecated Role Prevention
-        if ((updatedUser.getRole() == com.smartcampus.model.Role.ADMIN || updatedUser.getRole() == com.smartcampus.model.Role.STAFF) 
-             && existing.getRole() != updatedUser.getRole()) {
-            throw new IllegalArgumentException("Security Violation: Promotion to ADMIN or STAFF is restricted.");
+        if (updatedUser.getRole() == Role.ADMIN && existing.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("Security Violation: Promotion to ADMIN is restricted.");
         }
 
-        // 3. Last Admin Protection (for Role changes)
-        if (existing.getRole() == com.smartcampus.model.Role.ADMIN && updatedUser.getRole() != null && updatedUser.getRole() != com.smartcampus.model.Role.ADMIN) {
+        if (existing.getRole() == Role.ADMIN && updatedUser.getRole() != null && updatedUser.getRole() != Role.ADMIN) {
             long adminCount = userRepository.findAll().stream()
-                    .filter(u -> u.getRole() == com.smartcampus.model.Role.ADMIN).count();
+                    .filter(u -> u.getRole() == Role.ADMIN).count();
             if (adminCount <= 1) {
-                throw new IllegalStateException("Security Violation: Cannot demote the only remaining Administrator. Create another Admin first.");
+                throw new IllegalStateException("Security Violation: Cannot demote the only remaining Administrator.");
             }
         }
 
         if (updatedUser.getFullName() != null) existing.setFullName(updatedUser.getFullName());
         if (updatedUser.getRole() != null)     existing.setRole(updatedUser.getRole());
-        if (updatedUser.getCampusId() != null) existing.setCampusId(updatedUser.getCampusId());
         
         User saved = userRepository.save(existing);
-        auditService.log(adminId, "USER_UPDATE", "Updated user profile: " + existing.getCampusId() + " (ADMIN: " + adminId + ")");
+        auditService.log(adminId, "USER_UPDATE", "Updated user: " + existing.getCampusId());
         return saved;
     }
 
     public void updateUserStatus(String id, UserStatus status, String adminId) {
         User user = getUserById(id);
         
-        // 3. Last Admin Protection (for Deactivation)
-        if (id.equals(adminId) && status != UserStatus.ACTIVE) {
-            throw new IllegalStateException("Security Violation: You cannot deactivate or lock your own account.");
+        // 1. Last Admin Strategy
+        if (user.getRole() == Role.ADMIN && status != UserStatus.ACTIVE) {
+            long activeAdmins = userRepository.findAll().stream()
+                    .filter(u -> u.getRole() == Role.ADMIN && u.getStatus() == UserStatus.ACTIVE).count();
+            if (activeAdmins <= 1 && id.equals(adminId)) {
+                throw new IllegalStateException("Security Violation: Cannot lock the only active Administrator.");
+            }
         }
 
         UserStatus oldStatus = user.getStatus();
         user.setStatus(status);
         
-        // If unlocking, reset failed attempts
-        if (status == UserStatus.ACTIVE && oldStatus == UserStatus.LOCKED) {
+        // 2. Clear lockout if Admin intervenes
+        if (status == UserStatus.ACTIVE) {
             user.setFailedAttempts(0);
+            user.setLockoutUntil(null);
         }
         
         userRepository.save(user);
-        auditService.log(adminId, "USER_STATUS_CHANGE", "Changed status of " + user.getCampusId() + " to " + status);
+        auditService.log(adminId, "USER_STATUS_CHANGE", "Status of " + user.getCampusId() + " -> " + status);
 
-        // Security Tracking: Notify other admins about this action
         if (status != UserStatus.ACTIVE || oldStatus != UserStatus.ACTIVE) {
             notificationService.notifyAdmins(
-                "Security Update: " + user.getCampusId(),
-                "Account status changed to " + status + " by Administrator.",
+                "System: Account Status Change",
+                "User " + user.getCampusId() + " is now " + status,
                 com.smartcampus.model.NotificationType.SYSTEM,
                 com.smartcampus.model.NotificationPriority.MEDIUM
             );
@@ -120,17 +119,14 @@ public class UserService {
 
     public void deleteUser(String id, String adminId) {
         User user = getUserById(id);
-        
-        // 4. Last Admin Protection (for Deletion)
-        if (user.getRole() == com.smartcampus.model.Role.ADMIN) {
+        if (user.getRole() == Role.ADMIN) {
             long adminCount = userRepository.findAll().stream()
-                    .filter(u -> u.getRole() == com.smartcampus.model.Role.ADMIN).count();
+                    .filter(u -> u.getRole() == Role.ADMIN).count();
             if (adminCount <= 1) {
-                throw new IllegalStateException("Security Violation: Cannot delete the only remaining Administrator.");
+                throw new IllegalStateException("Security Violation: Cannot delete the only remaining Admin.");
             }
         }
-
         userRepository.deleteById(id);
-        auditService.log(adminId, "USER_DELETE", "Permanently deleted user: " + user.getCampusId());
+        auditService.log(adminId, "USER_DELETE", "Deleted user: " + user.getCampusId());
     }
 }
