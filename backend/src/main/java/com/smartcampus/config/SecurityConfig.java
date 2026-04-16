@@ -27,6 +27,7 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
+    private final com.smartcampus.security.HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -51,8 +52,12 @@ public class SecurityConfig {
                         // ── Remaining ────────────────────────
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated())
-                // ── OAuth2 Google Login ──────────────────────
+                // ── OAuth2 Microsoft Login ───────────────────
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authEndpoint -> authEndpoint
+                                // Use cookie-based stateless repository
+                                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
+                        )
                         .successHandler(oAuth2SuccessHandler)
                 )
                 .authenticationProvider(authenticationProvider)
@@ -60,6 +65,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
