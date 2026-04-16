@@ -39,7 +39,7 @@ public class SecurityConfig {
                             if (request.getRequestURI().startsWith("/api/")) {
                                 response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
                             } else {
-                                response.sendRedirect("/oauth2/authorization/microsoft");
+                                response.sendRedirect("/oauth2/authorization/azure");
                             }
                         })
                 )
