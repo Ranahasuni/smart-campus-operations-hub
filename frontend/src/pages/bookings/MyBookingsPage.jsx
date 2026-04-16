@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import BookingStatusBadge from './components/BookingStatusBadge';
+import BookingActionButtons from './components/BookingActionButtons';
 import { 
   Calendar, Clock, Users, Info, AlertTriangle, 
   Trash2, XCircle, CheckCircle2, History,
@@ -198,73 +199,13 @@ export default function MyBookingsPage() {
               <div className="booking-status-box">
                 <BookingStatusBadge status={booking.status} />
                 
-                <div className="booking-actions">
-                  {booking.status === 'PENDING' && (
-                    <>
-                      <button 
-                        className="action-btn btn-update"
-                        onClick={() => navigate(`/bookings/edit/${booking.id}`)}
-                      >
-                        <Pencil size={14} /> Update
-                      </button>
-                      <button 
-                        className="action-btn btn-withdraw"
-                        onClick={() => handleCancelAction(booking.id, 'PENDING')}
-                      >
-                        <Trash2 size={14} /> Withdraw
-                      </button>
-                    </>
-                  )}
-                  {booking.status === 'APPROVED' && (
-                    <button 
-                      className="action-btn btn-cancel"
-                      onClick={() => handleCancelAction(booking.id, 'APPROVED')}
-                    >
-                      <XCircle size={14} /> Cancel
-                    </button>
-                  )}
-                  {booking.status === 'APPROVED' && isBookingActive(booking) && (
-                    <button 
-                      className="action-btn btn-confirm-arrival"
-                      title="I am physically here. Confirm arrival."
-                      onClick={() => handleReportMissingQR(booking.id)}
-                      style={{ 
-                        background: 'rgba(34, 197, 94, 0.1)', 
-                        color: '#22c55e', 
-                        border: '1px solid rgba(34, 197, 94, 0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 16px'
-                      }}
-                    >
-                      <CheckCircle2 size={14} /> I'm Here
-                    </button>
-                  )}
-                  {booking.status === 'APPROVED' && !booking.isCheckedIn && (
-                    <button 
-                      className="action-btn btn-report-issue"
-                      title="Report physical QR signage missing or scanner broken"
-                      onClick={() => handleReportMissingQR(booking.id)}
-                      style={{ 
-                        background: 'rgba(99, 102, 241, 0.05)', 
-                        color: '#94a3b8', 
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 16px'
-                      }}
-                    >
-                      <AlertTriangle size={14} /> Signage Issue?
-                    </button>
-                  )}
-                  {booking.isCheckedIn && (
-                    <div className="check-in-verified-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', fontWeight: '800', fontSize: '0.8rem', padding: '6px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '10px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-                       <CheckCircle2 size={14} /> Arrived
-                    </div>
-                  )}
-                </div>
+                <BookingActionButtons 
+                  booking={booking}
+                  onUpdate={(id) => navigate(`/bookings/edit/${id}`)}
+                  onCancelAction={handleCancelAction}
+                  onReportMissingQR={handleReportMissingQR}
+                  isBookingActive={isBookingActive}
+                />
               </div>
             </div>
           ))
