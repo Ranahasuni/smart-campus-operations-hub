@@ -122,25 +122,21 @@ public class CheckInController {
             return ResponseEntity.status(400).body(Map.of("error", "Only approved bookings can be verified."));
         }
 
-        // --- TIME WINDOW ENFORCEMENT ---
+        // --- TIME WINDOW LOGIC ---
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
-        
-        if (!booking.getDate().equals(today)) {
-             return ResponseEntity.status(400).body(Map.of("error", "You can only check-in on the scheduled day of the booking."));
-        }
-        
-        // Allow check-in starting 10 minutes before
-        if (now.isBefore(booking.getStartTime().minusMinutes(10)) || now.isAfter(booking.getEndTime())) {
-             return ResponseEntity.status(400).body(Map.of("error", "Check-in is only allowed between 10 minutes before start and the scheduled end time."));
+        boolean isArriving = booking.getDate().equals(today) && 
+                            !now.isBefore(booking.getStartTime().minusMinutes(10)) && 
+                            !now.isAfter(booking.getEndTime());
+
+        // 1. Perform Check-In (ONLY if within valid time window)
+        ResponseEntity<?> checkInResponse = null;
+        if (isArriving) {
+            checkInResponse = performCheckIn(booking);
         }
 
-        // 1. Perform Check-In
-        ResponseEntity<?> checkInResponse = performCheckIn(booking);
-
-        // 2. Automated Ticket Creation
+        // 2. Automated Ticket Creation (ALWAYS happens)
         try {
-            // Get the first resource ID (most common) or join them
             String primaryResourceId = booking.getResourceIds().get(0);
             Resource res = resourceRepository.findById(primaryResourceId).orElse(null);
             
@@ -157,7 +153,7 @@ public class CheckInController {
                 .priority(Priority.HIGH)
                 .description("Automated report: Student used manual check-in fallback for " + location + 
                              ". Reason: Potential missing QR signage or student hardware (camera) failure. " +
-                             "Please verify physical signage is intact.")
+                             "Status: " + (isArriving ? "Check-in performed." : "User context reported outside arrival window."))
                 .status(TicketStatus.OPEN)
                 .build();
 
@@ -166,7 +162,12 @@ public class CheckInController {
             System.err.println("Failed to raise automated QR ticket: " + e.getMessage());
         }
 
-        return checkInResponse;
+        if (checkInResponse != null) return checkInResponse;
+        
+        return ResponseEntity.ok(Map.of(
+            "message", "Issue reported successfully. Technical staff have been notified regarding the signage issue.",
+            "status", "REPORTED_ONLY"
+        ));
     }
 
     private ResponseEntity<?> performCheckIn(Booking booking) {

@@ -226,26 +226,39 @@ export default function MyBookingsPage() {
                   )}
                   {booking.status === 'APPROVED' && isBookingActive(booking) && (
                     <button 
-                      className="action-btn btn-report-qr"
-                      title="Check-in manually if you can't scan the QR code (Broken camera/missing sign)"
+                      className="action-btn btn-confirm-arrival"
+                      title="I am physically here. Confirm arrival."
                       onClick={() => handleReportMissingQR(booking.id)}
                       style={{ 
-                        background: 'rgba(99, 102, 241, 0.1)', 
-                        color: '#6366f1', 
-                        border: '1px solid rgba(99, 102, 241, 0.2)',
+                        background: 'rgba(34, 197, 94, 0.1)', 
+                        color: '#22c55e', 
+                        border: '1px solid rgba(34, 197, 94, 0.2)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
                         padding: '8px 16px'
                       }}
                     >
-                      <Smartphone size={14} /> Manual Check-In
+                      <CheckCircle2 size={14} /> I'm Here
                     </button>
                   )}
-                  {booking.status === 'APPROVED' && !booking.isCheckedIn && !isBookingActive(booking) && (
-                    <div style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 'bold', fontStyle: 'italic', padding: '0 10px' }}>
-                      Check-in becomes available 10m before start
-                    </div>
+                  {booking.status === 'APPROVED' && !booking.isCheckedIn && (
+                    <button 
+                      className="action-btn btn-report-issue"
+                      title="Report physical QR signage missing or scanner broken"
+                      onClick={() => handleReportMissingQR(booking.id)}
+                      style={{ 
+                        background: 'rgba(99, 102, 241, 0.05)', 
+                        color: '#94a3b8', 
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 16px'
+                      }}
+                    >
+                      <AlertTriangle size={14} /> Signage Issue?
+                    </button>
                   )}
                   {booking.isCheckedIn && (
                     <div className="check-in-verified-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', fontWeight: '800', fontSize: '0.8rem', padding: '6px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '10px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
