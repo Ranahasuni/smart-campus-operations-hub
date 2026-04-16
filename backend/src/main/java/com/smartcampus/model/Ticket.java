@@ -20,10 +20,12 @@ public class Ticket {
     @Id
     private String id;
 
+    @Indexed
     private String userId; // User who created the ticket
     private String userFullName;
     private String userCampusId;
     private String displayId; // Human-readable sequential ID (e.g. #TKT-1001)
+    @Indexed
     private String resourceId; // The broken resource
 
     private String title;
