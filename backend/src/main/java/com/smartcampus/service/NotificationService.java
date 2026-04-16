@@ -183,6 +183,20 @@ public class NotificationService {
         notificationRepository.deleteById(id);
     }
 
+    /** Efficient bulk delete using MongoTemplate for all READ notifications of a user */
+    public void clearReadForUser(String userId) {
+        Query query = new Query(Criteria.where("recipientId").is(userId).and("isRead").is(true));
+        mongoTemplate.remove(query, Notification.class);
+    }
+
+    /** Toggle the read status back and forth */
+    public void toggleReadStatus(String id) {
+        Notification n = notificationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
+        n.setRead(!n.isRead());
+        notificationRepository.save(n);
+    }
+
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

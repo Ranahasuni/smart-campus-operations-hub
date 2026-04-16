@@ -75,5 +75,20 @@ public class NotificationController {
         notificationService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    /** Toggle read status */
+    @PutMapping("/{id}/toggle-read")
+    public ResponseEntity<Void> toggleReadStatus(@PathVariable String id) {
+        notificationService.toggleReadStatus(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Clear all read notifications for a user */
+    @DeleteMapping("/clear-read")
+    public ResponseEntity<Void> clearRead(@RequestParam String userId) {
+        notificationService.clearReadForUser(userId);
+        return ResponseEntity.noContent().build();
+    }
 }
+
 
