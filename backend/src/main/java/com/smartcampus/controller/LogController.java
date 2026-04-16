@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/logs")
 @RequiredArgsConstructor
-@CrossOrigin
 public class LogController {
 
     private final AuditService auditService;

@@ -27,7 +27,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/check-in")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class CheckInController {
 
     private final BookingRepository bookingRepository;

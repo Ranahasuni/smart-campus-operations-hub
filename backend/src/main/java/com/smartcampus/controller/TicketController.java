@@ -20,7 +20,6 @@ import java.util.Arrays;
 @RestController
 @RequestMapping("/api/tickets")
 @RequiredArgsConstructor
-@CrossOrigin
 public class TicketController {
 
     private final TicketService ticketService;
