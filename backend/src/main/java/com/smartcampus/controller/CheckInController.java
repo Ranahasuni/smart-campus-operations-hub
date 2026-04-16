@@ -7,58 +7,44 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.smartcampus.service.TicketService;
+import com.smartcampus.model.Ticket;
+import com.smartcampus.model.IssueType;
+import com.smartcampus.model.Priority;
+import com.smartcampus.model.TicketStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.smartcampus.repository.UserRepository;
+import com.smartcampus.model.User;
+import com.smartcampus.model.Resource;
+import com.smartcampus.repository.ResourceRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/check-in")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class CheckInController {
 
-    private final BookingRepository bookingRepository;
-    private final com.smartcampus.service.NotificationService notificationService;
+    private final CheckInService checkInService;
 
     @PostMapping("/{bookingId}")
     public ResponseEntity<?> checkIn(@PathVariable String bookingId) {
-        Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null) {
-            return ResponseEntity.status(404).body(Map.of("error", "Booking not found"));
-        }
+        return checkInService.checkInByBooking(bookingId);
+    }
 
-        if (booking.getStatus() != com.smartcampus.model.BookingStatus.APPROVED) {
-            return ResponseEntity.status(400).body(Map.of("error", "Only approved bookings can be checked in. Current status: " + booking.getStatus()));
-        }
+    @PostMapping("/resource/{resourceId}")
+    public ResponseEntity<?> checkInByResource(@PathVariable String resourceId) {
+        String campusId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return checkInService.checkInByResource(resourceId, campusId);
+    }
 
-        if (booking.isCheckedIn()) {
-            return ResponseEntity.status(400).body(Map.of("error", "This booking has already been checked in at " + booking.getCheckInTime()));
-        }
-
-        LocalDate today = LocalDate.now();
-        if (!booking.getDate().equals(today)) {
-            return ResponseEntity.status(400).body(Map.of("error", "Check-in failed. Booking is for " + booking.getDate() + ", but today is " + today));
-        }
-
-        booking.setCheckedIn(true);
-        booking.setCheckInTime(LocalDateTime.now());
-        bookingRepository.save(booking);
-
-        // Notify user of successful check-in
-        try {
-            notificationService.notifyCheckIn(
-                booking.getUserId(),
-                booking.getId(),
-                booking.getBookingCode()
-            );
-        } catch (Exception e) {
-            // Log error but don't fail the check-in
-        }
-
-        return ResponseEntity.ok(Map.of(
-            "message", "Check-in successful",
-            "checkInTime", booking.getCheckInTime(),
-            "bookingCode", booking.getBookingCode()
-        ));
+    @PostMapping("/{bookingId}/report-missing-qr")
+    public ResponseEntity<?> reportMissingQR(@PathVariable String bookingId) {
+        String campusId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return checkInService.reportMissingQR(bookingId, campusId);
     }
 }
