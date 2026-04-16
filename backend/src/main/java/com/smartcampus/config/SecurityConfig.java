@@ -36,11 +36,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            if (request.getRequestURI().startsWith("/api/")) {
-                                response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                            } else {
-                                response.sendRedirect("/oauth2/authorization/azure");
-                            }
+                            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
                         })
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
