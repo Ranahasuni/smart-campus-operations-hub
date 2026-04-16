@@ -12,6 +12,8 @@ import java.util.List;
 public interface ResourceRepository
         extends MongoRepository<Resource, String> {
 
+    java.util.Optional<Resource> findByName(String name);
+
     // ── Single Filters ─────────────────────────────────
     List<Resource> findByBuilding(String building);
     List<Resource> findByFloor(Integer floor);
