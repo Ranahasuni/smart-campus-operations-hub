@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import BookingStatusBadge from './components/BookingStatusBadge';
 import BookingActionButtons from './components/BookingActionButtons';
+import LoadingSkeleton from '../../components/common/LoadingSkeleton';
 import { 
   Calendar, Clock, Users, Info, AlertTriangle, 
   Trash2, XCircle, CheckCircle2, History,
@@ -131,8 +132,18 @@ export default function MyBookingsPage() {
   };
 
   if (loading) return (
-    <div className="my-bookings-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <Loader2 className="animate-spin" size={48} style={{ color: '#6366f1' }} />
+    <div className="my-bookings-container animate-fade-in">
+      <header className="bookings-dashboard-header">
+         <LoadingSkeleton width="300px" height="40px" />
+         <LoadingSkeleton width="200px" height="20px" className="mt-2" />
+      </header>
+      <div className="bookings-grid">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="glass-card booking-card">
+            <LoadingSkeleton height="200px" borderRadius="16px" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 
