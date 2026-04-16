@@ -46,9 +46,9 @@ public class ResourceService {
 
     // ── HELPER — Generate QR Code URL ──────────────────
     private String generateQRCode(String resourceId) {
-        String resourceUrl = "http://localhost:5173/resources/" + resourceId;
+        String resourceUrl = "http://localhost:5173/check-in/resource/" + resourceId;
         return "https://api.qrserver.com/v1/create-qr-code/"
-                + "?size=200x200&data=" + resourceUrl;
+                + "?size=250x250&data=" + resourceUrl;
     }
 
     // ── HELPER — Map Resource to ResponseDTO ───────────

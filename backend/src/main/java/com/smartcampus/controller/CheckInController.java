@@ -7,9 +7,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.smartcampus.repository.UserRepository;
+import com.smartcampus.model.User;
+import com.smartcampus.model.Resource;
+import com.smartcampus.repository.ResourceRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/check-in")
@@ -18,6 +26,8 @@ import java.util.Map;
 public class CheckInController {
 
     private final BookingRepository bookingRepository;
+    private final UserRepository userRepository;
+    private final ResourceRepository resourceRepository;
     private final com.smartcampus.service.NotificationService notificationService;
 
     @PostMapping("/{bookingId}")
@@ -55,10 +65,58 @@ public class CheckInController {
             // Log error but don't fail the check-in
         }
 
+        return performCheckIn(booking);
+    }
+
+    @PostMapping("/resource/{resourceId}")
+    public ResponseEntity<?> checkInByResource(@PathVariable String resourceId) {
+        String campusId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByCampusId(campusId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED));
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        // 1. Find an APPROVED booking for this user and resource on this date
+        // Note: A booking might contain multiple resource IDs
+        List<Booking> activeBookings = bookingRepository.findByUserId(user.getId()).stream()
+                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
+                .filter(b -> b.getDate().equals(today))
+                .filter(b -> b.getResourceIds().contains(resourceId))
+                .filter(b -> !b.isCheckedIn())
+                // Allow check-in: 15 mins before start until end of booking
+                .filter(b -> !now.isBefore(b.getStartTime().minusMinutes(15)) && !now.isAfter(b.getEndTime()))
+                .toList();
+
+        if (activeBookings.isEmpty()) {
+            return ResponseEntity.status(400).body(Map.of(
+                "error", "No active booking found for this resource at this time.",
+                "message", "Please ensure you have an approved reservation for this time slot."
+            ));
+        }
+
+        // 2. Perform check-in for the first matching booking
+        return performCheckIn(activeBookings.get(0));
+    }
+
+    private ResponseEntity<?> performCheckIn(Booking booking) {
+        booking.setCheckedIn(true);
+        booking.setCheckInTime(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        try {
+            notificationService.notifyCheckIn(
+                booking.getUserId(),
+                booking.getId(),
+                booking.getBookingCode()
+            );
+        } catch (Exception e) {}
+
         return ResponseEntity.ok(Map.of(
-            "message", "Check-in successful",
+            "message", "Verification Successful",
             "checkInTime", booking.getCheckInTime(),
-            "bookingCode", booking.getBookingCode()
+            "bookingCode", booking.getBookingCode(),
+            "status", "CHECKED_IN"
         ));
     }
 }

@@ -9,7 +9,7 @@ export default function QRCodeDisplay({ resourceId }) {
     <div className="sidebar-card-qr-light" style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1.5px solid #e2e8f0', textAlign: 'center', marginTop: '20px' }}>
       {/* 🖤 HARD-FORCED VISIBLE TITLE */}
       <div style={{ color: '#000000', fontWeight: '950', fontSize: '0.85rem', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-        <QrCode size={18} color="#6366f1" /> Asset Digital ID
+        <QrCode size={18} color="#6366f1" /> Secure Check-In ID
       </div>
 
       <div style={{ background: 'white', padding: '15px', borderRadius: '20px', display: 'inline-block', border: '1px solid #e2e8f0', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
@@ -18,7 +18,7 @@ export default function QRCodeDisplay({ resourceId }) {
 
       {/* 🖤 HARD-FORCED VISIBLE FOOTER */}
       <div style={{ color: '#475569', fontWeight: '900', fontSize: '0.7rem', letterSpacing: '0.08em', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-        <Smartphone size={12} color="#6366f1" /> SCAN TO SYNC MOBILE
+        <Smartphone size={12} color="#6366f1" /> SCAN TO CHECK-IN
       </div>
     </div>
   );

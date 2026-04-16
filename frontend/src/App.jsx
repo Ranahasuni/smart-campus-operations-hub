@@ -84,8 +84,8 @@ export default function App() {
             <Route path="/booking-history" element={
               <ProtectedRoute><BookingHistoryPage /></ProtectedRoute>
             } />
-            <Route path="/check-in/:bookingId" element={
-              <CheckInPage />
+            <Route path="/check-in/:type/:id" element={
+              <ProtectedRoute><CheckInPage /></ProtectedRoute>
             } />
             <Route path="/tickets" element={
               <ProtectedRoute><TicketsPage /></ProtectedRoute>
