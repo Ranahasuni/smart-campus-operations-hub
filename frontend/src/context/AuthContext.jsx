@@ -113,11 +113,31 @@ export function AuthProvider({ children }) {
     return res;
   };
 
+  // ── Role Simulation (Admin Only) ──
+  const simulateRole = (targetRole) => {
+    if (user.role !== 'ADMIN' && !user.originalRole) return;
+    setUser(prev => ({
+      ...prev,
+      originalRole: prev.originalRole || prev.role,
+      role: targetRole
+    }));
+  };
+
+  const resetSimulation = () => {
+    if (user.originalRole) {
+      setUser(prev => {
+        const { originalRole, ...rest } = prev;
+        return { ...rest, role: originalRole };
+      });
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, authFetch, persistOAuthSession, API }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, authFetch, persistOAuthSession, simulateRole, resetSimulation, API }}>
       {children}
     </AuthContext.Provider>
   );
+
 }
 
 export function useAuth() {
