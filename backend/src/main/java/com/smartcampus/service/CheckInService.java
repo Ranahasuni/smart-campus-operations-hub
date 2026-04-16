@@ -4,6 +4,7 @@ import com.smartcampus.model.*;
 import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.UserRepository;
+import com.smartcampus.config.CheckInProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ public class CheckInService {
     private final ResourceRepository resourceRepository;
     private final TicketService ticketService;
     private final NotificationService notificationService;
+    private final CheckInProperties checkInProperties;
 
     public ResponseEntity<?> checkInByBooking(String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -49,7 +51,7 @@ public class CheckInService {
                 .filter(b -> b.getDate().equals(today))
                 .filter(b -> b.getResourceIds().contains(resourceId))
                 .filter(b -> !b.isCheckedIn())
-                .filter(b -> !now.isBefore(b.getStartTime().minusMinutes(15)) && !now.isAfter(b.getEndTime()))
+                .filter(b -> !now.isBefore(b.getStartTime().minusMinutes(checkInProperties.getScanBufferMinutes())) && !now.isAfter(b.getEndTime()))
                 .toList();
 
         if (activeBookings.isEmpty()) {
@@ -80,7 +82,7 @@ public class CheckInService {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         boolean isArriving = booking.getDate().equals(today) && 
-                            !now.isBefore(booking.getStartTime().minusMinutes(10)) && 
+                            !now.isBefore(booking.getStartTime().minusMinutes(checkInProperties.getManualBufferMinutes())) && 
                             !now.isAfter(booking.getEndTime());
 
         ResponseEntity<?> checkInResponse = null;
