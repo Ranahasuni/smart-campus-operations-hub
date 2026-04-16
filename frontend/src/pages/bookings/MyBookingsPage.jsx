@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import BookingStatusBadge from './components/BookingStatusBadge';
 import { 
   Calendar, Clock, Users, Info, AlertTriangle, 
   Trash2, XCircle, CheckCircle2, History,
@@ -195,9 +196,7 @@ export default function MyBookingsPage() {
               </div>
 
               <div className="booking-status-box">
-                <span className={`status-badge status-${booking.status}`}>
-                  {booking.status}
-                </span>
+                <BookingStatusBadge status={booking.status} />
                 
                 <div className="booking-actions">
                   {booking.status === 'PENDING' && (
