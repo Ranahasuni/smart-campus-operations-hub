@@ -75,6 +75,15 @@ public class BookingService {
         }
 
         for (Resource resource : resources) {
+            // Role-based Type Restriction
+            if (requester.getRole() == com.smartcampus.model.Role.STUDENT) {
+                if (resource.getType() == com.smartcampus.model.ResourceType.LECTURE_HALL || 
+                    resource.getType() == com.smartcampus.model.ResourceType.LECTURE_THEATRE) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                        "Students are not permitted to book " + resource.getType().toString().replace("_", " ") + "s.");
+                }
+            }
+
             if (resource.getStatus() != ResourceStatus.ACTIVE) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resource " + resource.getName() + " is currently unavailable");
             }

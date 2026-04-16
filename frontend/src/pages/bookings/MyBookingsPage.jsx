@@ -13,7 +13,6 @@ const CATEGORY_MAP = {
   LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
   SEMINAR_ROOM: { name: 'Seminar Room', icon: '🗣️' },
   MEETING_ROOM: { name: 'Meeting Room', icon: '🤝' },
-  FUNCTION_SPACE: { name: 'Function Space', icon: '🎉' },
   VIDEO_CONFERENCE_ROOM: { name: 'Video Conference', icon: '🎥' },
   LAB: { name: 'Lab', icon: '🧪' },
   AUDITORIUM: { name: 'Auditorium', icon: '🎭' },

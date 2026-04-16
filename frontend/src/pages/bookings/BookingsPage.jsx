@@ -13,14 +13,14 @@ const RESOURCE_TYPES = [
     name: 'Lecture Theatres', 
     icon: '🏛️', 
     description: 'Tiered theatres equipped with premium AV for large scale presentations.',
-    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
+    roles: ['ADMIN', 'LECTURER'] 
   },
   { 
     id: 'LECTURE_HALL', 
     name: 'Lecture Halls', 
     icon: '🏛️', 
     description: 'Spacious halls suitable for lectures, exams, and large gatherings.',
-    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
+    roles: ['ADMIN', 'LECTURER'] 
   },
   { 
     id: 'MEETING_ROOM', 
@@ -28,13 +28,6 @@ const RESOURCE_TYPES = [
     icon: '🤝', 
     description: 'Professional spaces for group discussions and team coordination.',
     roles: ['ADMIN', 'STUDENT', 'LECTURER'] 
-  },
-  { 
-    id: 'FUNCTION_SPACE', 
-    name: 'Function Spaces', 
-    icon: '🎉', 
-    description: 'Versatile areas for events, exhibitions, and social gatherings.',
-    roles: ['ADMIN', 'LECTURER', 'STUDENT'] 
   },
   { 
     id: 'VIDEO_CONFERENCE_ROOM', 
