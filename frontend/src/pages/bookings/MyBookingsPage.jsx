@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import BookingStatusBadge from './components/BookingStatusBadge';
 import BookingActionButtons from './components/BookingActionButtons';
 import LoadingSkeleton from '../../components/common/LoadingSkeleton';
+import EmptyState from '../../components/common/EmptyState';
 import { 
   Calendar, Clock, Users, Info, AlertTriangle, 
   Trash2, XCircle, CheckCircle2, History,
@@ -221,18 +222,12 @@ export default function MyBookingsPage() {
             </div>
           ))
         ) : (
-          <div className="glass-card empty-state">
-            <History size={64} className="empty-state-icon" />
-            <h3>No reservations found</h3>
-            <p>You haven't made any bookings in this category yet.</p>
-            <button 
-              className="action-btn btn-update" 
-              style={{ marginTop: '20px', width: 'auto', background: '#6366f1', color: 'white' }}
-              onClick={() => navigate('/bookings')}
-            >
-              Schedule a New Booking <ArrowRight size={16} />
-            </button>
-          </div>
+          <EmptyState 
+            title="No reservations found"
+            message="You haven't made any bookings in this category yet."
+            actionLabel="Schedule a New Booking"
+            actionPath="/bookings"
+          />
         )}
       </div>
 
