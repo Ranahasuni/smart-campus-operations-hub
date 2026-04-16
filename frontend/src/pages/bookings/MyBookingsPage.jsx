@@ -5,6 +5,7 @@ import LoadingSkeleton from '../../components/common/LoadingSkeleton';
 import EmptyState from '../../components/common/EmptyState';
 import ErrorBanner from '../../components/common/ErrorBanner';
 import BookingCard from './components/BookingCard';
+import Toast from '../../components/common/Toast';
 import { 
   History,
   Loader2, ArrowRight
@@ -181,31 +182,7 @@ export default function MyBookingsPage() {
         )}
       </div>
 
-      {/* Toast Notification */}
-      {toast.show && (
-        <div 
-          className={`toast animate-slide-up ${toast.type}`}
-          style={{
-            position: 'fixed',
-            bottom: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '12px 24px',
-            borderRadius: '12px',
-            background: toast.type === 'success' ? '#22c55e' : '#ef4444',
-            color: 'white',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontWeight: '600'
-          }}
-        >
-          {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-          {toast.message}
-        </div>
-      )}
+      <Toast show={toast.show} message={toast.message} type={toast.type} />
     </div>
   );
 }
