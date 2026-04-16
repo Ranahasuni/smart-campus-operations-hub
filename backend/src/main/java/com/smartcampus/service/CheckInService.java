@@ -29,6 +29,7 @@ public class CheckInService {
     private final TicketService ticketService;
     private final NotificationService notificationService;
     private final CheckInProperties checkInProperties;
+    private final AuditService auditService;
 
     public ResponseEntity<?> checkInByBooking(String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -91,6 +92,7 @@ public class CheckInService {
         }
 
         raiseAutomatedTicket(booking, reporter, isArriving);
+        auditService.log(reporter.getId(), "ISSUE_REPORT", "Reported missing QR for booking " + bookingId + " at Facility " + booking.getResourceIds());
 
         if (checkInResponse != null) return checkInResponse;
         
@@ -118,6 +120,8 @@ public class CheckInService {
         booking.setCheckedIn(true);
         booking.setCheckInTime(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        auditService.log(booking.getUserId(), "CHECK_IN", "Member verified arrival for booking " + booking.getId() + " (" + booking.getBookingCode() + ")");
 
         try {
             notificationService.notifyCheckIn(booking.getUserId(), booking.getId(), booking.getBookingCode());
