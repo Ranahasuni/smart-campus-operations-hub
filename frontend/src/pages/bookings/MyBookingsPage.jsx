@@ -76,6 +76,23 @@ export default function MyBookingsPage() {
     }
   };
 
+  const handleReportMissingQR = async (id) => {
+    if (!window.confirm("Can't find the physical QR code? We can check you in manually and alert the maintenance team to replace it immediately. Proceed?")) return;
+
+    try {
+      const res = await authFetch(`${API}/api/check-in/${id}/report-missing-qr`, { method: 'POST' });
+      if (res.ok) {
+        showToast('Check-in complete. Help is on the way!', 'success');
+        fetchBookings();
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Verification failed. Please ensure you are at the correct location.', 'error');
+      }
+    } catch (err) {
+      showToast('Connection error. Please try again.', 'error');
+    }
+  };
+
   const filteredBookings = bookings.filter(b => {
     const today = new Date().toISOString().split('T')[0];
     const isHistory = b.status === 'REJECTED' || b.status === 'CANCELLED' || (b.status === 'APPROVED' && b.date < today);
@@ -179,6 +196,28 @@ export default function MyBookingsPage() {
                     >
                       <XCircle size={14} /> Cancel
                     </button>
+                  )}
+                  {booking.status === 'APPROVED' && !booking.isCheckedIn && (
+                    <button 
+                      className="action-btn btn-report-qr"
+                      title="Report physical QR signage missing and check-in manually"
+                      onClick={() => handleReportMissingQR(booking.id)}
+                      style={{ 
+                        background: 'rgba(234, 179, 8, 0.1)', 
+                        color: '#eab308', 
+                        border: '1px solid rgba(234, 179, 8, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <AlertTriangle size={14} /> Missing QR?
+                    </button>
+                  )}
+                  {booking.isCheckedIn && (
+                    <div className="check-in-verified-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', fontWeight: '800', fontSize: '0.8rem', padding: '6px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '10px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                       <CheckCircle2 size={14} /> Arrived
+                    </div>
                   )}
                 </div>
               </div>

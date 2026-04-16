@@ -246,7 +246,7 @@ export default function ResourceDetailsPage() {
               loading={bookingLoading}
             />
 
-            <QRCodeDisplay resourceId={resource.id} />
+            <QRCodeDisplay resourceId={resource.id} resourceName={resource.name} />
             <ActionButton
               status={resource.status}
               resourceId={resource.id}

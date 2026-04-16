@@ -7,6 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.smartcampus.service.TicketService;
+import com.smartcampus.model.Ticket;
+import com.smartcampus.model.IssueType;
+import com.smartcampus.model.Priority;
+import com.smartcampus.model.TicketStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.model.User;
@@ -28,6 +33,7 @@ public class CheckInController {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ResourceRepository resourceRepository;
+    private final TicketService ticketService;
     private final com.smartcampus.service.NotificationService notificationService;
 
     @PostMapping("/{bookingId}")
@@ -97,6 +103,56 @@ public class CheckInController {
 
         // 2. Perform check-in for the first matching booking
         return performCheckIn(activeBookings.get(0));
+    }
+
+    @PostMapping("/{bookingId}/report-missing-qr")
+    public ResponseEntity<?> reportMissingQR(@PathVariable String bookingId) {
+        String campusId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User reporter = userRepository.findByCampusId(campusId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED));
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (!booking.getUserId().equals(reporter.getId())) {
+             return ResponseEntity.status(403).body(Map.of("error", "Unauthorized: You do not own this reservation."));
+        }
+
+        if (booking.getStatus() != BookingStatus.APPROVED) {
+            return ResponseEntity.status(400).body(Map.of("error", "Only approved bookings can be verified."));
+        }
+
+        // 1. Perform Check-In
+        ResponseEntity<?> checkInResponse = performCheckIn(booking);
+
+        // 2. Automated Ticket Creation
+        try {
+            // Get the first resource ID (most common) or join them
+            String primaryResourceId = booking.getResourceIds().get(0);
+            Resource res = resourceRepository.findById(primaryResourceId).orElse(null);
+            
+            String resourceName = (res != null) ? res.getName() : "Unknown Facility";
+            String location = (res != null) ? res.getLocation() : "Unknown Location";
+
+            Ticket ticket = Ticket.builder()
+                .userId(reporter.getId())
+                .userFullName(reporter.getFullName())
+                .userCampusId(reporter.getCampusId())
+                .resourceId(primaryResourceId)
+                .title("URGENT: Missing QR Signage - " + resourceName)
+                .issueType(IssueType.OTHER)
+                .priority(Priority.HIGH)
+                .description("Automated report: QR code signage at " + location + " is missing or unreadable. " +
+                             "The reporter was checked in manually via fallback. Please replace physical signage.")
+                .status(TicketStatus.OPEN)
+                .build();
+
+            ticketService.createTicket(ticket);
+        } catch (Exception e) {
+            System.err.println("Failed to raise automated QR ticket: " + e.getMessage());
+        }
+
+        return checkInResponse;
     }
 
     private ResponseEntity<?> performCheckIn(Booking booking) {
