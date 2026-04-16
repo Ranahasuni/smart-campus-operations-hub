@@ -6,6 +6,7 @@ import BookingActionButtons from './components/BookingActionButtons';
 import LoadingSkeleton from '../../components/common/LoadingSkeleton';
 import EmptyState from '../../components/common/EmptyState';
 import BookingMetaRow from './components/BookingMetaRow';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import { 
   Calendar, Clock, Users, Info, AlertTriangle, 
   Trash2, XCircle, CheckCircle2, History,
@@ -170,7 +171,7 @@ export default function MyBookingsPage() {
         </div>
       </header>
 
-      {error && <div className="error-banner">{error}</div>}
+      <ErrorBanner message={error} onClose={() => setError('')} />
 
       <div className="bookings-grid">
         {filteredBookings.length > 0 ? (
