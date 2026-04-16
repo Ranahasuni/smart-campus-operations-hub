@@ -152,11 +152,12 @@ public class CheckInController {
                 .userFullName(reporter.getFullName())
                 .userCampusId(reporter.getCampusId())
                 .resourceId(primaryResourceId)
-                .title("URGENT: Missing QR Signage - " + resourceName)
+                .title("CHECK-IN ISSUE: " + resourceName)
                 .issueType(IssueType.OTHER)
                 .priority(Priority.HIGH)
-                .description("Automated report: QR code signage at " + location + " is missing or unreadable. " +
-                             "The reporter was checked in manually via fallback. Please replace physical signage.")
+                .description("Automated report: Student used manual check-in fallback for " + location + 
+                             ". Reason: Potential missing QR signage or student hardware (camera) failure. " +
+                             "Please verify physical signage is intact.")
                 .status(TicketStatus.OPEN)
                 .build();
 

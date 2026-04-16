@@ -227,18 +227,19 @@ export default function MyBookingsPage() {
                   {booking.status === 'APPROVED' && isBookingActive(booking) && (
                     <button 
                       className="action-btn btn-report-qr"
-                      title="Report physical QR signage missing and check-in manually"
+                      title="Check-in manually if you can't scan the QR code (Broken camera/missing sign)"
                       onClick={() => handleReportMissingQR(booking.id)}
                       style={{ 
-                        background: 'rgba(234, 179, 8, 0.1)', 
-                        color: '#eab308', 
-                        border: '1px solid rgba(234, 179, 8, 0.2)',
+                        background: 'rgba(99, 102, 241, 0.1)', 
+                        color: '#6366f1', 
+                        border: '1px solid rgba(99, 102, 241, 0.2)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '6px',
+                        padding: '8px 16px'
                       }}
                     >
-                      <AlertTriangle size={14} /> Missing QR?
+                      <Smartphone size={14} /> Manual Check-In
                     </button>
                   )}
                   {booking.status === 'APPROVED' && !booking.isCheckedIn && !isBookingActive(booking) && (
