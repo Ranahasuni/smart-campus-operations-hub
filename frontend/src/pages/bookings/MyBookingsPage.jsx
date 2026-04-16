@@ -5,6 +5,7 @@ import BookingStatusBadge from './components/BookingStatusBadge';
 import BookingActionButtons from './components/BookingActionButtons';
 import LoadingSkeleton from '../../components/common/LoadingSkeleton';
 import EmptyState from '../../components/common/EmptyState';
+import BookingMetaRow from './components/BookingMetaRow';
 import { 
   Calendar, Clock, Users, Info, AlertTriangle, 
   Trash2, XCircle, CheckCircle2, History,
@@ -190,11 +191,12 @@ export default function MyBookingsPage() {
                   </div>
                 </div>
                 
-                <div className="booking-meta-row">
-                  <div className="meta-item"><Calendar size={14} /> {booking.date}</div>
-                  <div className="meta-item"><Clock size={14} /> {booking.startTime.substring(0, 5)} - {booking.endTime.substring(0, 5)}</div>
-                  <div className="meta-item"><Users size={14} /> {booking.expectedAttendees} Attendees</div>
-                </div>
+                <BookingMetaRow 
+                  date={booking.date}
+                  startTime={booking.startTime}
+                  endTime={booking.endTime}
+                  attendees={booking.expectedAttendees}
+                />
 
                 <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
                   <strong>Purpose:</strong> {booking.purpose}
