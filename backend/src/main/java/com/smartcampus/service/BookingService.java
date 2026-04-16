@@ -58,6 +58,7 @@ public class BookingService {
                     .count();
             
             if (activeBookings >= 3) {
+                log.warn("Booking Quota Exceeded for user {}. Active count: {}", userId, activeBookings);
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, 
                     "Booking Quota Exceeded: Students are limited to 3 active reservations at a time to ensure fair access for all members.");
             }
@@ -113,6 +114,7 @@ public class BookingService {
                 .totalFee(0.0)
                 .build();
         
+        log.info("Creating new booking request for user {} on {}. Resources: {}", userId, dto.getDate(), dto.getResourceIds());
         Booking saved = bookingRepository.save(booking);
         String code = "RSV-" + saved.getDate().getYear() + "-" + saved.getId().substring(Math.max(0, saved.getId().length() - 5)).toUpperCase();
         saved.setBookingCode(code);
@@ -236,6 +238,7 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
         if (!booking.getUserId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         
+        log.info("Cancelling booking {} by user {}", bookingId, userId);
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
     }
@@ -283,6 +286,8 @@ public class BookingService {
         booking.setStatus(status);
         Booking saved = bookingRepository.save(booking);
 
+        log.info("Admin {} updated booking {} status to {}", adminId, id, status);
+        
         auditService.log(adminId, "BOOKING_MODERATION", 
             "Admin " + status + " booking " + id + (status == BookingStatus.REJECTED ? " for Reason: " + reason : ""));
 
