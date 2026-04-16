@@ -122,6 +122,19 @@ public class CheckInController {
             return ResponseEntity.status(400).body(Map.of("error", "Only approved bookings can be verified."));
         }
 
+        // --- TIME WINDOW ENFORCEMENT ---
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        
+        if (!booking.getDate().equals(today)) {
+             return ResponseEntity.status(400).body(Map.of("error", "You can only check-in on the scheduled day of the booking."));
+        }
+        
+        // Allow check-in starting 10 minutes before
+        if (now.isBefore(booking.getStartTime().minusMinutes(10)) || now.isAfter(booking.getEndTime())) {
+             return ResponseEntity.status(400).body(Map.of("error", "Check-in is only allowed between 10 minutes before start and the scheduled end time."));
+        }
+
         // 1. Perform Check-In
         ResponseEntity<?> checkInResponse = performCheckIn(booking);
 

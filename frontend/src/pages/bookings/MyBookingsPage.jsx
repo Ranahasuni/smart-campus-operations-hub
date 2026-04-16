@@ -25,11 +25,15 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ALL');
+  const [now, setNow] = useState(new Date());
   const [error, setError] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   useEffect(() => {
     fetchBookings();
+    // Update current time every minute to keep UI buttons in sync
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
   }, []);
 
   const showToast = (message, type = 'success') => {
@@ -100,6 +104,29 @@ export default function MyBookingsPage() {
     
     return activeTab === 'ALL' ? true : b.status === activeTab;
   });
+
+  const isBookingActive = (booking) => {
+    if (booking.status !== 'APPROVED' || booking.isCheckedIn) return false;
+    
+    // 1. Check Date
+    const today = new Date().toISOString().split('T')[0];
+    if (booking.date !== today) return false;
+
+    // 2. Check Time Window (Starting 10 mins before)
+    try {
+      const nowTime = now.getHours() * 60 + now.getMinutes();
+      const [startH, startM] = booking.startTime.split(':').map(Number);
+      const [endH, endM] = booking.endTime.split(':').map(Number);
+
+      const startTime = startH * 60 + startM;
+      const endTime = endH * 60 + endM;
+
+      // Active from (start - 10) until end
+      return nowTime >= (startTime - 10) && nowTime <= endTime;
+    } catch (e) {
+      return false;
+    }
+  };
 
   if (loading) return (
     <div className="my-bookings-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -197,7 +224,7 @@ export default function MyBookingsPage() {
                       <XCircle size={14} /> Cancel
                     </button>
                   )}
-                  {booking.status === 'APPROVED' && !booking.isCheckedIn && (
+                  {booking.status === 'APPROVED' && isBookingActive(booking) && (
                     <button 
                       className="action-btn btn-report-qr"
                       title="Report physical QR signage missing and check-in manually"
@@ -213,6 +240,11 @@ export default function MyBookingsPage() {
                     >
                       <AlertTriangle size={14} /> Missing QR?
                     </button>
+                  )}
+                  {booking.status === 'APPROVED' && !booking.isCheckedIn && !isBookingActive(booking) && (
+                    <div style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 'bold', fontStyle: 'italic', padding: '0 10px' }}>
+                      Check-in becomes available 10m before start
+                    </div>
                   )}
                   {booking.isCheckedIn && (
                     <div className="check-in-verified-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', fontWeight: '800', fontSize: '0.8rem', padding: '6px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '10px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
