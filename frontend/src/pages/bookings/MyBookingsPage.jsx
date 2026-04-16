@@ -1,29 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import BookingStatusBadge from './components/BookingStatusBadge';
-import BookingActionButtons from './components/BookingActionButtons';
 import LoadingSkeleton from '../../components/common/LoadingSkeleton';
 import EmptyState from '../../components/common/EmptyState';
-import BookingMetaRow from './components/BookingMetaRow';
 import ErrorBanner from '../../components/common/ErrorBanner';
+import BookingCard from './components/BookingCard';
 import { 
-  Calendar, Clock, Users, Info, AlertTriangle, 
-  Trash2, XCircle, CheckCircle2, History,
-  Search, Loader2, ArrowRight, Pencil
+  History,
+  Loader2, ArrowRight
 } from 'lucide-react';
 import '../../styles/my-bookings.css';
-
-const CATEGORY_MAP = {
-  TEACHING_VENUE: { name: 'Teaching Venue', icon: '📖' },
-  LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
-  SEMINAR_ROOM: { name: 'Seminar Room', icon: '🗣️' },
-  MEETING_ROOM: { name: 'Meeting Room', icon: '🤝' },
-  VIDEO_CONFERENCE_ROOM: { name: 'Video Conference', icon: '🎥' },
-  LAB: { name: 'Lab', icon: '🧪' },
-  AUDITORIUM: { name: 'Auditorium', icon: '🎭' },
-  SPORTS_FACILITY: { name: 'Sports Facility', icon: '🏀' },
-};
 
 export default function MyBookingsPage() {
   const navigate = useNavigate();
@@ -176,53 +162,14 @@ export default function MyBookingsPage() {
       <div className="bookings-grid">
         {filteredBookings.length > 0 ? (
           filteredBookings.map(booking => (
-            <div key={booking.id} className="glass-card booking-card">
-              <div className="resource-icon-box">
-                {CATEGORY_MAP[booking.resourceType]?.icon || '📍'}
-              </div>
-
-              <div className="booking-info-main">
-                <div className="resource-name-row">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>{(booking.resourceNames || [booking.resourceName || 'Unnamed Unit']).join(', ')}</h3>
-                    <span style={{ fontSize: '0.75rem', color: '#6366f1', fontWeight: 800 }}>
-                      {booking.bookingCode || `RSV-${new Date(booking.date).getFullYear()}-${booking.id?.slice(-5).toUpperCase()}`}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: '#475569', textTransform: 'uppercase', fontWeight: 600 }}>{booking.resourceType}</span>
-                  </div>
-                </div>
-                
-                <BookingMetaRow 
-                  date={booking.date}
-                  startTime={booking.startTime}
-                  endTime={booking.endTime}
-                  attendees={booking.expectedAttendees}
-                />
-
-                <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-                  <strong>Purpose:</strong> {booking.purpose}
-                </div>
-
-                {booking.status === 'REJECTED' && booking.rejectionReason && (
-                  <div className="rejection-reason-box">
-                    <Info size={14} style={{ marginRight: '8px' }} />
-                    <strong>Note:</strong> {booking.rejectionReason}
-                  </div>
-                )}
-              </div>
-
-              <div className="booking-status-box">
-                <BookingStatusBadge status={booking.status} />
-                
-                <BookingActionButtons 
-                  booking={booking}
-                  onUpdate={(id) => navigate(`/bookings/edit/${id}`)}
-                  onCancelAction={handleCancelAction}
-                  onReportMissingQR={handleReportMissingQR}
-                  isBookingActive={isBookingActive}
-                />
-              </div>
-            </div>
+            <BookingCard 
+              key={booking.id}
+              booking={booking}
+              onUpdate={(id) => navigate(`/bookings/edit/${id}`)}
+              onCancelAction={handleCancelAction}
+              onReportMissingQR={handleReportMissingQR}
+              isBookingActive={isBookingActive}
+            />
           ))
         ) : (
           <EmptyState 
