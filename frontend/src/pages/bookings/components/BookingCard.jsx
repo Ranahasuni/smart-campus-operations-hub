@@ -3,6 +3,7 @@ import { Info } from 'lucide-react';
 import BookingStatusBadge from './BookingStatusBadge';
 import BookingActionButtons from './BookingActionButtons';
 import BookingMetaRow from './BookingMetaRow';
+import ArrivalAction from './ArrivalAction';
 
 const CATEGORY_MAP = {
   TEACHING_VENUE: { name: 'Teaching Venue', icon: '📖' },
@@ -57,6 +58,14 @@ const BookingCard = ({
         <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
           <strong>Purpose:</strong> {booking.purpose}
         </div>
+
+        {/* ARRIVAL SECURE CONTROL */}
+        {(isBookingActive(booking) || booking.isCheckedIn) && (
+          <ArrivalAction 
+            booking={booking} 
+            onCheckIn={onReportMissingQR} 
+          />
+        )}
 
         {booking.status === 'REJECTED' && booking.rejectionReason && (
           <div className="rejection-reason-box">
