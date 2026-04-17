@@ -102,17 +102,32 @@ public class CheckInService {
         ));
     }
 
+    public Map<String, Object> getCheckInStatus(String bookingId) {
+        Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
+        if (bookingOpt.isEmpty()) return Map.of("eligible", false, "reason", "Booking not found");
+        
+        Booking booking = bookingOpt.get();
+        if (booking.isCheckedIn()) return Map.of("eligible", false, "reason", "ALREADY_CHECKED_IN", "time", booking.getCheckInTime());
+        if (booking.getStatus() != BookingStatus.APPROVED) return Map.of("eligible", false, "reason", "NOT_APPROVED");
+        
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        
+        if (!booking.getDate().equals(today)) return Map.of("eligible", false, "reason", "WRONG_DATE", "bookingDate", booking.getDate());
+        
+        boolean tooEarly = now.isBefore(booking.getStartTime().minusMinutes(checkInProperties.getManualBufferMinutes()));
+        boolean tooLate = now.isAfter(booking.getEndTime());
+        
+        if (tooEarly) return Map.of("eligible", false, "reason", "TOO_EARLY", "startTime", booking.getStartTime());
+        if (tooLate) return Map.of("eligible", false, "reason", "TOO_LATE", "endTime", booking.getEndTime());
+        
+        return Map.of("eligible", true, "message", "Ready for check-in");
+    }
+
     private void validateBookingForCheckIn(Booking booking) {
-        if (booking.getStatus() != BookingStatus.APPROVED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only approved bookings can be checked in.");
-        }
-
-        if (booking.isCheckedIn()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Already checked in.");
-        }
-
-        if (!booking.getDate().equals(LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in failed. Booking date mismatch.");
+        Map<String, Object> status = getCheckInStatus(booking.getId());
+        if (!(Boolean) status.get("eligible")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, (String) status.get("reason"));
         }
     }
 
