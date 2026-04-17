@@ -73,17 +73,16 @@ export default function MyBookingsPage() {
     }
   };
 
-  const handleReportMissingQR = async (id) => {
-    if (!window.confirm("Can't find the physical QR code? We can check you in manually and alert the maintenance team to replace it immediately. Proceed?")) return;
-
+  const handleConfirmArrival = async (id) => {
+    // Basic confirmation for "I'm Here"
     try {
-      const res = await authFetch(`${API}/api/check-in/${id}/report-missing-qr`, { method: 'POST' });
+      const res = await authFetch(`${API}/api/check-in/${id}`, { method: 'POST' });
       if (res.ok) {
-        showToast('Check-in complete. Help is on the way!', 'success');
+        showToast('Check-in complete! Facility is ready for use.', 'success');
         fetchBookings();
       } else {
         const data = await res.json();
-        showToast(data.error || 'Verification failed. Please ensure you are at the correct location.', 'error');
+        showToast(data.error || 'Check-in failed. Please ensure you are at the correct location.', 'error');
       }
     } catch (err) {
       showToast('Connection error. Please try again.', 'error');
@@ -168,7 +167,7 @@ export default function MyBookingsPage() {
               booking={booking}
               onUpdate={(id) => navigate(`/bookings/edit/${id}`)}
               onCancelAction={handleCancelAction}
-              onReportMissingQR={handleReportMissingQR}
+              onReportMissingQR={handleConfirmArrival}
               isBookingActive={isBookingActive}
             />
           ))
