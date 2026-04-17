@@ -6,6 +6,7 @@ import com.smartcampus.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.smartcampus.service.CheckInService;
 
 import com.smartcampus.service.TicketService;
 import com.smartcampus.model.Ticket;
