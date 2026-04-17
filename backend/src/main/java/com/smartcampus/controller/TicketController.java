@@ -32,7 +32,7 @@ public class TicketController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'LECTURER')")
     public ResponseEntity<List<Ticket>> getAllTickets() {
         return ResponseEntity.ok(ticketService.getAllTickets());
     }

@@ -44,6 +44,8 @@ public class User {
     @Builder.Default
     private int failedAttempts = 0;
 
+    private LocalDateTime lockoutUntil;
+
     private LocalDateTime lastLogin;
 
     @Builder.Default

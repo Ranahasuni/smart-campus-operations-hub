@@ -20,7 +20,7 @@ public class LogController {
     private final AuditService auditService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<List<AuditLog>> getAllLogs() {
         return ResponseEntity.ok(auditService.getAllLogs());
     }

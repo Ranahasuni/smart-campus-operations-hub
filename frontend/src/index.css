@@ -11,10 +11,16 @@
   --bg-tertiary:   #1e293b;
   --bg-elevated:   rgba(15, 23, 42, 0.6);
 
-  --accent-primary:   #6366f1;
+  --accent-primary:   #6366f1; /* Sky */
   --accent-secondary: #a78bfa;
   --accent-tertiary:  #c084fc;
   --accent-glow:      rgba(99, 102, 241, 0.35);
+
+  /* Role-specific Accents (will be overridden dynamically in App.jsx) */
+  --role-accent-ADMIN:     #e11d48; /* Rose */
+  --role-accent-LECTURER:  #8b5cf6; /* Violet */
+  --role-accent-STUDENT:   #3b82f6; /* Blue */
+  --role-accent-TECHNICIAN:#f59e0b; /* Amber */
 
   --success: #22c55e;
   --warning: #f59e0b;
@@ -153,6 +159,25 @@ a {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 800;
+}
+
+/* ═══════ Action Buttons ═══════ */
+.action-btn-premium {
+  transition: all 0.3s var(--ease-out);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.action-btn-premium:hover {
+  transform: scale(1.15) translateY(-2px);
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+.action-btn-premium:active {
+  transform: scale(0.95);
 }
 
 /* ═══════ Utility ═══════ */
