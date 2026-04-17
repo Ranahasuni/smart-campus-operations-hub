@@ -12,7 +12,6 @@ import { getLocalDateString } from '../../utils/dateUtils';
 const CATEGORY_MAP = {
   LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
   MEETING_ROOM: { name: 'Meeting Room', icon: '🤝' },
-  FUNCTION_SPACE: { name: 'Function Space', icon: '🎉' },
   VIDEO_CONFERENCE_ROOM: { name: 'Video Conference', icon: '🎥' },
   LAB: { name: 'Lab', icon: '🧪' },
   AUDITORIUM: { name: 'Auditorium', icon: '🎭' },
@@ -77,7 +76,7 @@ export default function CreateBookingPage() {
       const isLecturer = role === 'LECTURER' || role === 'ROLE_LECTURER';
       const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN';
 
-      const studentCategories = ['LECTURE_THEATRE', 'LECTURE_HALL', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM', 'SEMINAR_ROOM', 'FUNCTION_SPACE', 'TEACHING_VENUE'];
+      const studentCategories = ['LECTURE_THEATRE', 'LECTURE_HALL', 'SPORTS_FACILITY', 'LAB', 'AUDITORIUM', 'LABORATORY', 'MEETING_ROOM', 'SEMINAR_ROOM', 'TEACHING_VENUE'];
       const lecturerCategories = [...studentCategories, 'VIDEO_CONFERENCE_ROOM'];
       
       let hasAccess = false;

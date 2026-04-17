@@ -46,6 +46,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public BookingResponseDTO createBooking(BookingRequestDTO dto, String userId) {
         // 1. Quota Check for Students
         com.smartcampus.model.User requester = userRepository.findById(userId)
@@ -57,6 +58,7 @@ public class BookingService {
                     .count();
             
             if (activeBookings >= 3) {
+                log.warn("Booking Quota Exceeded for user {}. Active count: {}", userId, activeBookings);
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, 
                     "Booking Quota Exceeded: Students are limited to 3 active reservations at a time to ensure fair access for all members.");
             }
@@ -74,6 +76,15 @@ public class BookingService {
         }
 
         for (Resource resource : resources) {
+            // Role-based Type Restriction
+            if (requester.getRole() == com.smartcampus.model.Role.STUDENT) {
+                if (resource.getType() == com.smartcampus.model.ResourceType.LECTURE_HALL || 
+                    resource.getType() == com.smartcampus.model.ResourceType.LECTURE_THEATRE) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                        "Students are not permitted to book " + resource.getType().toString().replace("_", " ") + "s.");
+                }
+            }
+
             if (resource.getStatus() != ResourceStatus.ACTIVE) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resource " + resource.getName() + " is currently unavailable");
             }
@@ -103,6 +114,7 @@ public class BookingService {
                 .totalFee(0.0)
                 .build();
         
+        log.info("Creating new booking request for user {} on {}. Resources: {}", userId, dto.getDate(), dto.getResourceIds());
         Booking saved = bookingRepository.save(booking);
         String code = "RSV-" + saved.getDate().getYear() + "-" + saved.getId().substring(Math.max(0, saved.getId().length() - 5)).toUpperCase();
         saved.setBookingCode(code);
@@ -110,6 +122,7 @@ public class BookingService {
         return mapToResponseDTO(bookingRepository.save(saved));
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public BookingResponseDTO updateBooking(String id, BookingRequestDTO dto, String userId) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
@@ -126,7 +139,12 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more resources not found.");
         }
         
-        validateAvailability(resources.get(0), dto.getDate(), dto.getStartTime(), dto.getEndTime());
+        for (Resource resource : resources) {
+            if (dto.getExpectedAttendees() > resource.getCapacity()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Capacity exceeded for " + resource.getName());
+            }
+            validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
+        }
         checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id);
 
 
@@ -220,6 +238,7 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
         if (!booking.getUserId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         
+        log.info("Cancelling booking {} by user {}", bookingId, userId);
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
     }
@@ -267,6 +286,8 @@ public class BookingService {
         booking.setStatus(status);
         Booking saved = bookingRepository.save(booking);
 
+        log.info("Admin {} updated booking {} status to {}", adminId, id, status);
+        
         auditService.log(adminId, "BOOKING_MODERATION", 
             "Admin " + status + " booking " + id + (status == BookingStatus.REJECTED ? " for Reason: " + reason : ""));
 

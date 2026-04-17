@@ -46,9 +46,9 @@ public class ResourceService {
 
     // ── HELPER — Generate QR Code URL ──────────────────
     private String generateQRCode(String resourceId) {
-        String resourceUrl = "https://smartcampus.com/resources/" + resourceId;
+        String resourceUrl = "http://localhost:5173/check-in/resource/" + resourceId;
         return "https://api.qrserver.com/v1/create-qr-code/"
-                + "?size=200x200&data=" + resourceUrl;
+                + "?size=250x250&data=" + resourceUrl;
     }
 
     // ── HELPER — Map Resource to ResponseDTO ───────────
@@ -229,6 +229,14 @@ public class ResourceService {
 
     // ── CREATE ──────────────────────────────────────────
     public ResourceResponseDTO createResource(ResourceRequestDTO dto) {
+        if (dto.getName() == null || dto.getName().isBlank()) {
+             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Resource name is required.");
+        }
+        
+        if (resourceRepository.findByName(dto.getName()).isPresent()) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "A facility with the name '" + dto.getName() + "' already exists.");
+        }
+
         validateBuildingLimits(dto.getBuilding(), dto.getFloor());
 
         Resource resource = Resource.builder()
@@ -269,6 +277,12 @@ public class ResourceService {
 
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
+
+        if (dto.getName() != null && !dto.getName().equals(resource.getName())) {
+            if (resourceRepository.findByName(dto.getName()).isPresent()) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "Cannot rename: Name '" + dto.getName() + "' already taken.");
+            }
+        }
 
         resource.setName(dto.getName());
         resource.setDescription(dto.getDescription());

@@ -14,7 +14,6 @@ const CATEGORY_MAP = {
   LECTURE_HALL: { name: 'Lecture Hall', icon: '🏛️', roles: ['ADMIN', 'LECTURER'] },
   SEMINAR_ROOM: { name: 'Seminar Room', icon: '🗣️', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   MEETING_ROOM: { name: 'Meeting Room', icon: '🤝', roles: ['ADMIN', 'STUDENT', 'LECTURER'] },
-  FUNCTION_SPACE: { name: 'Function Space', icon: '🎉', roles: ['ADMIN', 'LECTURER'] },
   VIDEO_CONFERENCE_ROOM: { name: 'Video Conference Room', icon: '🎥', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   LAB: { name: 'Lab', icon: '🧪', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   AUDITORIUM: { name: 'Auditorium', icon: '🎭', roles: ['ADMIN', 'LECTURER'] },

@@ -1,6 +1,7 @@
 package com.smartcampus.config;
 
 import com.smartcampus.security.JwtAuthFilter;
+import com.smartcampus.security.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ── Public Endpoints ───────────────
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").permitAll()
                         .requestMatchers("/api/uploads/**").permitAll()
                         
@@ -48,6 +51,10 @@ public class SecurityConfig {
                         // ── Remaining ────────────────────────
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated())
+                // ── OAuth2 Google Login ──────────────────────
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler)
+                )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

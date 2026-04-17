@@ -24,6 +24,7 @@ export default function ResourceEditorPage() {
   const [error, setError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -105,11 +106,26 @@ export default function ResourceEditorPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
-    if (validationErrors[name]) {
+    
+    // Live validation for "Mistakes" (suddenly show what is wrong)
+    const vErrors = runValidation({ ...formData, [name]: value });
+    if (vErrors[name]) {
+      const isRequired = vErrors[name].includes("required");
+      // Only show instantly if it's a "Wrong Entry" (not just empty) OR if we already tried to submit
+      if (!isRequired || submitted) {
+        setValidationErrors(prev => ({ ...prev, [name]: vErrors[name] }));
+      }
+    } else {
+      // Clear error if now valid
       setValidationErrors(prev => {
         const updated = { ...prev };
         delete updated[name];
+        
+        // If NO errors left, also hide the big top banner!
+        if (Object.keys(updated).length === 0) {
+          setError(null);
+        }
+        
         return updated;
       });
     }
@@ -130,16 +146,26 @@ export default function ResourceEditorPage() {
     if (specialSections.includes(errorKey)) {
       const vErrors = runValidation({ ...formData, [field]: value });
 
-      if (!vErrors[errorKey]) {
+      if (vErrors[errorKey]) {
+        const isRequired = vErrors[errorKey].toLowerCase().includes("required") || 
+                          vErrors[errorKey].toLowerCase().includes("at least one");
+
+        // Only show if it's a real mistake OR we already tried to submit
+        if (!isRequired || submitted) {
+          setValidationErrors(prev => ({ ...prev, [errorKey]: vErrors[errorKey] }));
+        }
+      } else {
         // Corrected! Remove from state
         setValidationErrors(prev => {
           const updated = { ...prev };
           delete updated[errorKey];
+
+          // If NO errors left, also hide the big top banner!
+          if (Object.keys(updated).length === 0) {
+            setError(null);
+          }
           return updated;
         });
-      } else {
-        // Still error? Update message/color in state
-        setValidationErrors(prev => ({ ...prev, [errorKey]: vErrors[errorKey] }));
       }
       return;
     }
@@ -149,6 +175,12 @@ export default function ResourceEditorPage() {
       setValidationErrors(prev => {
         const updated = { ...prev };
         delete updated[errorKey];
+        
+        // If NO errors left, also hide the big top banner!
+        if (Object.keys(updated).length === 0) {
+          setError(null);
+        }
+        
         return updated;
       });
     }
@@ -167,7 +199,7 @@ export default function ResourceEditorPage() {
         ? "This field is required. Please fill it to continue."
         : "Please provide a more detailed description (min. 10 characters).";
     }
-    if (!data.type) vErrors.type = "Please select a category.";
+    if (!data.type) vErrors.type = "Please select a category (required).";
 
     if (!data.capacity && data.capacity !== 0) {
       vErrors.capacity = "This field is required. Please enter a number.";
@@ -177,8 +209,8 @@ export default function ResourceEditorPage() {
       vErrors.capacity = "Total capacity exceeds the maximum campus limit of 1,000 seats.";
     }
 
-    if (!data.building) vErrors.building = "Please select a building.";
-    if (!data.floor && data.floor !== 0) vErrors.floor = "Please select a floor.";
+    if (!data.building) vErrors.building = "Please select a building (required).";
+    if (!data.floor && data.floor !== 0) vErrors.floor = "Please select a floor (required).";
 
     const roomPattern = /^[A-Z0-9-]+$/;
     if (!data.roomNumber) {
@@ -225,13 +257,20 @@ export default function ResourceEditorPage() {
   const handleBlur = (e) => {
     const { name } = e.target;
     const vErrors = runValidation(formData);
+    
     if (vErrors[name]) {
-      setValidationErrors(prev => ({ ...prev, [name]: vErrors[name] }));
+      const isRequired = vErrors[name].includes("required");
+      // Only show on blur if it's a real mistake (not just skipping an empty field)
+      // unless the user already tried to submit the whole form.
+      if (!isRequired || submitted) {
+        setValidationErrors(prev => ({ ...prev, [name]: vErrors[name] }));
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true); // From now on, show ALL errors (including required)
 
     // Clear previous errors
     setError(null);

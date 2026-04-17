@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import UserProfile from './pages/auth/UserProfile';
+import OAuth2CallbackPage from './pages/auth/OAuth2CallbackPage';
 import NotificationPage from './pages/NotificationPage';
 import ResourcesPage from './pages/resources/ResourcesPage';
 import BookingsPage from './pages/bookings/BookingsPage';
@@ -21,6 +22,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ResourceEditorPage from './pages/resources/ResourceForm/ResourceEditorPage';
 import ResourceDetailsPage from './pages/resources/Details/ResourceDetailsPage';
 import StaffPortal from './pages/StaffPortal';
+import CheckInPage from './pages/bookings/CheckInPage';
 
 import Dashboard from './pages/admin/Dashboard.jsx';
 import ManageUsers from './pages/admin/ManageUsers';
@@ -44,6 +46,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/oauth2/callback" element={<OAuth2CallbackPage />} />
 
             {/* Authenticated Routes */}
             <Route path="/profile" element={
@@ -80,6 +83,9 @@ export default function App() {
             } />
             <Route path="/booking-history" element={
               <ProtectedRoute><BookingHistoryPage /></ProtectedRoute>
+            } />
+            <Route path="/check-in/:type/:id" element={
+              <ProtectedRoute><CheckInPage /></ProtectedRoute>
             } />
             <Route path="/tickets" element={
               <ProtectedRoute><TicketsPage /></ProtectedRoute>

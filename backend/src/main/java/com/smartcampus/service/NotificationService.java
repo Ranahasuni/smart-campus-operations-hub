@@ -90,6 +90,17 @@ public class NotificationService {
         send(req);
     }
 
+    public void notifyCheckIn(String userId, String bookingId, String bookingCode) {
+        CreateNotificationRequest req = new CreateNotificationRequest();
+        req.setUserId(userId);
+        req.setTitle("Check-in Successful ✅");
+        req.setMessage("You have successfully checked in for your booking: " + bookingCode);
+        req.setType(NotificationType.CHECK_IN);
+        req.setPriority(NotificationPriority.MEDIUM);
+        req.setReferenceId(bookingId);
+        send(req);
+    }
+
     public void notifyBookingRejected(String userId, String bookingId, String resourceName, String reason) {
         CreateNotificationRequest req = new CreateNotificationRequest();
         req.setUserId(userId);
