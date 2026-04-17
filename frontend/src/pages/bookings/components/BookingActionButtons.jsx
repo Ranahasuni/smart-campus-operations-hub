@@ -42,25 +42,6 @@ const BookingActionButtons = ({
         </button>
       )}
 
-      {booking.status === 'APPROVED' && active && (
-        <button 
-          className="action-btn btn-confirm-arrival"
-          title="I am physically here. Confirm arrival."
-          onClick={() => onReportMissingQR(booking.id)}
-          style={{ 
-            background: 'rgba(34, 197, 94, 0.1)', 
-            color: '#22c55e', 
-            border: '1px solid rgba(34, 197, 94, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 16px'
-          }}
-        >
-          <CheckCircle2 size={14} /> I'm Here
-        </button>
-      )}
-
       {booking.status === 'APPROVED' && !booking.isCheckedIn && (
         <button 
           className="action-btn btn-report-issue"
@@ -78,12 +59,6 @@ const BookingActionButtons = ({
         >
           <AlertTriangle size={14} /> Signage Issue?
         </button>
-      )}
-
-      {booking.isCheckedIn && (
-        <div className="check-in-verified-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', fontWeight: '800', fontSize: '0.8rem', padding: '6px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '10px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-           <CheckCircle2 size={14} /> Arrived
-        </div>
       )}
     </div>
   );
