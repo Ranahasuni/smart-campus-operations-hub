@@ -2,6 +2,15 @@ import { QrCode, Smartphone, CheckCircle2, ChevronRight, Loader2, X, AlertTriang
 import { THEME } from '../../../theme';
 import '../../../styles/arrival-action.css';
 
+/**
+ * ArrivalAction Component
+ * Provides a secure, dual-method check-in interface.
+ * Users can either scan a generated QR code with their mobile device 
+ * or confirm arrival directly via the "I'm Here" button.
+ * 
+ * @param {Object} booking - The booking object to check in for.
+ * @param {Function} onCheckIn - Callback handler for the check-in action.
+ */
 export default function ArrivalAction({ booking, onCheckIn }) {
   const [showOptions, setShowOptions] = useState(false);
   const [loading, setLoading] = useState(false);
