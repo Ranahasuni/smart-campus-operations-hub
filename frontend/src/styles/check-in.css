@@ -252,6 +252,55 @@
     animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.icon-ring-pulse {
+    position: absolute;
+    inset: -15px;
+    border: 2px solid #10b981;
+    border-radius: 50%;
+    animation: ringPulse 2s infinite ease-out;
+}
+
+@keyframes ringPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+.verification-details-premium {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 2rem;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.detail-card-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detail-item-sub {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.detail-value-bold {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+.detail-timestamp-footer {
+    font-size: 0.75rem;
+    color: #475569;
+    font-weight: 700;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 @keyframes zoomIn {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
