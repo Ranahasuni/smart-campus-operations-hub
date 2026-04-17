@@ -43,6 +43,11 @@ public class CheckInController {
         return checkInService.checkInByResource(resourceId, campusId);
     }
 
+    @GetMapping("/{bookingId}/status")
+    public ResponseEntity<?> getCheckInStatus(@PathVariable String bookingId) {
+        return ResponseEntity.ok(checkInService.getCheckInStatus(bookingId));
+    }
+
     @PostMapping("/{bookingId}/report-missing-qr")
     public ResponseEntity<?> reportMissingQR(@PathVariable String bookingId) {
         String campusId = SecurityContextHolder.getContext().getAuthentication().getName();
