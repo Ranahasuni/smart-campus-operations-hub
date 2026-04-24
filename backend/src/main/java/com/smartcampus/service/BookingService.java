@@ -255,6 +255,26 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    public List<BookingResponseDTO> getStaffTodaySchedule(String staffUserId) {
+        // 1. Get resources assigned to this staff
+        List<Resource> assignedResources = resourceRepository.findAll().stream()
+                .filter(r -> r.getAssignedStaffIds() != null && r.getAssignedStaffIds().contains(staffUserId))
+                .toList();
+
+        if (assignedResources.isEmpty()) return List.of();
+
+        List<String> resourceIds = assignedResources.stream().map(Resource::getId).toList();
+        LocalDate today = LocalDate.now();
+
+        // 2. Fetch all bookings for these resources today (Approved or Checked In)
+        List<BookingStatus> watchStatuses = List.of(BookingStatus.APPROVED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT);
+        return bookingRepository.findByResourceIdsInAndDateAndStatusIn(resourceIds, today, watchStatuses)
+                .stream()
+                .map(this::mapToResponseDTOEnriched)
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
+                .collect(Collectors.toList());
+    }
+
     public Booking getBookingByIdRaw(String id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found: " + id));

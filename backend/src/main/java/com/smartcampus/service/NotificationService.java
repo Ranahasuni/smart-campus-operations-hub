@@ -30,21 +30,27 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository         userRepository;
-    private final MongoTemplate          mongoTemplate; // Injected for bulk updates
+    private final MongoTemplate          mongoTemplate;
+    private final NotificationPreferenceService preferenceService;
 
     // ── Public API used by other services ────────────────────────────────────
 
     /**
      * Create and persist a notification.
-     * Includes a 5-second idempotency check to prevent rapid duplicate alerts.
+     * Includes a 5-second idempotency check and preference gatekeeper.
      */
     public NotificationResponse send(CreateNotificationRequest req) {
         // userId should be a string ObjectID
         User recipient = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + req.getUserId()));
 
+        // 1. GATEKEEPER CHECK: Does the user want this notification?
+        if (!preferenceService.isNotificationAllowed(recipient.getId(), req.getType())) {
+            // Drop notification silently if preference is OFF
+            return null; 
+        }
+
         // Prevent exact duplicates within a short time window (5 seconds)
-        // This stops identical notifications from firing multiple times due to rapid retries or double clicks
         java.time.LocalDateTime fiveSecondsAgo = java.time.LocalDateTime.now().minusSeconds(5);
         List<Notification> existing = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(recipient.getId());
         
@@ -57,7 +63,6 @@ public class NotificationService {
         );
 
         if (isDuplicate) {
-            // Log and skip if it's a recent duplicate
             return toResponse(existing.get(0));
         }
 
@@ -123,18 +128,21 @@ public class NotificationService {
         send(req);
     }
 
-    /** Broadcast alert to all Administrators */
+    /** Broadcast alert to all Administrators (Honors preferences) */
     public void notifyAdmins(String title, String message, NotificationType type, NotificationPriority priority) {
         List<User> admins = userRepository.findByRole(com.smartcampus.model.Role.ADMIN);
         for (User admin : admins) {
-            Notification n = Notification.builder()
-                    .recipientId(admin.getId())
-                    .title(title)
-                    .message(message)
-                    .type(type)
-                    .priority(priority)
-                    .build();
-            notificationRepository.save(n);
+            // Check preference for each admin
+            if (preferenceService.isNotificationAllowed(admin.getId(), type)) {
+                Notification n = Notification.builder()
+                        .recipientId(admin.getId())
+                        .title(title)
+                        .message(message)
+                        .type(type)
+                        .priority(priority)
+                        .build();
+                notificationRepository.save(n);
+            }
         }
     }
 

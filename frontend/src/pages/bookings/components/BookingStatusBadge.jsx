@@ -8,10 +8,13 @@ const BookingStatusBadge = ({ status }) => {
   const getStatusLabel = (s) => {
     switch (s) {
       case 'APPROVED': return 'Upcoming';
-      case 'PENDING': return 'Pending';
+      case 'PENDING': return 'Pending Review';
       case 'REJECTED': return 'Rejected';
       case 'CANCELLED': return 'Cancelled';
-      default: return s;
+      case 'CHECKED_IN': return 'Checked In';
+      case 'CHECKED_OUT': return 'Completed';
+      case 'NO_SHOW': return 'No Show';
+      default: return s ? s.replace('_', ' ') : 'Unknown';
     }
   };
 

@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").permitAll()
+                        .requestMatchers("/api/notifications/test-trigger").permitAll()
                         .requestMatchers("/api/uploads/**").permitAll()
                         
                         // ── Private Endpoints ────────────────
@@ -52,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/resources/**").hasAnyRole("ADMIN", "LECTURER")
                         .requestMatchers("/api/tickets/**").authenticated()
                         .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/api/notification-preferences/**").authenticated()
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "LECTURER")
                         
                         // ── Remaining ────────────────────────

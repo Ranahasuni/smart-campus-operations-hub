@@ -24,6 +24,7 @@ const BookingCard = ({
   onUpdate, 
   onCancelAction, 
   onReportMissingQR, 
+  onShowQR,
   isBookingActive 
 }) => {
   return (
@@ -74,6 +75,7 @@ const BookingCard = ({
           onUpdate={onUpdate}
           onCancelAction={onCancelAction}
           onReportMissingQR={onReportMissingQR}
+          onShowQR={onShowQR}
           isBookingActive={isBookingActive}
         />
       </div>

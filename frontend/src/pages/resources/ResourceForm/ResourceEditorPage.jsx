@@ -25,6 +25,7 @@ export default function ResourceEditorPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [staffList, setStaffList] = useState([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -45,16 +46,25 @@ export default function ResourceEditorPage() {
       { day: 'Fri', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
       { day: 'Sat', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
       { day: 'Sun', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
-    ]
-
-
+    ],
+    assignedStaffId: ''
   });
 
   useEffect(() => {
+    fetchStaff();
     if (isEdit) {
       fetchResource();
     }
   }, [id]);
+
+  const fetchStaff = async () => {
+    try {
+      const res = await api.get('/users/role/STAFF');
+      setStaffList(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch staff list', err);
+    }
+  };
 
   const DEFAULT_AVAILABILITY = [
     { day: 'Mon', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
@@ -301,8 +311,8 @@ export default function ResourceEditorPage() {
         status: formData.status || 'ACTIVE',
         equipment: formData.equipment || [],
         imageUrls: formData.imageUrls || [],
-        availability: formData.availability || []
-
+        availability: formData.availability || [],
+        assignedStaffId: formData.assignedStaffId || null
       };
 
       const url = isEdit
@@ -371,7 +381,13 @@ export default function ResourceEditorPage() {
       )}
 
       <form onSubmit={handleSubmit} noValidate>
-        <BasicInfoSection formData={formData} handleChange={handleChange} handleBlur={handleBlur} errors={validationErrors} />
+        <BasicInfoSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          handleBlur={handleBlur} 
+          errors={validationErrors} 
+          staffOptions={staffList}
+        />
         <LocationSection formData={formData} handleChange={handleChange} handleBlur={handleBlur} errors={validationErrors} />
         <StatusSection formData={formData} handleChange={handleChange} />
         <EquipmentSection formData={formData} setFormValue={setFormValue} errors={validationErrors} />

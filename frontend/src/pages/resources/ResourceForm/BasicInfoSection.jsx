@@ -1,4 +1,4 @@
-export default function BasicInfoSection({ formData, handleChange, handleBlur, errors = {} }) {
+export default function BasicInfoSection({ formData, handleChange, handleBlur, errors = {}, staffOptions = [] }) {
   const getErrorStyle = (field) => {
     if (errors[field]) {
       return { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.02)' };
@@ -79,6 +79,27 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             style={getErrorStyle('capacity')}
           />
           {errors.capacity && <p className="field-error-msg" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' }}>{errors.capacity}</p>}
+        </div>
+
+        <div className="form-group" style={{ gridColumn: 'span 2' }}>
+          <label htmlFor="assignedStaffId">Assigned Caretaker (Staff)</label>
+          <select
+            id="assignedStaffId"
+            name="assignedStaffId"
+            className="form-select"
+            value={formData.assignedStaffId || ''}
+            onChange={handleChange}
+          >
+            <option value="">Unassigned</option>
+            {staffOptions.map(staff => (
+              <option key={staff.id} value={staff.id}>
+                {staff.fullName} ({staff.campusId})
+              </option>
+            ))}
+          </select>
+          <p className="field-hint" style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+            The staff member responsible for check-ins at this facility.
+          </p>
         </div>
       </div>
     </div>
