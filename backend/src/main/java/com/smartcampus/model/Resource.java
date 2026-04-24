@@ -45,7 +45,7 @@ public class Resource {
 
     private List<DayAvailability> availability;
 
-    private String qrCodeUrl;
+    private String assignedStaffId;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

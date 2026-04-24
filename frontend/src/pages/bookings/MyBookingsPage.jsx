@@ -5,6 +5,7 @@ import LoadingSkeleton from '../../components/common/LoadingSkeleton';
 import EmptyState from '../../components/common/EmptyState';
 import ErrorBanner from '../../components/common/ErrorBanner';
 import BookingCard from './components/BookingCard';
+import BookingQRModal from './components/BookingQRModal';
 import Toast from '../../components/common/Toast';
 import { 
   History,
@@ -21,6 +22,7 @@ export default function MyBookingsPage() {
   const [now, setNow] = useState(new Date());
   const [error, setError] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [activeQRBooking, setActiveQRBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -169,6 +171,7 @@ export default function MyBookingsPage() {
               onUpdate={(id) => navigate(`/bookings/edit/${id}`)}
               onCancelAction={handleCancelAction}
               onReportMissingQR={handleReportMissingQR}
+              onShowQR={(b) => setActiveQRBooking(b)}
               isBookingActive={isBookingActive}
             />
           ))
@@ -183,6 +186,13 @@ export default function MyBookingsPage() {
       </div>
 
       <Toast show={toast.show} message={toast.message} type={toast.type} />
+
+      {activeQRBooking && (
+        <BookingQRModal 
+          booking={activeQRBooking} 
+          onClose={() => setActiveQRBooking(null)} 
+        />
+      )}
     </div>
   );
 }

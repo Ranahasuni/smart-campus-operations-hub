@@ -48,4 +48,15 @@ public class CheckInController {
         String campusId = SecurityContextHolder.getContext().getAuthentication().getName();
         return checkInService.reportMissingQR(bookingId, campusId);
     }
+
+    @PostMapping("/verify-qr")
+    public ResponseEntity<?> verifyQR(@RequestBody Map<String, String> payload) {
+        String bookingCode = payload.get("bookingCode");
+        String staffCampusId = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        User staff = userRepository.findByCampusId(staffCampusId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED));
+                
+        return checkInService.verifyQR(bookingCode, staff.getId());
+    }
 }

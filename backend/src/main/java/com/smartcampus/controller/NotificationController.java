@@ -75,5 +75,19 @@ public class NotificationController {
         notificationService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    /** TEST TRIGGER: Manually send a notification to verify preference filtering */
+    @GetMapping("/test-trigger")
+    public ResponseEntity<String> testTrigger(@RequestParam String userId, @RequestParam NotificationType type) {
+        notificationService.send(com.smartcampus.dto.CreateNotificationRequest.builder()
+                .userId(userId)
+                .type(type)
+                .title("Test Alert: " + type)
+                .message("TEST NOTIFICATION: Verification for category " + type.getCategory())
+                .priority(com.smartcampus.model.NotificationPriority.MEDIUM)
+                .referenceId("TEST-" + System.currentTimeMillis())
+                .build());
+        return ResponseEntity.ok("Test notification of type " + type + " sent to gatekeeper.");
+    }
 }
 

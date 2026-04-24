@@ -11,7 +11,6 @@ import ImageGallery from './components/ImageGallery';
 import ResourceInfo from './components/ResourceInfo';
 import EquipmentList from './components/EquipmentList';
 import AvailabilityInfo from './components/AvailabilityInfo';
-import QRCodeDisplay from './components/QRCodeDisplay';
 import ActionButton from './components/ActionButton';
 import ResourceMaintenanceHistory from './components/ResourceMaintenanceHistory';
 import ReservedSlots from './components/ReservedSlots';
@@ -246,7 +245,6 @@ export default function ResourceDetailsPage() {
               loading={bookingLoading}
             />
 
-            <QRCodeDisplay resourceId={resource.id} resourceName={resource.name} />
             <ActionButton
               status={resource.status}
               resourceId={resource.id}

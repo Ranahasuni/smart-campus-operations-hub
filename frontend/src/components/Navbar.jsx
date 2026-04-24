@@ -40,7 +40,7 @@ export default function Navbar() {
           <>
             <Link to="/resources" className="nav-link">Resources</Link>
             
-            {user?.role !== 'TECHNICIAN' && (
+            {['STUDENT', 'LECTURER'].includes(user?.role) && (
               <>
                 <Link to="/bookings" className="nav-link">Bookings</Link>
                 <Link to="/my-bookings" className="nav-link">Active Bookings</Link>
@@ -50,7 +50,11 @@ export default function Navbar() {
 
             <Link to="/tickets" className="nav-link">Tickets</Link>
 
-            {['STAFF', 'TECHNICIAN'].includes(user?.role) && (
+            {user?.role === 'TECHNICIAN' && (
+              <Link to="/technician" className="nav-link nav-link-staff">Maintenance Hub</Link>
+            )}
+
+            {['STAFF', 'LECTURER'].includes(user?.role) && (
               <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
             )}
           </>

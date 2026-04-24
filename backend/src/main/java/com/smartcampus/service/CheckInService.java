@@ -102,26 +102,72 @@ public class CheckInService {
         ));
     }
 
-    private void validateBookingForCheckIn(Booking booking) {
-        if (booking.getStatus() != BookingStatus.APPROVED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only approved bookings can be checked in.");
+    public ResponseEntity<?> verifyQR(String bookingCode, String staffUserId) {
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid QR Code: Booking not found."));
+
+        User staff = userRepository.findById(staffUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        validateBookingForCheckIn(booking);
+
+        // Check if QR is presented within early-arrival window (e.g. 15 mins before)
+        LocalTime now = LocalTime.now();
+        LocalTime startTime = booking.getStartTime();
+        if (now.isBefore(startTime.minusMinutes(checkInProperties.getScanBufferMinutes()))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Too Early",
+                "message", "Arrival verification only possible within " + checkInProperties.getScanBufferMinutes() + " minutes of start time."
+            ));
         }
 
-        if (booking.isCheckedIn()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Already checked in.");
+        // Verify Staff Assignment for the specific resource
+        boolean isAuthorized = staff.getRole() == Role.ADMIN;
+        if (!isAuthorized) {
+            String primaryResourceId = booking.getResourceIds().get(0);
+            Resource resource = resourceRepository.findById(primaryResourceId).orElse(null);
+            if (resource != null && resource.getAssignedStaffIds() != null) {
+                isAuthorized = resource.getAssignedStaffIds().contains(staffUserId);
+            }
+        }
+
+        if (!isAuthorized) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                "error", "Unauthorized",
+                "message", "You are not assigned to manage this facility."
+            ));
+        }
+
+        return performCheckIn(booking);
+    }
+
+    private void validateBookingForCheckIn(Booking booking) {
+        if (booking.getStatus() != BookingStatus.APPROVED && booking.getStatus() != BookingStatus.PENDING) {
+             // For Griffith, even PENDING might need check-in if staff approves on spot? 
+             // But usually only APPROVED.
+             if (booking.getStatus() == BookingStatus.CHECKED_IN) {
+                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is already checked in.");
+             }
+             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot check in: Booking status is " + booking.getStatus());
         }
 
         if (!booking.getDate().equals(LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in failed. Booking date mismatch.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in failed. This booking is for " + booking.getDate());
+        }
+
+        LocalTime now = LocalTime.now();
+        if (now.isAfter(booking.getEndTime())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in failed. This booking time has already ended.");
         }
     }
 
     private ResponseEntity<?> performCheckIn(Booking booking) {
         booking.setCheckedIn(true);
         booking.setCheckInTime(LocalDateTime.now());
+        booking.setStatus(BookingStatus.CHECKED_IN); // Key update
         bookingRepository.save(booking);
 
-        auditService.log(booking.getUserId(), "CHECK_IN", "Member verified arrival for booking " + booking.getId() + " (" + booking.getBookingCode() + ")");
+        auditService.log(booking.getUserId(), "CHECK_IN", "Staff verified student arrival for booking " + booking.getId() + " (" + booking.getBookingCode() + ")");
 
         try {
             notificationService.notifyCheckIn(booking.getUserId(), booking.getId(), booking.getBookingCode());
@@ -133,7 +179,8 @@ public class CheckInService {
             "message", "Verification Successful",
             "checkInTime", booking.getCheckInTime(),
             "bookingCode", booking.getBookingCode(),
-            "status", "CHECKED_IN"
+            "status", "CHECKED_IN",
+            "fullName", userRepository.findById(booking.getUserId()).map(User::getFullName).orElse("Student")
         ));
     }
 

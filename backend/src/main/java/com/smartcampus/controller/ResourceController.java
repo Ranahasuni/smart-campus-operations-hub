@@ -63,14 +63,6 @@ public class ResourceController {
                                 resourceService.getFloorsByBuilding(building));
         }
 
-        // GET /api/resources/{id}/qr
-        @GetMapping("/{id}/qr")
-        public ResponseEntity<Map<String, String>> getQRCode(
-                        @PathVariable String id) {
-                return ResponseEntity.ok(
-                                Map.of("qrCodeUrl",
-                                                resourceService.getQRCode(id)));
-        }
 
         // GET /api/resources/map?building=X&floor=1
         @GetMapping("/map")

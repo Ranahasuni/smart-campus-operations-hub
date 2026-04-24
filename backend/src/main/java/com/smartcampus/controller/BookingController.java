@@ -40,6 +40,7 @@ public class BookingController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('STUDENT', 'LECTURER', 'ADMIN')")
     public ResponseEntity<BookingResponseDTO> createBooking(
             @Valid @RequestBody BookingRequestDTO dto,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -57,6 +58,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('STUDENT', 'LECTURER', 'ADMIN')")
     public ResponseEntity<Void> cancelBooking(
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -80,6 +82,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('STUDENT', 'LECTURER', 'ADMIN')")
     public ResponseEntity<BookingResponseDTO> updateBooking(
             @PathVariable String id,
             @Valid @RequestBody BookingRequestDTO dto,
@@ -105,6 +108,15 @@ public class BookingController {
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     public ResponseEntity<List<BookingResponseDTO>> getAllBookingsAdmin() {
         return ResponseEntity.ok(bookingService.getAllBookings());
+    }
+
+    @GetMapping("/staff/today")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<List<BookingResponseDTO>> getStaffTodaySchedule(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User staff = userRepository.findByCampusId(userDetails.getUsername())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED));
+        return ResponseEntity.ok(bookingService.getStaffTodaySchedule(staff.getId()));
     }
 
     @GetMapping("/conflicts/{id}")
