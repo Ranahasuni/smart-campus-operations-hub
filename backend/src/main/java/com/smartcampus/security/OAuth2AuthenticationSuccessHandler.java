@@ -115,7 +115,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     .build();
             user = userRepository.save(user);
             auditService.log(user.getId(), "OAUTH_REGISTER",
-                    "New user auto-registered via Microsoft OAuth: " + email);
+                    "New user auto-registered via Microsoft OAuth: " + email + " [SOURCE: MICROSOFT]");
         } else {
             // Check account status
             if (user.getStatus() == UserStatus.LOCKED) {
@@ -146,7 +146,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         String token = jwtUtil.generateToken(userDetails, user.getRole().name(), user.getId());
 
         auditService.log(user.getId(), "OAUTH_LOGIN",
-                "Microsoft OAuth login successful for: " + email);
+                "Microsoft OAuth login successful for: " + email + " [SOURCE: MICROSOFT]");
 
         // Redirect to frontend with token and user info
         String redirectUrl = FRONTEND_CALLBACK

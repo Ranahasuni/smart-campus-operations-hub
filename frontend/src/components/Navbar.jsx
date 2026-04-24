@@ -4,7 +4,7 @@ import NotificationBell from './NotificationBell';
 import '../styles/navbar.css';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, resetSimulation } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -13,7 +13,43 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar">
+    <>
+      {user?.originalRole && (
+        <div style={{
+          background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+          color: '#000',
+          padding: '6px 20px',
+          textAlign: 'center',
+          fontSize: '0.75rem',
+          fontWeight: '800',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px',
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          zIndex: 1100,
+          position: 'relative'
+        }}>
+          <span>⚠️ Simulation Mode Active: Viewing as {user.role}</span>
+          <button 
+            onClick={resetSimulation}
+            style={{
+              background: '#000',
+              color: '#fff',
+              border: 'none',
+              padding: '2px 10px',
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            Reset Identity
+          </button>
+        </div>
+      )}
+      <nav className="navbar">
       {/* Brand */}
       <Link to="/" className="navbar-brand">
         <span className="navbar-logo">🏫</span>
@@ -91,5 +127,6 @@ export default function Navbar() {
         )}
       </div>
     </nav>
+    </>
   );
 }

@@ -102,22 +102,46 @@ export function AuthProvider({ children }) {
       },
     });
 
-    // 401: Unauthorized (token expired/invalid)
-    // 403: Forbidden (session mismatch)
-    if (res.status === 401 || res.status === 403) {
+    // 401: Unauthorized (token expired/invalid) -> Log out
+    if (res.status === 401) {
       logout();
       window.location.href = '/login?expired=true';
-      throw new Error('Session expired or security mismatch');
+      throw new Error('Session expired');
+    }
+
+    // 403: Forbidden (Authenticated but insufficient role) -> Just throw, don't logout
+    if (res.status === 403) {
+      throw new Error('Access Denied');
     }
 
     return res;
   };
 
+  // ── Role Simulation (Admin Only) ──
+  const simulateRole = (targetRole) => {
+    if (user.role !== 'ADMIN' && !user.originalRole) return;
+    setUser(prev => ({
+      ...prev,
+      originalRole: prev.originalRole || prev.role,
+      role: targetRole
+    }));
+  };
+
+  const resetSimulation = () => {
+    if (user.originalRole) {
+      setUser(prev => {
+        const { originalRole, ...rest } = prev;
+        return { ...rest, role: originalRole };
+      });
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, authFetch, persistOAuthSession, API }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, authFetch, persistOAuthSession, simulateRole, resetSimulation, API }}>
       {children}
     </AuthContext.Provider>
   );
+
 }
 
 export function useAuth() {

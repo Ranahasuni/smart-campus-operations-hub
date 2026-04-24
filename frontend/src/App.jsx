@@ -27,6 +27,7 @@ import CheckInPage from './pages/bookings/CheckInPage';
 
 import Dashboard from './pages/admin/Dashboard.jsx';
 import ManageUsers from './pages/admin/ManageUsers';
+import UserActionTimeline from './pages/admin/UserActionTimeline';
 import SystemLogs from './pages/admin/SystemLogs';
 import ResourceManagementPage from './pages/resources/ResourceManagementPage';
 import ManageBookings from './pages/admin/ManageBookings';
@@ -36,9 +37,31 @@ import ManageTickets from './pages/admin/ManageTickets';
 import TicketReview from './pages/admin/TicketReview';
 import ResourceAnalyticsPage from './pages/admin/DashboardComponents/ResourceAnalyticsPage';
 
+// ── Role-Based Theme Synchronizer ──
+import { useAuth } from './context/AuthContext';
+import { useEffect } from 'react';
+
+function ThemeSync() {
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    if (user && user.role) {
+      const accentVar = `var(--role-accent-${user.role})`;
+      document.documentElement.style.setProperty('--accent-primary', accentVar);
+      document.documentElement.style.setProperty('--accent-glow', `color-mix(in srgb, ${accentVar} 35%, transparent)`);
+    } else {
+      document.documentElement.style.removeProperty('--accent-primary');
+      document.documentElement.style.removeProperty('--accent-glow');
+    }
+  }, [user]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <AuthProvider>
+      <ThemeSync />
       <BrowserRouter>
         <Navbar />
         <div style={{ minHeight: 'calc(100vh - 64px)' }}>
@@ -111,6 +134,11 @@ export default function App() {
             <Route path="/admin/users" element={
               <ProtectedRoute role={['ADMIN', 'LECTURER']}>
                 <ManageUsers />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users/:id/timeline" element={
+              <ProtectedRoute role={['ADMIN', 'LECTURER']}>
+                <UserActionTimeline />
               </ProtectedRoute>
             } />
             <Route path="/admin/resources" element={

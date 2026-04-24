@@ -95,13 +95,26 @@ public class AuthService {
 
         // Pre-auth checks
         if (user.getStatus() == UserStatus.LOCKED) {
-            auditService.log(user.getId(), "LOGIN_BLOCKED", "Attempt to login to LOCKED account");
-            throw new IllegalStateException("Your account is LOCKED due to multiple failed login attempts. Please contact an Administrator.");
+            auditService.log(user.getId(), "LOGIN_BLOCKED", "Attempt to login to manually LOCKED account");
+            throw new IllegalStateException("Your account is LOCKED. Please contact an Administrator.");
         }
         
         if (user.getStatus() == UserStatus.DISABLED) {
             auditService.log(user.getId(), "LOGIN_BLOCKED", "Attempt to login to DISABLED account");
             throw new IllegalStateException("Your account is DISABLED. Please contact Support.");
+        }
+
+        if (user.getLockoutUntil() != null) {
+            if (user.getLockoutUntil().isAfter(LocalDateTime.now())) {
+                auditService.log(user.getId(), "LOGIN_BLOCKED", "Attempt during temporary lockout phase");
+                long minutesLeft = java.time.Duration.between(LocalDateTime.now(), user.getLockoutUntil()).toMinutes();
+                throw new IllegalStateException("Account temporarily locked due to failed attempts. Try again in " + minutesLeft + " minutes.");
+            } else {
+                // Lockout expired, reset counters
+                user.setFailedAttempts(0);
+                user.setLockoutUntil(null);
+                userRepository.save(user);
+            }
         }
 
         try {
@@ -112,11 +125,12 @@ public class AuthService {
 
             // SUCCESS: Reset indicators
             user.setFailedAttempts(0);
+            user.setLockoutUntil(null);
             user.setLastLogin(LocalDateTime.now());
             userRepository.save(user);
 
             // Audit Success
-            auditService.log(user.getId(), "LOGIN_SUCCESS", "User " + user.getCampusId() + " authenticated successfully");
+            auditService.log(user.getId(), "LOGIN_SUCCESS", "User " + user.getCampusId() + " authenticated successfully [SOURCE: LOCAL]");
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(user.getCampusId());
             String token = jwtUtil.generateToken(userDetails, user.getRole().name(), user.getId());
@@ -137,16 +151,16 @@ public class AuthService {
             int currentAttempts = user.getFailedAttempts() + 1;
             user.setFailedAttempts(currentAttempts);
 
-            String auditDetails = "Invalid password attempt #" + currentAttempts;
+            String auditDetails = "Invalid password attempt #" + currentAttempts + " [SOURCE: LOCAL]";
 
             if (currentAttempts >= 3) {
-                user.setStatus(UserStatus.LOCKED);
-                auditDetails += " | ACCOUNT AUTO-LOCKED";
+                user.setLockoutUntil(LocalDateTime.now().plusMinutes(15));
+                auditDetails += " | ACCOUNT AUTO-LOCKED FOR 15 MINS";
                 
                 // Alert all Admins
                 notificationService.notifyAdmins(
-                    "Security Alert: Account Locked 🔒",
-                    "User " + user.getCampusId() + " has been locked due to 3 failed attempts.",
+                    "Security Alert: Brute-Force Protection Triggered 🛡️",
+                    "User " + user.getCampusId() + " has been temporarily locked for 15 minutes due to 3 failed attempts.",
                     NotificationType.SYSTEM,
                     NotificationPriority.HIGH
                 );
@@ -158,10 +172,11 @@ public class AuthService {
             auditService.log(user.getId(), "LOGIN_FAILED", auditDetails);
 
             if (currentAttempts >= 3) {
-                throw new IllegalStateException("Too many failed attempts. Your account has been LOCKED for security.");
+                throw new IllegalStateException("Too many failed attempts. Your account has been LOCKED for 15 minutes.");
             } else {
                 throw new IllegalArgumentException("Invalid password. Remaining attempts: " + (3 - currentAttempts));
             }
         }
     }
 }
+

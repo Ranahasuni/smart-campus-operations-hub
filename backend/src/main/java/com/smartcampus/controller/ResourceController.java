@@ -75,7 +75,7 @@ public class ResourceController {
 
         // GET /api/resources/analytics/summary
         @GetMapping("/analytics/summary")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
         public ResponseEntity<Map<String, Object>> getAnalytics() {
                 return ResponseEntity.ok(
                                 resourceService.getAnalyticsSummary());

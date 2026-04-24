@@ -40,7 +40,14 @@ export default function Dashboard() {
   }, [activeTab, navigate]);
 
   const fetchDashData = async () => {
-    if (!['ADMIN', 'LECTURER'].includes(user?.role)) return;
+    // If user info is not yet available, we stay in loading state to avoid blank render
+    if (!user) return;
+    
+    // If user has no right to be here, stop loading and return
+    if (!['ADMIN', 'LECTURER'].includes(user?.role)) {
+      setLoading(false);
+      return;
+    }
 
     try {
       // 1. Fetch Users
