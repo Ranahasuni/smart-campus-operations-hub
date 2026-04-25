@@ -12,7 +12,7 @@ import {
  * Features: Priority indicators, Tech assignment status, Status filtering.
  */
 export default function ManageTickets() {
-  const { authFetch } = useAuth();
+  const { authFetch, API } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,7 +25,7 @@ export default function ManageTickets() {
 
   const fetchTickets = async () => {
     try {
-      const res = await authFetch('http://localhost:8082/api/tickets');
+      const res = await authFetch(`${API}/api/tickets`);
       if (!res.ok) throw new Error('Failed to retrieve system tickets');
       const data = await res.json();
       setTickets(Array.isArray(data) ? data : []);
@@ -45,7 +45,7 @@ export default function ManageTickets() {
 
     if (window.confirm("ARE YOU SURE? This action will permanently remove this ticket from the campus records. This cannot be undone.")) {
       try {
-        const res = await authFetch(`http://localhost:8082/api/tickets/${ticketId}`, {
+        const res = await authFetch(`${API}/api/tickets/${ticketId}`, {
           method: 'DELETE'
         });
         

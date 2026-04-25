@@ -15,6 +15,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import java.util.List;
 
@@ -28,6 +32,7 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
     private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
     private final com.smartcampus.security.HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -59,11 +64,12 @@ public class SecurityConfig {
                         // ── Remaining ────────────────────────
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated())
-                // ── OAuth2 Microsoft Login ───────────────────
+                // ── OAuth2 Google Login (Students @my.sliit.lk) ──
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authEndpoint -> authEndpoint
                                 // Use cookie-based stateless repository
                                 .authorizationRequestRepository(cookieAuthorizationRequestRepository)
+                                .authorizationRequestResolver(authorizationRequestResolver())
                         )
                         .successHandler(oAuth2SuccessHandler)
                 )
@@ -92,5 +98,13 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
+        DefaultOAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository, "/oauth2/authorization");
+        resolver.setAuthorizationRequestCustomizer(customizer -> customizer
+                .parameters(params -> params.put("prompt", "select_account")));
+        return resolver;
     }
 }

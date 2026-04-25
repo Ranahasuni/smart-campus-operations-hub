@@ -44,17 +44,23 @@ export default function StaffPortal() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await authFetch(`${API}/api/tickets`);
-      if (res.ok) {
-        const tickets = await res.json();
-        
-        // Calculate statistics - Adapted for Professional Workflow
-        const myTasks = tickets.filter(t => t.technicianId === user.id && (t.status === 'IN_PROGRESS' || t.status === 'OPEN'));
-        const urgent = tickets.filter(t => t.priority === 'HIGH' && t.status !== 'CLOSED' && t.status !== 'REJECTED');
-        const active = tickets.filter(t => t.status !== 'CLOSED' && t.status !== 'REJECTED');
-        const completed = tickets.filter(t => t.technicianId === user.id && (t.status === 'RESOLVED' || t.status === 'CLOSED'));
+      
+      // Use specialized high-performance endpoints added in Phase 1
+      const [statsRes, recentRes, resourceRes, scheduleRes] = await Promise.all([
+        authFetch(`${API}/api/tickets/stats/technician/${user.id}`),
+        authFetch(`${API}/api/tickets/recent?limit=5`),
+        authFetch(`${API}/api/resources`),
+        authFetch(`${API}/api/bookings/staff/today`)
+      ]);
 
-        // Fetch user bookings for lecturer stats
+      if (statsRes.ok && recentRes.ok && resourceRes.ok && scheduleRes.ok) {
+        const [ticketStats, tickets, resources, schedule] = await Promise.all([
+          statsRes.json(),
+          recentRes.json(),
+          resourceRes.json(),
+          scheduleRes.json()
+        ]);
+        
         let myBookingsCount = 0;
         if (user.role === 'LECTURER') {
           const bRes = await authFetch(`${API}/api/bookings/user`);
@@ -65,30 +71,16 @@ export default function StaffPortal() {
         }
 
         setStats({
-          activeTickets: active.length,
-          myTickets: user.role === 'LECTURER' ? myBookingsCount : myTasks.length,
-          urgentTickets: urgent.length,
-          completedToday: completed.length
+          activeTickets: ticketStats.activeTickets || 0,
+          myTickets: user.role === 'LECTURER' ? myBookingsCount : (ticketStats.myTickets || 0),
+          urgentTickets: ticketStats.urgentTickets || 0,
+          completedToday: ticketStats.completedToday || 0
         });
 
-        // Get top 5 recent tickets
-        setRecentTickets(tickets.slice(0, 5));
-
-        // Fetch assigned resources
-        const rRes = await authFetch(`${API}/api/resources`);
-        if (rRes.ok) {
-           const resources = await rRes.json();
-           const assigned = resources.filter(r => r.assignedStaffIds?.includes(user.id));
-           setAssignedResources(assigned);
-        }
-
-        // Fetch today's schedule
-        const sRes = await authFetch(`${API}/api/bookings/staff/today`);
-        if (sRes.ok) {
-           const schedule = await sRes.json();
-           setTodaySchedule(schedule);
-           setCheckInCount(schedule.filter(b => b.status === 'CHECKED_IN' || b.status === 'CHECKED_OUT').length);
-        }
+        setRecentTickets(tickets);
+        setAssignedResources(resources.filter(r => r.assignedStaffIds?.includes(user.id)));
+        setTodaySchedule(schedule);
+        setCheckInCount(schedule.filter(b => b.status === 'CHECKED_IN' || b.status === 'CHECKED_OUT').length);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

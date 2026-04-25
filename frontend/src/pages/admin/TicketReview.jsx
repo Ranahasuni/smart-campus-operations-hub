@@ -10,7 +10,7 @@ import {
 export default function TicketReview() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { authFetch } = useAuth();
+  const { authFetch, API } = useAuth();
   
   const [ticket, setTicket] = useState(null);
   const [technicians, setTechnicians] = useState([]);
@@ -26,8 +26,8 @@ export default function TicketReview() {
   const fetchData = async () => {
     try {
       const [ticketRes, usersRes] = await Promise.all([
-        authFetch(`http://localhost:8082/api/tickets/${id}`),
-        authFetch(`http://localhost:8082/api/users`) // Filter technicians below
+        authFetch(`${API}/api/tickets/${id}`),
+        authFetch(`${API}/api/users`) // Filter technicians below
       ]);
       
       if (!ticketRes.ok) throw new Error('Could not retrieve ticket parameters');
@@ -52,7 +52,7 @@ export default function TicketReview() {
     setProcessing(true);
     try {
       // Endpoint: PATCH /api/tickets/{id}/assign?technicianId=...&assignedBy=...
-      const res = await authFetch(`http://localhost:8082/api/tickets/${id}/assign?technicianId=${selectedTech}&assignedBy=ADMIN`, {
+      const res = await authFetch(`${API}/api/tickets/${id}/assign?technicianId=${selectedTech}&assignedBy=ADMIN`, {
         method: 'PATCH'
       });
       

@@ -59,20 +59,36 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // Only authenticate if not already authenticated
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            try {
+                // Determine if token is expired before any further checks
+                if (jwtUtil.isTokenExpiredDirectly(jwt)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
-            if (jwtUtil.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-                System.out.println("Authentication successful for user: " + username);
-            } else {
-                System.out.println("Token validation failed for user: " + username);
+                // ⚡ PERFORMANCE OPTIMIZATION: Extracting role and ID directly from JWT
+                // This eliminates the mandatory database lookup on EVERY single request
+                String role = jwtUtil.extractRole(jwt);
+                String userId = jwtUtil.extractUserId(jwt);
+
+                if (role != null) {
+                    var authorities = java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+                    
+                    // Construct minimalist UserDetails without hitting DB
+                    org.springframework.security.core.userdetails.User principal = 
+                        new org.springframework.security.core.userdetails.User(username, "", authorities);
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    principal,
+                                    null,
+                                    authorities
+                            );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                System.out.println("Stateless authentication error: " + e.getMessage());
             }
         }
 

@@ -33,4 +33,10 @@ public class AuditService {
     public List<AuditLog> getLogsByUser(String userId) {
         return auditLogRepository.findByUserId(userId);
     }
+
+    public List<AuditLog> getRecentLogs(int limit) {
+        return auditLogRepository.findAll(
+            org.springframework.data.domain.PageRequest.of(0, limit, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "timestamp"))
+        ).getContent();
+    }
 }

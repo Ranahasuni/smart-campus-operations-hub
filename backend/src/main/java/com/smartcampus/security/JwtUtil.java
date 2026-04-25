@@ -55,6 +55,14 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
+    public boolean isTokenExpiredDirectly(String token) {
+        try {
+            return extractExpiration(token).before(new Date());
+        } catch (Exception e) {
+            return true; // Assume expired if invalid
+        }
+    }
+
     // ── claim extraction ────────────────────────────────────────────────────
 
     public String extractUsername(String token) {

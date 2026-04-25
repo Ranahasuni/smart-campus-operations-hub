@@ -50,27 +50,22 @@ export default function Dashboard() {
     }
 
     try {
-      // 1. Fetch Users
-      const userRes = await authFetch(`${API}/api/users`);
-      const users = userRes.ok ? await userRes.json() : [];
+      // Parallelize all baseline requests to avoid sequential blocking (Waterfall effect)
+      const [userRes, logRes, ticketDataRes, analyticsRes] = await Promise.all([
+        authFetch(`${API}/api/users`),
+        authFetch(`${API}/api/logs?limit=6`),
+        ticketApi.getAllTickets(),
+        authFetch(`${API}/api/resources/analytics/summary`)
+      ]);
 
-      // 2. Fetch Logs
-      const logRes = await authFetch(`${API}/api/logs`);
-      const logs = logRes.ok ? await logRes.json() : [];
+      const [users, logs, ticketRes, rStats] = await Promise.all([
+        userRes.ok ? userRes.json() : [],
+        logRes.ok ? logRes.json() : [],
+        ticketDataRes, // ticketApi already returns data
+        analyticsRes.ok ? analyticsRes.json() : null
+      ]);
 
-      // 3. Fetch Tickets
-      let ticketData = [];
-      try {
-        const ticketRes = await ticketApi.getAllTickets();
-        ticketData = Array.isArray(ticketRes.data) ? ticketRes.data : [];
-      } catch (tErr) { console.error(tErr); }
-
-      // 4. Fetch Resource Analytics
-      let rStats = null;
-      try {
-        const analyticsRes = await authFetch(`${API}/api/resources/analytics/summary`);
-        if (analyticsRes.ok) rStats = await analyticsRes.json();
-      } catch (aErr) { console.error(aErr); }
+      const ticketData = Array.isArray(ticketRes.data) ? ticketRes.data : [];
 
       setStats({
         totalUsers: Array.isArray(users) ? users.length : 0,

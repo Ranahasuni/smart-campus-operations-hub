@@ -42,4 +42,8 @@ public interface ResourceRepository
     // ── Map Filter ─────────────────────────────────────
     List<Resource> findByBuildingAndFloorOrderByRoomNumber(
             String building, Integer floor);
+
+    long countByStatus(ResourceStatus status);
+
+    List<Resource> findByAssignedStaffId(String staffId);
 }

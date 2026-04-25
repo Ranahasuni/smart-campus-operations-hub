@@ -25,7 +25,7 @@ import '../../styles/tickets.css';
 export default function TicketDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, API } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -252,10 +252,10 @@ export default function TicketDetailsPage() {
                     <div 
                       key={img.id} 
                       className="group relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl cursor-pointer"
-                      onClick={() => window.open(`http://localhost:8082${img.imageUrl}`, '_blank')}
+                      onClick={() => window.open(`${API}${img.imageUrl}`, '_blank')}
                     >
                       <img 
-                        src={`http://localhost:8082${img.imageUrl}`} 
+                        src={`${API}${img.imageUrl}`} 
                         alt={img.caption || `Maintenance photo ${index + 1}`} 
                         style={{ width: '100%', height: '160px', objectFit: 'cover' }}
                         className="transition-transform duration-500 group-hover:scale-110"

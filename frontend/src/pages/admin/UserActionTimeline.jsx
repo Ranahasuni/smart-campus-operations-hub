@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function UserActionTimeline() {
   const { id } = useParams();
-  const { authFetch } = useAuth();
+  const { authFetch, API } = useAuth();
   const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,8 +19,8 @@ export default function UserActionTimeline() {
     try {
       setLoading(true);
       const [logRes, userRes] = await Promise.all([
-        authFetch(`http://localhost:8082/api/audit?userId=${id}`),
-        authFetch(`http://localhost:8082/api/users/${id}`)
+        authFetch(`${API}/api/audit?userId=${id}`),
+        authFetch(`${API}/api/users/${id}`)
       ]);
       const logData = await logRes.json();
       const userData = await userRes.json();
