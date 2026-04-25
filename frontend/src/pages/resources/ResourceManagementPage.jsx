@@ -18,7 +18,7 @@ function Reveal({ children, className = '' }) {
   return <div ref={ref} className={`hp-reveal `}>{children}</div>;
 }
 
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosInstance';
 import FilterPanel from './Admin/components/FilterPanel';
@@ -77,28 +77,50 @@ export default function ResourceManagementPage() {
   }, [filters, allResources]);
 
   const handleUpdateStatus = async (id, nextStatus) => {
+    // ⚡ OPTIMISTIC UPDATE: Change UI instantly
+    const originalResources = [...allResources];
+    const updated = allResources.map(r => r.id === id ? { ...r, status: nextStatus } : r);
+    setAllResources(updated);
+
     try {
       await api.patch(`/resources/${id}/status?status=${nextStatus}`);
-      setAllResources(prev => prev.map(r => r.id === id ? { ...r, status: nextStatus } : r));
+      // Refresh cache with the correct updated data
+      sessionStorage.setItem('admin_registry_cache', JSON.stringify(updated));
     } catch (err) {
       console.error('Status update error:', err);
+      setAllResources(originalResources); // Revert on failure
+      sessionStorage.setItem('admin_registry_cache', JSON.stringify(originalResources));
     }
   };
 
   const handleDeleteResource = async (id) => {
+    // ⚡ OPTIMISTIC DELETE: Remove row instantly
+    const originalResources = [...allResources];
+    const updated = allResources.filter(r => r.id !== id);
+    setAllResources(updated);
+    sessionStorage.setItem('admin_registry_cache', JSON.stringify(updated));
+
     try {
       await api.delete(`/resources/${id}`);
-      const updated = allResources.filter(r => r.id !== id);
-      setAllResources(updated);
-      sessionStorage.setItem('admin_registry_cache', JSON.stringify(updated));
+      // ⚡ HARD SYNC: Fetch fresh data to be 100% sure
+      fetchAllResources();
     } catch (err) {
       console.error('Delete error:', err);
+      setAllResources(originalResources); // Revert if delete fails
+      sessionStorage.setItem('admin_registry_cache', JSON.stringify(originalResources));
     }
   };
 
   const clearFilters = () => {
     setFilters({ name: '', building: '', floor: '', type: '', status: '', capacity: '' });
   };
+
+  if (loading) return (
+    <div style={{ padding: '100px', textAlign: 'center', color: '#6B7281' }}>
+      <Loader2 className="animate-spin" size={48} style={{ margin: '0 auto 20px', color: '#C08080' }} />
+      <p style={{ letterSpacing: '2px', fontWeight: 'bold' }}>SYNCHRONIZING ASSET REGISTRY...</p>
+    </div>
+  );
 
   return (
     <div style={{
