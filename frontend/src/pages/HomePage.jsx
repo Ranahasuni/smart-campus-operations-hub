@@ -36,15 +36,16 @@ export default function HomePage() {
   return (
     <div className="home-hero" style={{
       padding: '80px 24px',
-      background: 'radial-gradient(circle at 50% -20%, #1e1b4b 0%, #0f172a 70%)',
-      minHeight: 'calc(100vh - 64px)'
+      background: 'radial-gradient(circle at 50% -20%, #8C0000 0%, #3B0000 70%)',
+      minHeight: 'calc(100vh - 64px)',
+      color: '#fff'
     }}>
       <div className="container" style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '3.5rem', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '3.5rem', marginBottom: '20px', color: '#fff' }}>
           Welcome back, <span className="gradient-text">{user?.fullName || 'Academic Leader'}</span>
         </h1>
         <p style={{
-          color: 'rgba(255,255,255,0.7)',
+          color: 'rgba(255,255,255,0.85)',
           fontSize: '1.25rem',
           maxWidth: '800px',
           margin: '0 auto 60px'
@@ -72,15 +73,18 @@ export default function HomePage() {
               display: 'flex',
               flexDirection: 'column',
               gap: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              border: '1px solid rgba(185, 122, 122, 0.3)',
+              boxShadow: '0 8px 32px rgba(140, 0, 0, 0.08)'
             }}>
               <div style={{ fontSize: '2.5rem' }}>{f.icon}</div>
-              <h3 style={{ color: '#fff' }}>{f.title}</h3>
-              <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>{f.desc}</p>
+              <h3 style={{ color: '#1F1F1F' }}>{f.title}</h3>
+              <p style={{ color: '#4B5563', fontSize: '0.95rem' }}>{f.desc}</p>
               <div style={{
                 marginTop: 'auto',
-                color: '#818cf8',
-                fontWeight: '600',
-                fontSize: '0.9rem',
+                color: '#8C0000',
+                fontWeight: '700',
+                fontSize: '0.95rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'

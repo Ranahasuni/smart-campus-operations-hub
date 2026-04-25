@@ -3,14 +3,14 @@
  */
 export const THEME = {
   colors: {
-    primary: '#6366f1',
-    secondary: '#94a3b8',
-    accent: '#818cf8',
-    danger: '#ef4444',
-    success: '#22c55e',
-    background: '#0f172a',
-    brandRed: '#800000',
-    glassBorder: 'rgba(255, 255, 255, 0.1)',
+    primary: '#8C0000',
+    secondary: '#B97A7A',
+    accent: '#5A0000',
+    danger: '#9f1239',
+    success: '#166534',
+    background: '#F7F7F7',
+    brandRed: '#8C0000',
+    glassBorder: 'rgba(185, 122, 122, 0.2)',
   },
   typography: {
     fontFamily: "'Inter', sans-serif",
