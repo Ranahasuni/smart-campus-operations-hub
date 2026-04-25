@@ -24,4 +24,6 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
         LocalDate date, 
         List<BookingStatus> statuses
     );
+
+    List<Booking> findByUserIdAndDateAndStatusIn(String userId, LocalDate date, List<BookingStatus> statuses);
 }

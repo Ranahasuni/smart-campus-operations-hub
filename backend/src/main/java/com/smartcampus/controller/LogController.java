@@ -21,7 +21,10 @@ public class LogController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
-    public ResponseEntity<List<AuditLog>> getAllLogs() {
+    public ResponseEntity<List<AuditLog>> getAllLogs(@RequestParam(required = false) Integer limit) {
+        if (limit != null) {
+            return ResponseEntity.ok(auditService.getRecentLogs(limit));
+        }
         return ResponseEntity.ok(auditService.getAllLogs());
     }
 

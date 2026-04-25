@@ -20,16 +20,19 @@ public class Booking {
 
     @Id
     private String id;
-
-    // References to other collections
+    
+    @org.springframework.data.mongodb.core.index.Indexed
     private String userId;
+    
+    @org.springframework.data.mongodb.core.index.Indexed
     private java.util.List<String> resourceIds;
 
-    // Booking time slots
+    @org.springframework.data.mongodb.core.index.Indexed
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
 
+    @org.springframework.data.mongodb.core.index.Indexed
     @Builder.Default
     private BookingStatus status = BookingStatus.PENDING;
 

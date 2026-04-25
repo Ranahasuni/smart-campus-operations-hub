@@ -32,26 +32,28 @@ export default function TechnicianPortal() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await authFetch(`${API}/api/tickets`);
-      if (res.ok) {
-        const tickets = await res.json();
-        
-        // Calculate statistics - Adapted for Technical Workflow
-        const myTasks = tickets.filter(t => t.technicianId === user.id && (t.status === 'IN_PROGRESS' || t.status === 'OPEN'));
-        const urgent = tickets.filter(t => t.priority === 'HIGH' && t.status !== 'CLOSED' && t.status !== 'REJECTED');
-        const active = tickets.filter(t => t.status !== 'CLOSED' && t.status !== 'REJECTED');
-        const completed = tickets.filter(t => t.technicianId === user.id && (t.status === 'RESOLVED' || t.status === 'CLOSED'));
+      
+      // Parallel fetch for stats and recent activity
+      const [statsRes, ticketsRes] = await Promise.all([
+        authFetch(`${API}/api/tickets/stats/technician/${user.id}`),
+        authFetch(`${API}/api/tickets/recent?limit=8`)
+      ]);
 
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
         setStats({
-          activeTickets: active.length,
-          myTickets: myTasks.length,
-          urgentTickets: urgent.length,
-          completedToday: completed.length
+          activeTickets: statsData.activeTickets || 0,
+          myTickets: statsData.myTickets || 0,
+          urgentTickets: statsData.urgentTickets || 0,
+          completedToday: statsData.completedToday || 0
         });
-
-        // Get top 8 recent tickets for a full view
-        setRecentTickets(tickets.slice(0, 8));
       }
+
+      if (ticketsRes.ok) {
+        const tickets = await ticketsRes.json();
+        setRecentTickets(tickets);
+      }
+
     } catch (error) {
       console.error('Error fetching technician data:', error);
     } finally {

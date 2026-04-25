@@ -48,9 +48,8 @@ public class CheckInService {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
 
-        List<Booking> activeBookings = bookingRepository.findByUserId(user.getId()).stream()
-                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
-                .filter(b -> b.getDate().equals(today))
+        List<BookingStatus> allowedStatuses = List.of(BookingStatus.APPROVED);
+        List<Booking> activeBookings = bookingRepository.findByUserIdAndDateAndStatusIn(user.getId(), today, allowedStatuses).stream()
                 .filter(b -> b.getResourceIds().contains(resourceId))
                 .filter(b -> !b.isCheckedIn())
                 .filter(b -> !now.isBefore(b.getStartTime().minusMinutes(checkInProperties.getScanBufferMinutes())) && !now.isAfter(b.getEndTime()))
@@ -161,8 +160,8 @@ public class CheckInService {
         if (!isAuthorized) {
             String primaryResourceId = booking.getResourceIds().get(0);
             Resource resource = resourceRepository.findById(primaryResourceId).orElse(null);
-            if (resource != null && resource.getAssignedStaffIds() != null) {
-                isAuthorized = resource.getAssignedStaffIds().contains(staffUserId);
+            if (resource != null && resource.getAssignedStaffId() != null) {
+                isAuthorized = resource.getAssignedStaffId().equals(staffUserId);
             }
         }
 

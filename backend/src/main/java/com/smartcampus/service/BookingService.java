@@ -23,6 +23,9 @@ import com.smartcampus.model.DayAvailability;
 
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,9 +43,27 @@ public class BookingService {
 
     public List<BookingResponseDTO> getBookingsByResourceAndDate(String resourceId, LocalDate date) {
         List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.APPROVED);
-        return bookingRepository.findByResourceIdsInAndDateAndStatusIn(List.of(resourceId), date, activeStatuses)
-                .stream()
-                .map(this::mapToResponseDTOEnriched)
+        List<Booking> bookings = bookingRepository.findByResourceIdsInAndDateAndStatusIn(List.of(resourceId), date, activeStatuses);
+        if (bookings.isEmpty()) return List.of();
+
+        // 1. Bulk Fetch Resources
+        Set<String> resourceIds = bookings.stream()
+                .flatMap(b -> b.getResourceIds().stream())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
+                .collect(Collectors.toMap(Resource::getId, r -> r));
+
+        // 2. Bulk Fetch Users
+        Set<String> userIds = bookings.stream()
+                .map(Booking::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<String, com.smartcampus.model.User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u));
+
+        return bookings.stream()
+                .map(b -> mapToResponseDTOWithData(b, userMap.get(b.getUserId()), resourceMap))
                 .collect(Collectors.toList());
     }
 
@@ -227,9 +248,23 @@ public class BookingService {
     }
 
     public List<BookingResponseDTO> getUserBookings(String userId) {
-        return bookingRepository.findByUserId(userId)
-                .stream()
-                .map(this::mapToResponseDTOEnriched)
+        List<Booking> bookings = bookingRepository.findByUserId(userId);
+        if (bookings.isEmpty()) return List.of();
+
+        // Bulk fetch all required resources
+        Set<String> resourceIds = bookings.stream()
+                .flatMap(b -> b.getResourceIds().stream())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
+                .collect(Collectors.toMap(Resource::getId, r -> r));
+
+        // Fetch user once
+        com.smartcampus.model.User user = userRepository.findById(userId).orElse(null);
+
+        return bookings.stream()
+                .map(b -> mapToResponseDTOWithData(b, user, resourceMap))
                 .collect(Collectors.toList());
     }
 
@@ -250,16 +285,33 @@ public class BookingService {
     // ── Admin Operations (Core Models) ────────────────────────────────────────
 
     public List<BookingResponseDTO> getAllBookings() {
-        return bookingRepository.findAll().stream()
-                .map(this::mapToResponseDTOEnriched)
+        List<Booking> bookings = bookingRepository.findAll();
+        if (bookings.isEmpty()) return List.of();
+
+        // 1. Bulk Fetch Resources
+        Set<String> resourceIds = bookings.stream()
+                .flatMap(b -> b.getResourceIds().stream())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
+                .collect(Collectors.toMap(Resource::getId, r -> r));
+
+        // 2. Bulk Fetch Users
+        Set<String> userIds = bookings.stream()
+                .map(Booking::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<String, com.smartcampus.model.User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u));
+
+        return bookings.stream()
+                .map(b -> mapToResponseDTOWithData(b, userMap.get(b.getUserId()), resourceMap))
                 .collect(Collectors.toList());
     }
 
     public List<BookingResponseDTO> getStaffTodaySchedule(String staffUserId) {
-        // 1. Get resources assigned to this staff
-        List<Resource> assignedResources = resourceRepository.findAll().stream()
-                .filter(r -> r.getAssignedStaffIds() != null && r.getAssignedStaffIds().contains(staffUserId))
-                .toList();
+        // 1. Get resources assigned to this staff (targeted query instead of full scan)
+        List<Resource> assignedResources = resourceRepository.findByAssignedStaffId(staffUserId);
 
         if (assignedResources.isEmpty()) return List.of();
 
@@ -268,9 +320,21 @@ public class BookingService {
 
         // 2. Fetch all bookings for these resources today (Approved or Checked In)
         List<BookingStatus> watchStatuses = List.of(BookingStatus.APPROVED, BookingStatus.CHECKED_IN, BookingStatus.CHECKED_OUT);
-        return bookingRepository.findByResourceIdsInAndDateAndStatusIn(resourceIds, today, watchStatuses)
-                .stream()
-                .map(this::mapToResponseDTOEnriched)
+        List<Booking> bookings = bookingRepository.findByResourceIdsInAndDateAndStatusIn(resourceIds, today, watchStatuses);
+        
+        if (bookings.isEmpty()) return List.of();
+
+        // 3. Bulk Enrichment
+        Set<String> allResIds = bookings.stream().flatMap(b -> b.getResourceIds().stream()).collect(Collectors.toSet());
+        Map<String, Resource> resourceMap = resourceRepository.findAllById(allResIds).stream()
+                .collect(Collectors.toMap(Resource::getId, r -> r));
+        
+        Set<String> userIds = bookings.stream().map(Booking::getUserId).collect(Collectors.toSet());
+        Map<String, com.smartcampus.model.User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u));
+
+        return bookings.stream()
+                .map(b -> mapToResponseDTOWithData(b, userMap.get(b.getUserId()), resourceMap))
                 .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
                 .collect(Collectors.toList());
     }
@@ -337,23 +401,37 @@ public class BookingService {
     }
 
     private BookingResponseDTO mapToResponseDTOEnriched(Booking booking) {
-        List<String> resIds = booking.getResourceIds();
-        List<Resource> resources = (resIds != null && !resIds.isEmpty())
-                ? resourceRepository.findAllById(resIds.stream().filter(id -> id != null).collect(Collectors.toList()))
-                : List.of();
+        com.smartcampus.model.User user = (booking.getUserId() != null) 
+            ? userRepository.findById(booking.getUserId()).orElse(null) 
+            : null;
+            
+        List<Resource> resources = (booking.getResourceIds() != null && !booking.getResourceIds().isEmpty())
+            ? resourceRepository.findAllById(booking.getResourceIds())
+            : List.of();
+            
+        Map<String, Resource> resourceMap = resources.stream().collect(Collectors.toMap(Resource::getId, r -> r));
+        return mapToResponseDTOWithData(booking, user, resourceMap);
+    }
 
-        com.smartcampus.model.User user = null;
-        if (booking.getUserId() != null) {
-            user = userRepository.findById(booking.getUserId()).orElse(null);
-        }
+    private BookingResponseDTO mapToResponseDTOWithData(Booking booking, com.smartcampus.model.User user, Map<String, Resource> resourceMap) {
+        List<String> resIds = booking.getResourceIds() != null ? booking.getResourceIds() : List.of();
         
+        List<String> names = resIds.stream()
+                .map(id -> resourceMap.containsKey(id) ? resourceMap.get(id).getName() : "Unknown Facility")
+                .collect(Collectors.toList());
+                
+        com.smartcampus.model.ResourceType type = null;
+        if (!resIds.isEmpty() && resourceMap.containsKey(resIds.get(0))) {
+            type = resourceMap.get(resIds.get(0)).getType();
+        }
+
         return BookingResponseDTO.builder()
                 .id(booking.getId())
                 .userId(booking.getUserId())
-                .requesterName(user != null ? user.getFullName() : "Unknown User (" + booking.getUserId() + ")")
-                .resourceIds(resIds != null ? resIds : List.of())
-                .resourceNames(resources.stream().map(Resource::getName).collect(Collectors.toList()))
-                .resourceType(resources.isEmpty() ? null : resources.get(0).getType())
+                .requesterName(user != null ? user.getFullName() : "Unknown User")
+                .resourceIds(resIds)
+                .resourceNames(names)
+                .resourceType(type)
                 .date(booking.getDate())
                 .startTime(booking.getStartTime())
                 .endTime(booking.getEndTime())

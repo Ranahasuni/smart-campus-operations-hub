@@ -98,6 +98,30 @@ public class TicketService {
         return ticketRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
+    public List<Ticket> getRecentTickets(int limit) {
+        return ticketRepository.findAll(
+            org.springframework.data.domain.PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
+        ).getContent();
+    }
+
+    public java.util.Map<String, Long> getTechnicianStats(String techId) {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        
+        stats.put("activeTickets", ticketRepository.countByStatusIn(
+            List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED)));
+        
+        stats.put("myTickets", ticketRepository.countByTechnicianIdAndStatusIn(
+            techId, List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS)));
+        
+        stats.put("urgentTickets", ticketRepository.countByPriorityAndStatusIn(
+            Priority.HIGH, List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS)));
+            
+        stats.put("completedToday", ticketRepository.countByTechnicianIdAndStatusIn(
+            techId, List.of(TicketStatus.RESOLVED, TicketStatus.CLOSED)));
+            
+        return stats;
+    }
+
     public Ticket getTicketById(String id) {
         return ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + id));
