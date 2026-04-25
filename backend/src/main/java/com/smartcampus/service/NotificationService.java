@@ -52,18 +52,19 @@ public class NotificationService {
 
         // Prevent exact duplicates within a short time window (5 seconds)
         java.time.LocalDateTime fiveSecondsAgo = java.time.LocalDateTime.now().minusSeconds(5);
-        List<Notification> existing = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(recipient.getId());
+        java.util.Optional<Notification> lastOpt = notificationRepository.findFirstByRecipientIdOrderByCreatedAtDesc(recipient.getId());
         
-        boolean isDuplicate = existing.stream().anyMatch(n -> 
-            n.getCreatedAt().isAfter(fiveSecondsAgo) &&
-            n.getTitle().equals(req.getTitle()) &&
-            n.getMessage().equals(req.getMessage()) &&
-            ((n.getReferenceId() == null && req.getReferenceId() == null) || 
-             (n.getReferenceId() != null && n.getReferenceId().equals(req.getReferenceId())))
-        );
+        if (lastOpt.isPresent()) {
+            Notification last = lastOpt.get();
+            boolean isDuplicate = last.getCreatedAt().isAfter(fiveSecondsAgo) &&
+                last.getTitle().equals(req.getTitle()) &&
+                last.getMessage().equals(req.getMessage()) &&
+                ((last.getReferenceId() == null && req.getReferenceId() == null) || 
+                 (last.getReferenceId() != null && last.getReferenceId().equals(req.getReferenceId())));
 
-        if (isDuplicate) {
-            return toResponse(existing.get(0));
+            if (isDuplicate) {
+                return toResponse(last);
+            }
         }
 
         NotificationPriority priority = req.getPriority() != null

@@ -31,6 +31,7 @@ import java.util.Optional;
 public class CheckInController {
 
     private final CheckInService checkInService;
+    private final UserRepository userRepository;
 
     @PostMapping("/{bookingId}")
     public ResponseEntity<?> checkIn(@PathVariable String bookingId) {
