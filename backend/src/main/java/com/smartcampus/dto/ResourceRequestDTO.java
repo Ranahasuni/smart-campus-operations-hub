@@ -55,5 +55,6 @@ public class ResourceRequestDTO {
     @NotEmpty(message = "Operational Status: You must enable at least one operational day")
     private List<com.smartcampus.model.DayAvailability> availability;
 
+    @NotEmpty(message = "Administrative Requirement: You must assign at least one staff member as a caretaker")
     private List<String> assignedStaffIds;
 }

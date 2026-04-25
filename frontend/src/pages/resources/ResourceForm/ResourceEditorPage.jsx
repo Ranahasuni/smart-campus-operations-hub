@@ -280,6 +280,11 @@ export default function ResourceEditorPage() {
       }
     }
 
+    // 👮 Staff Validation (Leader Requirement)
+    if (!data.assignedStaffIds || data.assignedStaffIds.length === 0) {
+      vErrors.assignedStaffIds = "This field is required. Please assign a staff member.";
+    }
+
     return vErrors;
   };
 
