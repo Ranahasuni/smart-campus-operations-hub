@@ -258,7 +258,7 @@ public class BookingService {
     public List<BookingResponseDTO> getStaffTodaySchedule(String staffUserId) {
         // 1. Get resources assigned to this staff
         List<Resource> assignedResources = resourceRepository.findAll().stream()
-                .filter(r -> r.getAssignedStaffIds() != null && r.getAssignedStaffIds().contains(staffUserId))
+                .filter(r -> r.getAssignedStaffId() != null && r.getAssignedStaffId().equals(staffUserId))
                 .toList();
 
         if (assignedResources.isEmpty()) return List.of();
