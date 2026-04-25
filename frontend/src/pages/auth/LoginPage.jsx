@@ -4,7 +4,7 @@ import { User, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './auth.css';
 
-const BACKEND = 'http://localhost:8082';
+const BACKEND = 'http://127.0.0.1:8082';
 
 export default function Login() {
   const navigate = useNavigate();

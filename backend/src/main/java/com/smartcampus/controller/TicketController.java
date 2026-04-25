@@ -37,6 +37,18 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getAllTickets());
     }
 
+    @GetMapping("/recent")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'LECTURER')")
+    public ResponseEntity<List<Ticket>> getRecentTickets(@RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(ticketService.getRecentTickets(limit));
+    }
+
+    @GetMapping("/stats/technician/{techId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
+    public ResponseEntity<java.util.Map<String, Long>> getTechnicianStats(@PathVariable String techId) {
+        return ResponseEntity.ok(ticketService.getTechnicianStats(techId));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> getTicketById(@PathVariable String id) {

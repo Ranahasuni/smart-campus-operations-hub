@@ -20,5 +20,8 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     /** Notifications filtered by type */
     List<Notification> findByRecipientIdAndTypeOrderByCreatedAtDesc(String recipientId, NotificationType type);
 
+    /** Get only the most recent notification for duplicate checking */
+    java.util.Optional<Notification> findFirstByRecipientIdOrderByCreatedAtDesc(String recipientId);
+
     // Bulk updates like markAllAsRead will be handled in the service via MongoTemplate
 }
