@@ -44,13 +44,6 @@ public class ResourceService {
                 + ", Room " + roomNumber;
     }
 
-    // ── HELPER — Generate QR Code URL ──────────────────
-    private String generateQRCode(String resourceId) {
-        String resourceUrl = "http://localhost:5173/check-in/resource/" + resourceId;
-        return "https://api.qrserver.com/v1/create-qr-code/"
-                + "?size=250x250&data=" + resourceUrl;
-    }
-
     // ── HELPER — Map Resource to ResponseDTO ───────────
     private ResourceResponseDTO toDTO(Resource resource) {
         return ResourceResponseDTO.builder()
@@ -68,7 +61,7 @@ public class ResourceService {
                 .imageUrls(resource.getImageUrls())
                 .availability(resource.getAvailability())
 
-                .qrCodeUrl(resource.getQrCodeUrl())
+                .assignedStaffId(resource.getAssignedStaffId())
                 .createdAt(resource.getCreatedAt())
                 .updatedAt(resource.getUpdatedAt())
                 .build();
@@ -134,12 +127,6 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
-    // ── GET QR CODE ─────────────────────────────────────
-    public String getQRCode(String id) {
-        Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(id));
-        return resource.getQrCodeUrl();
-    }
 
     // ── GET FLOOR MAP ───────────────────────────────────
     public List<ResourceResponseDTO> getFloorMap(String building, Integer floor) {
@@ -252,12 +239,10 @@ public class ResourceService {
                 .equipment(dto.getEquipment())
                 .imageUrls(dto.getImageUrls())
                 .availability(dto.getAvailability())
-
+                .assignedStaffId(dto.getAssignedStaffId())
                 .build();
 
-        Resource saved = resourceRepository.save(resource);
-        saved.setQrCodeUrl(generateQRCode(saved.getId()));
-        Resource finalSaved = resourceRepository.save(saved);
+        Resource finalSaved = resourceRepository.save(resource);
 
         try {
             notificationService.notifyAdmins(
@@ -295,8 +280,8 @@ public class ResourceService {
         resource.setLocation(buildLocation(dto.getBuilding(), dto.getFloor(), dto.getRoomNumber()));
         resource.setEquipment(dto.getEquipment());
         resource.setImageUrls(dto.getImageUrls());
-        resource.setStatus(dto.getStatus());
         resource.setAvailability(dto.getAvailability());
+        resource.setAssignedStaffId(dto.getAssignedStaffId());
 
         resource.setUpdatedAt(LocalDateTime.now());
 

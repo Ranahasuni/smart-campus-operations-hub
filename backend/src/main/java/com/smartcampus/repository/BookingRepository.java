@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
     List<Booking> findByUserId(String userId);
+    java.util.Optional<Booking> findByBookingCode(String bookingCode);
     
     @org.springframework.data.mongodb.repository.Query("{ 'resourceIds': ?0 }")
     List<Booking> findByResourceIdIn(java.util.Collection<String> resourceIds);

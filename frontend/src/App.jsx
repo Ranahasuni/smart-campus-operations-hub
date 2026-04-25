@@ -22,6 +22,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ResourceEditorPage from './pages/resources/ResourceForm/ResourceEditorPage';
 import ResourceDetailsPage from './pages/resources/Details/ResourceDetailsPage';
 import StaffPortal from './pages/StaffPortal';
+import TechnicianPortal from './pages/TechnicianPortal';
 import CheckInPage from './pages/bookings/CheckInPage';
 
 import Dashboard from './pages/admin/Dashboard.jsx';
@@ -188,10 +189,17 @@ export default function App() {
               </ProtectedRoute>
             } />
 
-            {/* Staff-related dashboard (Staff, Lecturers, Technicians) */}
+            {/* Staff-related dashboard (Staff, Lecturers) */}
             <Route path="/staff" element={
-              <ProtectedRoute role={['STAFF', 'LECTURER', 'TECHNICIAN']}>
+              <ProtectedRoute role={['STAFF', 'LECTURER']}>
                 <StaffPortal />
+              </ProtectedRoute>
+            } />
+
+            {/* Technician-specific Hub */}
+            <Route path="/technician" element={
+              <ProtectedRoute role={['TECHNICIAN']}>
+                <TechnicianPortal />
               </ProtectedRoute>
             } />
           </Routes>

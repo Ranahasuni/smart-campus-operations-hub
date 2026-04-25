@@ -25,10 +25,8 @@ public class ResourceResponseDTO {
     private List<String> equipment;
     private List<String> imageUrls;
     private List<com.smartcampus.model.DayAvailability> availability;
+    private String assignedStaffId;
 
-
-    // Innovation
-    private String qrCodeUrl;
 
     // Audit
     private LocalDateTime createdAt;

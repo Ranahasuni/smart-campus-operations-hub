@@ -10,6 +10,7 @@ const BookingActionButtons = ({
   onUpdate, 
   onCancelAction, 
   onReportMissingQR, 
+  onShowQR,
   isBookingActive 
 }) => {
   const active = isBookingActive(booking);
@@ -34,12 +35,26 @@ const BookingActionButtons = ({
       )}
 
       {booking.status === 'APPROVED' && (
-        <button 
-          className="action-btn btn-cancel"
-          onClick={() => onCancelAction(booking.id, 'APPROVED')}
-        >
-          <XCircle size={14} /> Cancel
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            className="action-btn btn-cancel"
+            onClick={() => onCancelAction(booking.id, 'APPROVED')}
+          >
+            <XCircle size={14} /> Cancel
+          </button>
+          <button 
+            className="action-btn btn-show-qr"
+            onClick={() => onShowQR(booking)}
+            style={{ 
+              background: 'rgba(99, 102, 241, 0.15)', 
+              color: '#818cf8', 
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              fontWeight: '800'
+            }}
+          >
+            Digital ID
+          </button>
+        </div>
       )}
 
       {booking.status === 'APPROVED' && !booking.isCheckedIn && (

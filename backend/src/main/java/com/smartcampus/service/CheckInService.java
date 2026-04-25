@@ -107,15 +107,23 @@ public class CheckInService {
         if (bookingOpt.isEmpty()) return Map.of("eligible", false, "reason", "Booking not found");
         
         Booking booking = bookingOpt.get();
-        if (booking.isCheckedIn()) return Map.of("eligible", false, "reason", "ALREADY_CHECKED_IN", "time", booking.getCheckInTime());
-        if (booking.getStatus() != BookingStatus.APPROVED) return Map.of("eligible", false, "reason", "NOT_APPROVED");
+        if (booking.isCheckedIn() || booking.getStatus() == BookingStatus.CHECKED_IN) {
+            return Map.of("eligible", false, "reason", "ALREADY_CHECKED_IN", "time", booking.getCheckInTime());
+        }
+        
+        // Use a more inclusive check if needed, but standard is APPROVED
+        if (booking.getStatus() != BookingStatus.APPROVED) {
+            return Map.of("eligible", false, "reason", "NOT_APPROVED", "status", booking.getStatus());
+        }
         
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         
-        if (!booking.getDate().equals(today)) return Map.of("eligible", false, "reason", "WRONG_DATE", "bookingDate", booking.getDate());
+        if (!booking.getDate().equals(today)) {
+            return Map.of("eligible", false, "reason", "WRONG_DATE", "bookingDate", booking.getDate());
+        }
         
-        boolean tooEarly = now.isBefore(booking.getStartTime().minusMinutes(checkInProperties.getManualBufferMinutes()));
+        boolean tooEarly = now.isBefore(booking.getStartTime().minusMinutes(checkInProperties.getScanBufferMinutes()));
         boolean tooLate = now.isAfter(booking.getEndTime());
         
         if (tooEarly) return Map.of("eligible", false, "reason", "TOO_EARLY", "startTime", booking.getStartTime());
@@ -127,16 +135,56 @@ public class CheckInService {
     private void validateBookingForCheckIn(Booking booking) {
         Map<String, Object> status = getCheckInStatus(booking.getId());
         if (!(Boolean) status.get("eligible")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, (String) status.get("reason"));
+            String reason = (String) status.get("reason");
+            String message = reason;
+            if ("ALREADY_CHECKED_IN".equals(reason)) message = "User is already checked in.";
+            if ("TOO_EARLY".equals(reason)) message = "Arrival verification only possible within " + checkInProperties.getScanBufferMinutes() + " minutes of start time.";
+            if ("TOO_LATE".equals(reason)) message = "Check-in failed. This booking time has already ended.";
+            if ("WRONG_DATE".equals(reason)) message = "Check-in failed. This booking is for " + status.get("bookingDate");
+            
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
+    }
+
+    public ResponseEntity<?> verifyQR(String bookingCode, String staffUserId) {
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid QR Code: Booking not found."));
+
+        User staff = userRepository.findById(staffUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        validateBookingForCheckIn(booking);
+
+        // Verify Staff Assignment for the specific resource
+        boolean isAuthorized = staff.getRole() == Role.ADMIN;
+        if (!isAuthorized) {
+            String primaryResourceId = booking.getResourceIds().get(0);
+            Resource resource = resourceRepository.findById(primaryResourceId).orElse(null);
+            if (resource != null && resource.getAssignedStaffIds() != null) {
+                isAuthorized = resource.getAssignedStaffIds().contains(staffUserId);
+            }
+        }
+
+        if (!isAuthorized) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                "error", "Unauthorized",
+                "message", "You are not assigned to manage this facility."
+            ));
+        }
+
+        return performCheckIn(booking);
+    }
+
         }
     }
 
     private ResponseEntity<?> performCheckIn(Booking booking) {
         booking.setCheckedIn(true);
         booking.setCheckInTime(LocalDateTime.now());
+        booking.setStatus(BookingStatus.CHECKED_IN); // Key update
         bookingRepository.save(booking);
 
-        auditService.log(booking.getUserId(), "CHECK_IN", "Member verified arrival for booking " + booking.getId() + " (" + booking.getBookingCode() + ")");
+        auditService.log(booking.getUserId(), "CHECK_IN", "Staff verified student arrival for booking " + booking.getId() + " (" + booking.getBookingCode() + ")");
 
         try {
             notificationService.notifyCheckIn(booking.getUserId(), booking.getId(), booking.getBookingCode());
@@ -148,7 +196,8 @@ public class CheckInService {
             "message", "Verification Successful",
             "checkInTime", booking.getCheckInTime(),
             "bookingCode", booking.getBookingCode(),
-            "status", "CHECKED_IN"
+            "status", "CHECKED_IN",
+            "fullName", userRepository.findById(booking.getUserId()).map(User::getFullName).orElse("Student")
         ));
     }
 

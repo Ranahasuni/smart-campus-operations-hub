@@ -5,6 +5,7 @@ import LoadingSkeleton from '../../components/common/LoadingSkeleton';
 import EmptyState from '../../components/common/EmptyState';
 import ErrorBanner from '../../components/common/ErrorBanner';
 import BookingCard from './components/BookingCard';
+import BookingQRModal from './components/BookingQRModal';
 import Toast from '../../components/common/Toast';
 import { 
   History,
@@ -21,6 +22,7 @@ export default function MyBookingsPage() {
   const [now, setNow] = useState(new Date());
   const [error, setError] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [activeQRBooking, setActiveQRBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -86,6 +88,24 @@ export default function MyBookingsPage() {
       }
     } catch (err) {
       showToast('Connection error. Please try again.', 'error');
+    }
+  };
+
+  const handleReportMissingQR = async (id) => {
+    if (!window.confirm('No QR Code found? This will notify technical staff and try to verify your arrival manually. Proceed?')) return;
+    
+    try {
+      const res = await authFetch(`${API}/api/check-in/${id}/report-missing-qr`, { method: 'POST' });
+      const data = await res.json();
+      
+      if (res.ok) {
+        showToast(data.message || 'Issue reported successfully.');
+        fetchBookings();
+      } else {
+        showToast(data.error || 'Failed to report issue.', 'error');
+      }
+    } catch (err) {
+      showToast('Connection error.', 'error');
     }
   };
 
@@ -167,7 +187,10 @@ export default function MyBookingsPage() {
               booking={booking}
               onUpdate={(id) => navigate(`/bookings/edit/${id}`)}
               onCancelAction={handleCancelAction}
-              onReportMissingQR={handleConfirmArrival}
+              onReportMissingQR={handleReportMissingQR}
+              onConfirmArrival={handleConfirmArrival}
+              onShowQR={(b) => setActiveQRBooking(b)}
+
               isBookingActive={isBookingActive}
             />
           ))
@@ -182,6 +205,13 @@ export default function MyBookingsPage() {
       </div>
 
       <Toast show={toast.show} message={toast.message} type={toast.type} />
+
+      {activeQRBooking && (
+        <BookingQRModal 
+          booking={activeQRBooking} 
+          onClose={() => setActiveQRBooking(null)} 
+        />
+      )}
     </div>
   );
 }
