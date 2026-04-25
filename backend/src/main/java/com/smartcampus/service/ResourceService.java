@@ -61,7 +61,7 @@ public class ResourceService {
                 .imageUrls(resource.getImageUrls())
                 .availability(resource.getAvailability())
 
-                .assignedStaffId(resource.getAssignedStaffId())
+                .assignedStaffIds(resource.getAssignedStaffIds())
                 .createdAt(resource.getCreatedAt())
                 .updatedAt(resource.getUpdatedAt())
                 .build();
@@ -239,7 +239,7 @@ public class ResourceService {
                 .equipment(dto.getEquipment())
                 .imageUrls(dto.getImageUrls())
                 .availability(dto.getAvailability())
-                .assignedStaffId(dto.getAssignedStaffId())
+                .assignedStaffIds(dto.getAssignedStaffIds())
                 .build();
 
         Resource finalSaved = resourceRepository.save(resource);
@@ -281,7 +281,7 @@ public class ResourceService {
         resource.setEquipment(dto.getEquipment());
         resource.setImageUrls(dto.getImageUrls());
         resource.setAvailability(dto.getAvailability());
-        resource.setAssignedStaffId(dto.getAssignedStaffId());
+        resource.setAssignedStaffIds(dto.getAssignedStaffIds());
 
         resource.setUpdatedAt(LocalDateTime.now());
 

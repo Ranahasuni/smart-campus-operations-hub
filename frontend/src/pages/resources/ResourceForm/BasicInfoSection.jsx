@@ -82,13 +82,21 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
         </div>
 
         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-          <label htmlFor="assignedStaffId">Assigned Caretaker (Staff)</label>
+          <label htmlFor="assignedStaffIds">Assigned Caretaker (Staff)</label>
           <select
-            id="assignedStaffId"
-            name="assignedStaffId"
+            id="assignedStaffIds"
+            name="assignedStaffIds"
             className="form-select"
-            value={formData.assignedStaffId || ''}
-            onChange={handleChange}
+            value={formData.assignedStaffIds?.[0] || ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              handleChange({
+                target: {
+                  name: 'assignedStaffIds',
+                  value: val ? [val] : []
+                }
+              });
+            }}
           >
             <option value="">Unassigned</option>
             {staffOptions.map(staff => (

@@ -25,7 +25,7 @@ public class ResourceResponseDTO {
     private List<String> equipment;
     private List<String> imageUrls;
     private List<com.smartcampus.model.DayAvailability> availability;
-    private String assignedStaffId;
+    private List<String> assignedStaffIds;
 
 
     // Audit

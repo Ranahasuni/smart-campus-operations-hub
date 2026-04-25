@@ -1,6 +1,7 @@
 package com.smartcampus.service;
 
 import com.smartcampus.model.*;
+import java.util.Optional;
 import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.UserRepository;
@@ -173,9 +174,6 @@ public class CheckInService {
         }
 
         return performCheckIn(booking);
-    }
-
-        }
     }
 
     private ResponseEntity<?> performCheckIn(Booking booking) {

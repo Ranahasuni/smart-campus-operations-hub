@@ -45,7 +45,7 @@ public class Resource {
 
     private List<DayAvailability> availability;
 
-    private String assignedStaffId;
+    private List<String> assignedStaffIds;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

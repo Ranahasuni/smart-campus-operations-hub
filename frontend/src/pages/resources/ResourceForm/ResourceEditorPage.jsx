@@ -47,7 +47,7 @@ export default function ResourceEditorPage() {
       { day: 'Sat', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
       { day: 'Sun', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
     ],
-    assignedStaffId: ''
+    assignedStaffIds: []
   });
 
   useEffect(() => {
@@ -312,7 +312,7 @@ export default function ResourceEditorPage() {
         equipment: formData.equipment || [],
         imageUrls: formData.imageUrls || [],
         availability: formData.availability || [],
-        assignedStaffId: formData.assignedStaffId || null
+        assignedStaffIds: formData.assignedStaffIds || []
       };
 
       const url = isEdit
