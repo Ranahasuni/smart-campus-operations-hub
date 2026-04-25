@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
  * OAuth2 Callback Page — /oauth2/callback
  *
  * The backend's OAuth2AuthenticationSuccessHandler redirects here after a
- * successful Microsoft (Azure AD) login, passing token + user info as query params.
+ * successful Google OAuth2 login, passing token + user info as query params.
  *
  * This component reads those params, persists the session, and redirects
  * the user to the appropriate dashboard based on their role.

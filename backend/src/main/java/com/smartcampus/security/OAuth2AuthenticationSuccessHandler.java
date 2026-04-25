@@ -21,13 +21,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Handles the redirect after a successful Microsoft (Azure AD) OAuth2 login.
+ * Handles the redirect after a successful Google OAuth2 login.
+ * Only @my.sliit.lk student emails are allowed.
  *
  * Flow:
- *  1. Microsoft authenticates the user and Spring receives the OAuth2User.
+ *  1. Google authenticates the student and Spring receives the OAuth2User.
  *  2. This handler finds or creates the user in MongoDB.
  *  3. A JWT is generated and the user is redirected to the frontend
  *     callback page with token + user info as query parameters.
+ *
+ * Security note:
+ *   Google Auth is used only to verify the student's Google identity.
+ *   The system still controls authorization by checking the email domain
+ *   and assigning the STUDENT role from our backend.
  */
 @Component
 @RequiredArgsConstructor
@@ -39,20 +45,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     private static final String FRONTEND_CALLBACK = "http://localhost:5173/oauth2/callback";
 
-    /**
-     * Allowed email domains for OAuth2 sign-in.
-     * Only users with these email domains can authenticate via SLIIT Microsoft.
-     */
-    private static final List<String> ALLOWED_DOMAINS = List.of(
-            "sliit.lk",
-            "my.sliit.lk"
-    );
-
-    /** Staff/faculty domains that auto-assign the LECTURER role */
-    private static final List<String> STAFF_DOMAINS = List.of(
-            "sliit.lk"
-    );
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -60,52 +52,47 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // Microsoft standard OIDC claims
-        String email = oAuth2User.getAttribute("email") != null 
-                ? oAuth2User.getAttribute("email") 
-                : oAuth2User.getAttribute("preferred_username");
-        
-        String name  = oAuth2User.getAttribute("name");
-        
-        // Azure AD unique Object ID (preferred) or standard sub
-        String msalId = oAuth2User.getAttribute("oid") != null 
-                ? oAuth2User.getAttribute("oid") 
-                : oAuth2User.getAttribute("sub"); 
+        // Google OIDC standard claims
+        String email    = oAuth2User.getAttribute("email");
+        String name     = oAuth2User.getAttribute("name");
+        String googleId = oAuth2User.getAttribute("sub");
+        String picture  = oAuth2User.getAttribute("picture");
 
+        // ── Null email guard ────────────────────────────────────────────
         if (email == null || email.isBlank()) {
             response.sendRedirect(FRONTEND_CALLBACK + "?error=" +
-                    URLEncoder.encode("Microsoft account has no email attribute", StandardCharsets.UTF_8));
+                    URLEncoder.encode("Google account has no email attribute", StandardCharsets.UTF_8));
             return;
         }
 
         // ── Domain Restriction ──────────────────────────────────────────
-        // Only allow campus email addresses; reject personal Gmail, etc.
-        String emailDomain = email.substring(email.indexOf('@') + 1).toLowerCase();
-        if (!isAllowedDomain(emailDomain)) {
+        // Only allow SLIIT student emails; reject personal Gmail, staff, etc.
+        // Using endsWith is safer than parsing the domain substring.
+        if (!email.endsWith("@my.sliit.lk")) {
             auditService.log(null, "OAUTH_DOMAIN_REJECTED",
-                    "Microsoft OAuth login rejected — non-campus email: " + email);
+                    "Google OAuth login rejected — non-SLIIT-student email: " + email);
             response.sendRedirect(FRONTEND_CALLBACK + "?error=" +
                     URLEncoder.encode(
-                            "Access denied. Only SLIIT email addresses (@sliit.lk / @my.sliit.lk) are permitted. " +
-                            "Please sign in with your campus email.",
+                            "Access denied. Only SLIIT student emails (@my.sliit.lk) are allowed. " +
+                            "Staff and admin should use Campus ID login.",
                             StandardCharsets.UTF_8));
             return;
         }
 
-        // Determine default role based on email domain
-        Role defaultRole = isStaffDomain(emailDomain) ? Role.LECTURER : Role.STUDENT;
+        // Google OAuth always assigns STUDENT role
+        Role defaultRole = Role.STUDENT;
 
         // Find existing user by campus email, or create a new account
         User user = userRepository.findByCampusEmail(email).orElse(null);
 
         boolean isNewUser = false;
         if (user == null) {
-            // Auto-register with Microsoft profile
+            // Auto-register with Google profile
             isNewUser = true;
             user = User.builder()
                     .campusEmail(email)
                     .fullName(name != null ? name : email.split("@")[0])
-                    .campusId("M-" + msalId.substring(0, Math.min(msalId.length(), 10)))
+                    .campusId("G-" + googleId.substring(0, Math.min(googleId.length(), 10)))
                     .password(null) // OAuth users don't have a local password
                     .role(defaultRole)
                     .status(UserStatus.ACTIVE)
@@ -115,7 +102,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     .build();
             user = userRepository.save(user);
             auditService.log(user.getId(), "OAUTH_REGISTER",
-                    "New user auto-registered via Microsoft OAuth: " + email + " [SOURCE: MICROSOFT]");
+                    "New student auto-registered via Google OAuth: " + email + " [SOURCE: GOOGLE]");
         } else {
             // Check account status
             if (user.getStatus() == UserStatus.LOCKED) {
@@ -146,7 +133,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         String token = jwtUtil.generateToken(userDetails, user.getRole().name(), user.getId());
 
         auditService.log(user.getId(), "OAUTH_LOGIN",
-                "Microsoft OAuth login successful for: " + email + " [SOURCE: MICROSOFT]");
+                "Google OAuth login successful for: " + email + " [SOURCE: GOOGLE]");
 
         // Redirect to frontend with token and user info
         String redirectUrl = FRONTEND_CALLBACK
@@ -159,17 +146,5 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 + "&newUser=" + isNewUser;
 
         response.sendRedirect(redirectUrl);
-    }
-
-    // ── Domain Helpers ──────────────────────────────────────────────────────
-
-    /** Check if the email domain matches any allowed campus domain */
-    private boolean isAllowedDomain(String domain) {
-        return ALLOWED_DOMAINS.contains(domain);
-    }
-
-    /** Check if the email domain belongs to staff/faculty */
-    private boolean isStaffDomain(String domain) {
-        return STAFF_DOMAINS.contains(domain);
     }
 }

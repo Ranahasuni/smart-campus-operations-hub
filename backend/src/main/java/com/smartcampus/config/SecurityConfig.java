@@ -59,7 +59,7 @@ public class SecurityConfig {
                         // ── Remaining ────────────────────────
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated())
-                // ── OAuth2 Microsoft Login ───────────────────
+                // ── OAuth2 Google Login (Students @my.sliit.lk) ──
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authEndpoint -> authEndpoint
                                 // Use cookie-based stateless repository
