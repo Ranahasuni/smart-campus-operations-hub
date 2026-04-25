@@ -64,7 +64,7 @@ export default function App() {
       <ThemeSync />
       <BrowserRouter>
         <Navbar />
-        <div style={{ minHeight: 'calc(100vh - 64px)' }}>
+        <div>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />

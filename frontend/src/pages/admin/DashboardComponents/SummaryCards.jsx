@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Building2, CheckCircle2, AlertTriangle, XCircle, Home } from 'lucide-react';
 
 export default function SummaryCards({ stats }) {
@@ -7,8 +26,8 @@ export default function SummaryCards({ stats }) {
       title: 'Total Resources',
       value: stats.totalResources || 0,
       icon: <Home size={24} />,
-      color: '#6366f1',
-      bg: 'rgba(99, 102, 241, 0.1)'
+      color: '#C08080',
+      bg: 'rgba(192, 128, 128, 0.1)'
     },
     {
       title: 'Active Assets',
@@ -37,16 +56,16 @@ export default function SummaryCards({ stats }) {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
       {cards.map((card, i) => (
         <div key={i} style={{
-          background: 'rgba(255, 255, 255, 0.03)',
+          background: 'rgba(192, 128, 128, 0.06)',
           padding: '24px',
           borderRadius: '24px',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(192, 128, 128, 0.06)',
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <p style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>{card.title}</p>
-              <h3 style={{ fontSize: '2rem', fontWeight: '900', color: '#fff', margin: 0 }}>{card.value}</h3>
+              <p style={{ color: '#6B7281', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>{card.title}</p>
+              <h3 style={{ fontSize: '2rem', fontWeight: '900', color: '#1F1F1F', margin: 0 }}>{card.value}</h3>
             </div>
             <div style={{
               width: '54px', height: '54px', borderRadius: '16px',

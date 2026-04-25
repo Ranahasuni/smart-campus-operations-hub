@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { X, QrCode, Smartphone, Download, ShieldCheck } from 'lucide-react';
 
 export default function BookingQRModal({ booking, onClose }) {
@@ -22,7 +41,7 @@ export default function BookingQRModal({ booking, onClose }) {
       <div 
         className="glass-card max-w-md w-full p-8 relative overflow-hidden text-center" 
         onClick={e => e.stopPropagation()}
-        style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98))' }}
+        style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'linear-gradient(135deg, rgba(250, 234, 234, 0.95), rgba(245, 230, 230, 0.98))' }}
       >
         <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-500"></div>
         

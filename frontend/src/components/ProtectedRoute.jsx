@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children, role }) {
     return (
       <div style={{
         height: '80vh', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', color: '#64748b'
+        justifyContent: 'center', color: '#6B7281'
       }}>
         Loading session...
       </div>

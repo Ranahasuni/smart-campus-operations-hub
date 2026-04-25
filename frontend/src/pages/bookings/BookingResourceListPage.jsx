@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -8,9 +8,26 @@ import {
 } from 'lucide-react';
 import '../../styles/resource-list.css';
 
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 const CATEGORY_MAP = {
   TEACHING_VENUE: { name: 'Teaching Venues', icon: '📖', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
-  LECTURE_THEATRE: { name: 'Lecture Theatres', icon: '🏛️', roles: ['ADMIN', 'LECTURER'] },
   LECTURE_HALL: { name: 'Lecture Halls', icon: '🏛️', roles: ['ADMIN', 'LECTURER'] },
   SEMINAR_ROOM: { name: 'Seminar Rooms', icon: '🗣️', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   MEETING_ROOM: { name: 'Meeting Rooms', icon: '🤝', roles: ['ADMIN', 'STUDENT', 'LECTURER'] },
@@ -106,14 +123,14 @@ export default function BookingResourceListPage() {
     return (
       <div className="resource-list-container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '20px' }}>
         <div style={{ position: 'relative', width: '80px', height: '80px' }}>
-          <Loader2 className="animate-spin" size={80} style={{ color: '#6366f1', opacity: 0.2 }} />
+          <Loader2 className="animate-spin" size={80} style={{ color: '#C08080', opacity: 0.2 }} />
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <LayoutGrid className="animate-pulse" size={32} style={{ color: '#6366f1' }} />
+            <LayoutGrid className="animate-pulse" size={32} style={{ color: '#C08080' }} />
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <h3 style={{ color: 'white', marginBottom: '8px', fontSize: '1.2rem' }}>Scanning Campus Assets...</h3>
-          <p style={{ color: '#94a3b8' }}>Synchronizing real-time availability with the central registry</p>
+          <h3 style={{ color: '#1F1F1F', marginBottom: '8px', fontSize: '1.2rem' }}>Scanning Campus Assets...</h3>
+          <p style={{ color: '#6B7281' }}>Synchronizing real-time availability with the central registry</p>
         </div>
       </div>
     );
@@ -164,7 +181,6 @@ export default function BookingResourceListPage() {
                 <option key={b} value={b}>{b}</option>
               ))
             ) : (
-              // Fallback during loading or if empty
               <>
                 <option value="Main Block">Main Block</option>
                 <option value="Engineering Block">Engineering Block</option>

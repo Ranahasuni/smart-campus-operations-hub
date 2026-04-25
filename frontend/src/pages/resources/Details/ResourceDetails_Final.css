@@ -204,7 +204,7 @@
 .thumbnail-box.active {
   opacity: 1;
   border-color: var(--accent-primary);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 12px rgba(192, 128, 128, 0.2);
 }
 
 .thumbnail-box img {

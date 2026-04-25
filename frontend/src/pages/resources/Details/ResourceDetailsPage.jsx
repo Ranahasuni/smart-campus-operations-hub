@@ -1,4 +1,23 @@
 import React, { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { ArrowLeft, Loader2, Info, ShieldAlert } from 'lucide-react';
@@ -121,7 +140,7 @@ export default function ResourceDetailsPage() {
       {isMaintenance && (
         <div style={{ maxWidth: '1600px', margin: '0 auto 32px' }}>
           <div style={{
-            background: '#ef4444', color: 'white', padding: '24px',
+            background: '#ef4444', color: '#1F1F1F', padding: '24px',
             borderRadius: '24px', display: 'flex',
             alignItems: 'center', gap: '20px', boxShadow: '0 10px 30px rgba(239, 68, 68, 0.4)'
           }}>
@@ -129,8 +148,8 @@ export default function ResourceDetailsPage() {
               <ShieldAlert size={32} color="white" />
             </div>
             <div>
-              <h4 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '950', letterSpacing: '0.02em', color: 'white' }}>{maintenanceTitle}</h4>
-              <p style={{ margin: '4px 0 0', opacity: 0.9, fontWeight: '500', color: 'white' }}>{maintenanceDesc}</p>
+              <h4 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '950', letterSpacing: '0.02em', color: '#1F1F1F' }}>{maintenanceTitle}</h4>
+              <p style={{ margin: '4px 0 0', opacity: 0.9, fontWeight: '500', color: '#1F1F1F' }}>{maintenanceDesc}</p>
             </div>
           </div>
         </div>
@@ -140,16 +159,16 @@ export default function ResourceDetailsPage() {
       {isOffline && (
         <div style={{ maxWidth: '1600px', margin: '0 auto 32px' }}>
           <div style={{
-            background: '#6366f1', color: 'white', padding: '24px',
+            background: '#C08080', color: '#1F1F1F', padding: '24px',
             borderRadius: '24px', display: 'flex',
-            alignItems: 'center', gap: '20px', boxShadow: '0 10px 30px rgba(99, 102, 241, 0.3)'
+            alignItems: 'center', gap: '20px', boxShadow: '0 10px 30px rgba(192, 128, 128, 0.3)'
           }}>
             <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '16px' }}>
               <Info size={32} color="white" />
             </div>
             <div>
-              <h4 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '950', letterSpacing: '0.02em', color: 'white' }}>OPERATIONAL NOTICE</h4>
-              <p style={{ margin: '4px 0 0', opacity: 0.9, fontWeight: '500', color: 'white' }}>This facility is currently offline. Please check later for availability or contact administration.</p>
+              <h4 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '950', letterSpacing: '0.02em', color: '#1F1F1F' }}>OPERATIONAL NOTICE</h4>
+              <p style={{ margin: '4px 0 0', opacity: 0.9, fontWeight: '500', color: '#1F1F1F' }}>This facility is currently offline. Please check later for availability or contact administration.</p>
             </div>
           </div>
         </div>
@@ -168,7 +187,7 @@ export default function ResourceDetailsPage() {
             )}
 
             {/* 🛡️ FACILITY INTELLIGENCE: Specialized Usage Protocol */}
-            <div style={{ marginTop: '40px', padding: '30px', background: 'rgba(99, 102, 241, 0.03)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+            <div style={{ marginTop: '40px', padding: '30px', background: 'rgba(192, 128, 128, 0.03)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '15px' }}>
                 {resource.type === 'EQUIPMENT' ? 'Asset Maintenance Protocol' :
                   resource.type === 'LAB' ? 'Laboratory Safety Protocol' :
@@ -209,11 +228,11 @@ export default function ResourceDetailsPage() {
 
             <div className="availability-card" style={{ marginTop: '20px', opacity: (isMaintenance || isOffline) ? 0.6 : 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>CHECK AVAILABILITY</span>
+                <span style={{ fontSize: '0.8rem', color: '#6B7281', fontWeight: '700' }}>CHECK AVAILABILITY</span>
                 <button
                   onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
                   disabled={isMaintenance || isOffline}
-                  style={{ background: 'none', border: 'none', color: (isMaintenance || isOffline) ? '#94a3b8' : '#6366f1', fontSize: '0.75rem', fontWeight: '800', cursor: (isMaintenance || isOffline) ? 'not-allowed' : 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: (isMaintenance || isOffline) ? '#94a3b8' : '#C08080', fontSize: '0.75rem', fontWeight: '800', cursor: (isMaintenance || isOffline) ? 'not-allowed' : 'pointer' }}
                 >
                   Reset Today
                 </button>
@@ -227,7 +246,7 @@ export default function ResourceDetailsPage() {
                 style={{
                   width: '100%',
                   padding: '12px',
-                  background: (isMaintenance || isOffline) ? 'rgba(0,0,0,0.1)' : 'var(--bg-secondary)',
+                  background: (isMaintenance || isOffline) ? 'rgba(140, 0, 0, 0.03)' : 'var(--bg-secondary)',
                   border: '1px solid var(--glass-border)',
                   borderRadius: '12px',
                   color: (isMaintenance || isOffline) ? 'var(--text-secondary)' : 'var(--text-primary)',

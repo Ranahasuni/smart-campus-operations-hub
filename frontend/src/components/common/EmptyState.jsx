@@ -30,8 +30,8 @@ const EmptyState = ({
       padding: '60px 20px' 
     }}>
       <Icon size={64} style={{ color: '#475569', marginBottom: '20px', opacity: 0.5 }} />
-      <h3 style={{ color: '#cbd5e1', fontSize: '1.5rem', marginBottom: '12px' }}>{title}</h3>
-      <p style={{ color: '#94a3b8', maxWidth: '400px', margin: '0 0 24px 0' }}>{message}</p>
+      <h3 style={{ color: '#4B5563', fontSize: '1.5rem', marginBottom: '12px' }}>{title}</h3>
+      <p style={{ color: '#6B7281', maxWidth: '400px', margin: '0 0 24px 0' }}>{message}</p>
       
       {(onAction || actionPath) && (
         <button 
@@ -39,8 +39,8 @@ const EmptyState = ({
           style={{ 
             marginTop: '10px', 
             width: 'auto', 
-            background: '#6366f1', 
-            color: 'white',
+            background: '#C08080', 
+            color: '#1F1F1F',
             padding: '12px 24px',
             borderRadius: '12px',
             display: 'flex',

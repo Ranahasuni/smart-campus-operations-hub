@@ -311,7 +311,7 @@ public class BookingService {
 
     public List<BookingResponseDTO> getStaffTodaySchedule(String staffUserId) {
         // 1. Get resources assigned to this staff (targeted query instead of full scan)
-        List<Resource> assignedResources = resourceRepository.findByAssignedStaffId(staffUserId);
+        List<Resource> assignedResources = resourceRepository.findByAssignedStaffIdsContaining(staffUserId);
 
         if (assignedResources.isEmpty()) return List.of();
 

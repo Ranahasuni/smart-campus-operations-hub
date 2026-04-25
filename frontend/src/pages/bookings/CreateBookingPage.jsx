@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -224,7 +243,7 @@ export default function CreateBookingPage() {
 
   if (loading) return (
     <div className="booking-form-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <Loader2 className="animate-spin" size={48} style={{ color: '#6366f1' }} />
+      <Loader2 className="animate-spin" size={48} style={{ color: '#C08080' }} />
     </div>
   );
 
@@ -235,7 +254,7 @@ export default function CreateBookingPage() {
           <CheckCircle2 size={48} />
         </div>
         <h1 className="gradient-text">Booking Submitted!</h1>
-        <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>Your campus reservation has been received. Redirecting...</p>
+        <p style={{ color: '#6B7281', fontSize: '1.1rem' }}>Your campus reservation has been received. Redirecting...</p>
       </div>
     </div>
   );
@@ -243,7 +262,7 @@ export default function CreateBookingPage() {
   return (
     <div className="booking-form-container animate-fade-in">
       <div className="breadcrumb" style={{ marginBottom: '32px' }}>
-        <Link to={`/resources/${id}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', textDecoration: 'none' }}>
+        <Link to={`/resources/${id}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7281', textDecoration: 'none' }}>
           <ChevronLeft size={16} /> Back to Resource
         </Link>
       </div>
@@ -251,9 +270,9 @@ export default function CreateBookingPage() {
       <div className="glass-card booking-form-card">
         <header className="form-header" style={{ marginBottom: '32px' }}>
           <h1 className="gradient-text">Reservation for {new Date(formData.date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</h1>
-          <p style={{ color: '#94a3b8' }}>
+          <p style={{ color: '#6B7281' }}>
             Confirming your schedule for {resource?.name || 'this facility'}. 
-            <Link to={`/resources/${id}`} style={{ color: '#6366f1', marginLeft: '10px', textDecoration: 'none', fontWeight: '800' }}>Change Date?</Link>
+            <Link to={`/resources/${id}`} style={{ color: '#C08080', marginLeft: '10px', textDecoration: 'none', fontWeight: '800' }}>Change Date?</Link>
           </p>
           
           {resource && (
@@ -262,8 +281,8 @@ export default function CreateBookingPage() {
                  <span>{CATEGORY_MAP[resource.type]?.icon || '📍'}</span>
               </div>
               <div style={{ flex: 1 }}>
-                 <h3 style={{ margin: 0, color: 'white' }}>{resource.name}</h3>
-                 <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>{resource.building} • Floor {resource.floor} • Capacity: {resource.capacity}</p>
+                 <h3 style={{ margin: 0, color: '#1F1F1F' }}>{resource.name}</h3>
+                 <p style={{ margin: '4px 0 0', color: '#6B7281', fontSize: '0.9rem' }}>{resource.building} • Floor {resource.floor} • Capacity: {resource.capacity}</p>
               </div>
             </div>
           )}
@@ -312,20 +331,20 @@ export default function CreateBookingPage() {
             <div className="availability-display-box" style={{ 
               marginBottom: '24px', 
               padding: '24px', 
-              background: 'rgba(15, 23, 42, 0.4)', 
+              background: '#F5E6E6', 
               borderRadius: '20px',
-              border: '1px solid rgba(99, 102, 241, 0.2)',
+              border: '1px solid rgba(192, 128, 128, 0.2)',
               backdropFilter: 'blur(10px)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#818cf8', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#8C0000', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   <Clock size={16} /> Real-Time Availability for {new Date(formData.date).toLocaleDateString('en-US', { weekday: 'long' })}
                 </div>
                 <button 
                   type="button" 
                   onClick={() => fetchExistingBookings(id, formData.date)}
                   className="check-availability-mini-btn"
-                  style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ background: 'rgba(192, 128, 128, 0.1)', border: '1px solid rgba(192, 128, 128, 0.3)', color: '#8C0000', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   {checkingAvailability ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />} Refresh
                 </button>
@@ -381,7 +400,7 @@ export default function CreateBookingPage() {
                             gap: '4px'
                           }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '1rem', fontWeight: '950', color: 'white' }}>{slot.startTime} — {slot.endTime}</span>
+                              <span style={{ fontSize: '1rem', fontWeight: '950', color: '#1F1F1F' }}>{slot.startTime} — {slot.endTime}</span>
                               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80' }}></div>
                             </div>
                             <span style={{ fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', color: '#22c55e', letterSpacing: '0.1em' }}>
@@ -397,23 +416,23 @@ export default function CreateBookingPage() {
 
               {/* Status & Capacity Check Footer */}
               <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ padding: '16px', background: '#FAEAEA', borderRadius: '16px', border: '1px solid rgba(192, 128, 128, 0.15)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                    <div style={{ padding: '8px', borderRadius: '10px', background: resource.status === 'ACTIVE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' }}>
                       <CheckCircle2 size={16} color={resource.status === 'ACTIVE' ? '#4ade80' : '#ef4444'} />
                    </div>
                    <div>
-                      <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Facility Status</div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: '900', color: 'white' }}>{resource.status}</div>
+                      <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#6B7281', textTransform: 'uppercase' }}>Facility Status</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '900', color: '#1F1F1F' }}>{resource.status}</div>
                    </div>
                 </div>
                 
-                <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                   <div style={{ padding: '8px', borderRadius: '10px', background: parseInt(formData.expectedAttendees) > resource.capacity ? 'rgba(239, 68, 68, 0.1)' : 'rgba(99, 102, 241, 0.1)' }}>
-                      <Users size={16} color={parseInt(formData.expectedAttendees) > resource.capacity ? '#ef4444' : '#818cf8'} />
+                <div style={{ padding: '16px', background: '#FAEAEA', borderRadius: '16px', border: '1px solid rgba(192, 128, 128, 0.15)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                   <div style={{ padding: '8px', borderRadius: '10px', background: parseInt(formData.expectedAttendees) > resource.capacity ? 'rgba(239, 68, 68, 0.1)' : 'rgba(192, 128, 128, 0.12)' }}>
+                      <Users size={16} color={parseInt(formData.expectedAttendees) > resource.capacity ? '#ef4444' : '#C08080'} />
                    </div>
                    <div>
-                      <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Occupancy Headcount</div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: '900', color: parseInt(formData.expectedAttendees) > resource.capacity ? '#ef4444' : 'white' }}>
+                      <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#6B7281', textTransform: 'uppercase' }}>Occupancy Headcount</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '900', color: parseInt(formData.expectedAttendees) > resource.capacity ? '#ef4444' : '#1F1F1F' }}>
                         {formData.expectedAttendees} / {resource.capacity} Seats
                       </div>
                    </div>

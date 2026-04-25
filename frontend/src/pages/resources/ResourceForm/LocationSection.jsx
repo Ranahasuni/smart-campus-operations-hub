@@ -21,7 +21,7 @@ export default function LocationSection({ formData, handleChange, handleBlur, er
   return (
     <div className="form-section">
       <h3>Location Details</h3>
-      <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '-10px', marginBottom: '20px' }}>
+      <p style={{ fontSize: '0.85rem', color: '#6B7281', marginTop: '-10px', marginBottom: '20px' }}>
         Select the official campus location. Floor options will update automatically based on the building.
       </p>
       <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
@@ -33,7 +33,7 @@ export default function LocationSection({ formData, handleChange, handleBlur, er
             className="form-input"
             style={{
               width: '100%', padding: '12px', borderRadius: '10px',
-              border: errors.building ? '1px solid #ef4444' : '1px solid #e2e8f0',
+              border: errors.building ? '1px solid #ef4444' : '1px solid #6B7281',
               background: errors.building ? 'rgba(239, 68, 68, 0.02)' : '#fff',
               cursor: 'pointer', outline: 'none'
             }}
@@ -55,8 +55,8 @@ export default function LocationSection({ formData, handleChange, handleBlur, er
             className="form-input"
             style={{
               width: '100%', padding: '12px', borderRadius: '10px',
-              border: errors.floor ? '1px solid #ef4444' : '1px solid #e2e8f0',
-              background: errors.floor ? 'rgba(239, 68, 68, 0.02)' : (!formData.building ? '#f8fafc' : '#fff'),
+              border: errors.floor ? '1px solid #ef4444' : '1px solid #6B7281',
+              background: errors.floor ? 'rgba(239, 68, 68, 0.02)' : (!formData.building ? '#1F1F1F' : '#fff'),
               cursor: !formData.building ? 'not-allowed' : 'pointer',
               outline: 'none'
             }}
@@ -84,7 +84,7 @@ export default function LocationSection({ formData, handleChange, handleBlur, er
             className="form-input"
             style={{
               width: '100%', padding: '12px', borderRadius: '10px',
-              border: errors.roomNumber ? '1px solid #ef4444' : '1px solid #e2e8f0',
+              border: errors.roomNumber ? '1px solid #ef4444' : '1px solid #6B7281',
               background: errors.roomNumber ? 'rgba(239, 68, 68, 0.02)' : '#fff',
               outline: 'none'
             }}

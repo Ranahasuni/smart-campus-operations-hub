@@ -1,8 +1,28 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Info } from 'lucide-react';
 import BookingStatusBadge from './BookingStatusBadge';
 import BookingActionButtons from './BookingActionButtons';
 import BookingMetaRow from './BookingMetaRow';
+import ArrivalAction from './ArrivalAction';
 
 const CATEGORY_MAP = {
   TEACHING_VENUE: { name: 'Teaching Venue', icon: '📖' },
@@ -36,10 +56,10 @@ const BookingCard = ({
       <div className="booking-info-main">
         <div className="resource-name-row">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>
+            <h3 style={{ color: '#4B5563', fontSize: '1.1rem', margin: 0 }}>
               {(booking.resourceNames || [booking.resourceName || 'Unnamed Unit']).join(', ')}
             </h3>
-            <span style={{ fontSize: '0.75rem', color: '#6366f1', fontWeight: 800 }}>
+            <span style={{ fontSize: '0.75rem', color: '#C08080', fontWeight: 800 }}>
               {booking.bookingCode || `RSV-${new Date(booking.date).getFullYear()}-${booking.id?.slice(-5).toUpperCase()}`}
             </span>
             <span style={{ fontSize: '0.7rem', color: '#475569', textTransform: 'uppercase', fontWeight: 600 }}>
@@ -55,9 +75,17 @@ const BookingCard = ({
           attendees={booking.expectedAttendees}
         />
 
-        <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
+        <div style={{ color: '#6B7281', fontSize: '0.85rem', marginTop: '4px' }}>
           <strong>Purpose:</strong> {booking.purpose}
         </div>
+
+        {/* ARRIVAL SECURE CONTROL */}
+        {(isBookingActive(booking) || booking.isCheckedIn) && (
+          <ArrivalAction 
+            booking={booking} 
+            onCheckIn={onReportMissingQR} 
+          />
+        )}
 
         {booking.status === 'REJECTED' && booking.rejectionReason && (
           <div className="rejection-reason-box">

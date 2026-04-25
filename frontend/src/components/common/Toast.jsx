@@ -19,7 +19,7 @@ const Toast = ({ show, message, type = 'success' }) => {
         padding: '12px 24px',
         borderRadius: '12px',
         background: type === 'success' ? '#22c55e' : '#ef4444',
-        color: 'white',
+        color: '#1F1F1F',
         boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
         zIndex: 1000,
         display: 'flex',

@@ -1,4 +1,23 @@
 import React, { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -93,24 +112,30 @@ export default function CheckInPage() {
                         <div className="status-display success animate-zoom-in">
                             <div className="icon-circle bg-emerald">
                                 <CheckCircle size={40} />
+                                <div className="icon-ring-pulse"></div>
                             </div>
-                            <h2 className="text-gradient-emerald">Verified Successfully</h2>
+                            <h2 className="text-gradient-emerald">Identity Verified</h2>
                             <p className="status-message">{message}</p>
                             
-                            <div className="verification-details">
-                                <div className="detail-item">
-                                    <span className="detail-label">Digital ID</span>
-                                    <span className="detail-value">{details?.bookingCode || 'N/A'}</span>
+                            <div className="verification-details-premium">
+                                <div className="detail-card-row">
+                                    <div className="detail-item-sub">
+                                        <span className="detail-label">Digital ID</span>
+                                        <span className="detail-value-bold">{details?.bookingCode || 'N/A'}</span>
+                                    </div>
+                                    <div className="detail-item-sub">
+                                        <span className="detail-label">Status</span>
+                                        <span className="detail-value-bold text-success">ARRIVED</span>
+                                    </div>
                                 </div>
-                                <div className="detail-item">
-                                    <span className="detail-label">Check-In Time</span>
-                                    <span className="detail-value">{new Date(details?.checkInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                <div className="detail-timestamp-footer">
+                                    Verified on {new Date(details?.checkInTime).toLocaleDateString()} at {new Date(details?.checkInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                 </div>
                             </div>
 
                             <div className="action-area mt-8">
                                 <button onClick={() => navigate('/my-bookings')} className="btn-success-action w-full">
-                                    Continue to Dashboard <ArrowRight size={18} />
+                                    Continue to My Reservations <ArrowRight size={18} />
                                 </button>
                             </div>
                         </div>
