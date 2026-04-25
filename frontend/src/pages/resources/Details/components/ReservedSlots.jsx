@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Clock, CalendarX, Loader2, Info } from 'lucide-react';
 
 export default function ReservedSlots({ bookings, selectedDate, isMaintenance, isOffline, loading }) {
@@ -17,20 +36,20 @@ export default function ReservedSlots({ bookings, selectedDate, isMaintenance, i
     return (
       <div className="availability-card" style={{ 
         marginTop: '20px', 
-        border: '1px solid ' + (isMaint ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.3)'), 
-        background: isMaint ? 'rgba(239, 68, 68, 0.05)' : 'rgba(99, 102, 241, 0.05)' 
+        border: '1px solid ' + (isMaint ? 'rgba(239, 68, 68, 0.3)' : 'rgba(192, 128, 128, 0.3)'), 
+        background: isMaint ? 'rgba(239, 68, 68, 0.05)' : 'rgba(192, 128, 128, 0.05)' 
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           {isMaint ? (
             <CalendarX size={20} style={{ color: '#ef4444' }} />
           ) : (
-            <Info size={20} style={{ color: '#6366f1' }} />
+            <Info size={20} style={{ color: '#C08080' }} />
           )}
           <h3 style={{ 
             margin: 0, 
             fontSize: '1.1rem', 
             fontWeight: '800', 
-            color: isMaint ? '#ef4444' : '#6366f1' 
+            color: isMaint ? '#ef4444' : '#C08080' 
           }}>
             {isMaint ? 'Service Suspended' : 'Facility Offline'}
           </h3>
@@ -38,13 +57,13 @@ export default function ReservedSlots({ bookings, selectedDate, isMaintenance, i
         <div style={{ 
           padding: '16px', 
           textAlign: 'center', 
-          background: isMaint ? 'rgba(239, 68, 68, 0.1)' : 'rgba(99, 102, 241, 0.1)', 
+          background: isMaint ? 'rgba(239, 68, 68, 0.1)' : 'rgba(192, 128, 128, 0.1)', 
           borderRadius: '12px' 
         }}>
           <p style={{ 
             margin: 0, 
             fontSize: '0.85rem', 
-            color: isMaint ? '#ef4444' : '#6366f1', 
+            color: isMaint ? '#ef4444' : '#C08080', 
             fontWeight: '600', 
             lineHeight: '1.5' 
           }}>
@@ -60,7 +79,7 @@ export default function ReservedSlots({ bookings, selectedDate, isMaintenance, i
   return (
     <div className="availability-card" style={{ marginTop: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-        <Clock size={20} className="text-accent" style={{ color: '#6366f1' }} />
+        <Clock size={20} className="text-accent" style={{ color: '#C08080' }} />
         <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800' }}>Occupancy Status</h3>
       </div>
 
@@ -93,7 +112,7 @@ export default function ReservedSlots({ bookings, selectedDate, isMaintenance, i
             textAlign: 'center'
           }}>
             <h4 style={{ margin: '0 0 4px', color: '#22c55e', fontSize: '1rem', fontWeight: '800' }}>Available for Reservation</h4>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>No overlaps found on {selectedDate}</p>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#6B7281' }}>No overlaps found on {selectedDate}</p>
           </div>
         )}
       </div>

@@ -45,5 +45,5 @@ public interface ResourceRepository
 
     long countByStatus(ResourceStatus status);
 
-    List<Resource> findByAssignedStaffId(String staffId);
+    List<Resource> findByAssignedStaffIdsContaining(String staffId);
 }

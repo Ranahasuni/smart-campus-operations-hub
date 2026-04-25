@@ -1,4 +1,23 @@
 import { Users, Building, MapPin, AlertTriangle, CheckCircle, Settings, Info } from 'lucide-react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Link } from 'react-router-dom';
 
 export default function ResourceInfo({ resource, activeIssueTicket }) {
@@ -30,7 +49,7 @@ export default function ResourceInfo({ resource, activeIssueTicket }) {
         <span style={{ 
           padding: '8px 18px', 
           background: statusCfg.bg, 
-          color: 'white', 
+          color: '#1F1F1F', 
           borderRadius: '99px', 
           fontSize: '0.65rem', 
           fontWeight: '900', 

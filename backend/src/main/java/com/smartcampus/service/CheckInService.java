@@ -160,8 +160,8 @@ public class CheckInService {
         if (!isAuthorized) {
             String primaryResourceId = booking.getResourceIds().get(0);
             Resource resource = resourceRepository.findById(primaryResourceId).orElse(null);
-            if (resource != null && resource.getAssignedStaffId() != null) {
-                isAuthorized = resource.getAssignedStaffId().equals(staffUserId);
+            if (resource != null && resource.getAssignedStaffIds() != null) {
+                isAuthorized = resource.getAssignedStaffIds().contains(staffUserId);
             }
         }
 

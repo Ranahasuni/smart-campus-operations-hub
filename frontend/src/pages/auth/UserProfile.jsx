@@ -1,18 +1,36 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { User, Shield, Calendar, Mail, Fingerprint, Lock, ShieldCheck, Clock } from 'lucide-react';
+import { User, Shield, Calendar, Mail, Fingerprint, Lock, ShieldCheck, Clock, LogOut } from 'lucide-react';
 import '../../styles/profile.css';
 
+// ── Shared Animation Hooks ─────────────────────────────────
+function useScrollReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal ${className}`}>{children}</div>;
+}
+
 const ROLE_BADGES = {
-  ADMIN:    { label: 'Administrator',  color: '#8C0000' },
-  LECTURER: { label: 'Faculty',        color: '#B97A7A' },
-  STUDENT:  { label: 'Campus Student', color: '#4B5563' },
-  STAFF:    { label: 'University Staff', color: '#5A0000' },
-  TECHNICIAN: { label: 'Technician',   color: '#3B0000' },
+  ADMIN:    { label: 'System Administrator', color: '#8C0000' },
+  LECTURER: { label: 'University Faculty',    color: '#B97A7A' },
+  STUDENT:  { label: 'Campus Student',        color: '#4B5563' },
+  STAFF:    { label: 'Administrative Staff',  color: '#5A0000' },
+  TECHNICIAN: { label: 'Facility Technician',  color: '#3B0000' },
 };
 
 export default function UserProfile() {
-  const { authFetch, API } = useAuth();
+  const { authFetch, API, logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -35,14 +53,16 @@ export default function UserProfile() {
   };
 
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '100px', color: '#8C0000' }}>
-      Loading your profile...
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: '#8C0000' }}>
+      <Loader2 className="animate-spin mb-4" size={48} />
+      <p style={{ fontWeight: 'bold', letterSpacing: '2px' }}>AUTHENTICATING IDENTITY...</p>
     </div>
   );
   
   if (error) return (
     <div style={{ padding: '40px', textAlign: 'center', color: '#8C0000' }}>
-      {error}
+      <AlertCircle size={48} style={{ margin: '0 auto 20px' }} />
+       <p>{error}</p>
     </div>
   );
 
@@ -52,80 +72,112 @@ export default function UserProfile() {
     : 'U';
 
   return (
-    <div className="profile-container" style={{ padding: '60px 24px', maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ 
-        background: 'rgba(255, 255, 255, 0.95)', 
-        borderRadius: '24px', 
-        border: '1px solid rgba(185, 122, 122, 0.2)', 
-        padding: '40px',
-        position: 'relative',
-        boxShadow: '0 8px 32px rgba(140, 0, 0, 0.05)'
-      }}>
-        <div style={{ display: 'flex', gap: '30px', alignItems: 'flex-start', marginBottom: '40px' }}>
-          <div style={{ 
-            width: '100px', height: '100px', borderRadius: '24px', 
-            background: 'linear-gradient(135deg, #8C0000 0%, #B97A7A 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '2rem', fontWeight: 'bold', color: '#fff',
-            boxShadow: '0 10px 30px rgba(140, 0, 0, 0.2)'
-          }}>
-            {initials}
-          </div>
-          
-          <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: '2rem', color: '#1F1F1F', fontWeight: 'bold', marginBottom: '0.5rem' }}>{profile?.fullName}</h1>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <span style={{ 
-                padding: '4px 12px', background: `${badge.color}15`, 
-                color: badge.color, border: `1px solid ${badge.color}30`,
-                borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold',
-                display: 'flex', alignItems: 'center', gap: '4px'
-              }}>
-                <Shield size={14} /> {badge.label}
-              </span>
-              <span style={{ 
-                padding: '4px 12px', background: 'rgba(22, 101, 52, 0.1)', 
-                color: '#166534', border: '1px solid rgba(22, 101, 52, 0.2)',
-                borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold',
-                display: 'flex', alignItems: 'center', gap: '4px'
-              }}>
-                <ShieldCheck size={14} /> {profile?.status || 'ACTIVE'}
-              </span>
+    <div className="profile-container" style={{ padding: '80px 24px', maxWidth: '900px', margin: '0 auto' }}>
+      <Reveal>
+        <div style={{ 
+          background: 'rgba(255, 255, 255, 0.5)', 
+          backdropFilter: 'blur(30px)',
+          borderRadius: '40px', 
+          border: '1px solid rgba(185, 122, 122, 0.15)', 
+          padding: '60px',
+          position: 'relative',
+          boxShadow: '0 20px 80px rgba(140, 0, 0, 0.08)'
+        }}>
+          {/* Header Section */}
+          <div style={{ display: 'flex', gap: '40px', alignItems: 'center', marginBottom: '60px', borderBottom: '1px solid rgba(192, 128, 128, 0.1)', paddingBottom: '40px' }}>
+            <div style={{ 
+              width: '120px', height: '120px', borderRadius: '32px', 
+              background: 'linear-gradient(135deg, #8C0000 0%, #C08080 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '3rem', fontWeight: '900', color: '#fff',
+              boxShadow: '0 15px 40px rgba(140, 0, 0, 0.25)'
+            }}>
+              {initials}
+            </div>
+            
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h1 style={{ fontSize: '2.8rem', color: '#1F1F1F', fontWeight: '950', marginBottom: '8px', letterSpacing: '-1.5px' }}>{profile?.fullName}</h1>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <span style={{ 
+                      padding: '6px 16px', background: `${badge.color}10`, 
+                      color: badge.color, border: `1px solid ${badge.color}25`,
+                      borderRadius: '12px', fontSize: '0.8rem', fontWeight: '900',
+                      display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase'
+                    }}>
+                      <Shield size={16} /> {badge.label}
+                    </span>
+                    <span style={{ 
+                      padding: '6px 16px', background: 'rgba(34, 197, 94, 0.1)', 
+                      color: '#166534', border: '1px solid rgba(34, 197, 94, 0.2)',
+                      borderRadius: '12px', fontSize: '0.8rem', fontWeight: '900',
+                      display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase'
+                    }}>
+                      <ShieldCheck size={16} /> Verified Security Status
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '30px' }}>
-          <ProfileField icon={<Mail size={18} />} label="Campus Email" value={profile?.campusEmail || 'N/A'} />
-          <ProfileField icon={<Fingerprint size={18} />} label="Internal Account ID" value={`#${profile?.id?.slice(-8)}`} />
-          <ProfileField icon={<Calendar size={18} />} label="Campus ID" value={profile?.campusId || 'N/A'} />
-          <ProfileField icon={<Clock size={18} />} label="Last Session" value={profile?.lastLogin && profile.lastLogin !== "" ? new Date(profile.lastLogin).toLocaleString() : 'Now'} />
-        </div>
+          {/* Details Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '48px' }}>
+            <ProfileField icon={<Mail size={20} color="#C08080" />} label="University Email Address" value={profile?.campusEmail || 'N/A'} />
+            <ProfileField icon={<Fingerprint size={20} color="#C08080" />} label="Internal Security ID" value={`RID-${profile?.id?.slice(-8).toUpperCase()}`} />
+            <ProfileField icon={<Calendar size={20} color="#C08080" />} label="Campus Registration (ID)" value={profile?.campusId || 'N/A'} />
+            <ProfileField icon={<Clock size={20} color="#C08080" />} label="Last Technical Login" value={profile?.lastLogin ? new Date(profile.lastLogin).toLocaleString() : 'Currently Active'} />
+          </div>
 
-        <div style={{ 
-          marginTop: '40px', padding: '20px', borderRadius: '16px', 
-          background: 'rgba(185, 122, 122, 0.05)', border: '1px solid rgba(185, 122, 122, 0.1)',
-          display: 'flex', alignItems: 'center', gap: '12px'
-        }}>
-          <Lock size={18} color="#8C0000" />
-          <p style={{ color: '#4B5563', fontSize: '0.875rem' }}>
-            Your account is secured with university-grade encryption. You can reset your password from the security settings.
-          </p>
+          {/* Security Footer */}
+          <div style={{ 
+            marginTop: '60px', padding: '32px', borderRadius: '24px', 
+            background: 'rgba(185, 122, 122, 0.04)', border: '1px solid rgba(185, 122, 122, 0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <Lock size={20} color="#8C0000" />
+              <div>
+                <p style={{ color: '#1F1F1F', fontSize: '0.95rem', fontWeight: '800', margin: 0 }}>University Access Gateway</p>
+                <p style={{ color: '#6B7281', fontSize: '0.8rem', fontWeight: '500', margin: '2px 0 0' }}>End-to-end encrypted identity tunnel active.</p>
+              </div>
+            </div>
+            <button 
+              onClick={logout}
+              style={{
+                padding: '12px 24px', borderRadius: '14px', background: '#fff', border: '1px solid rgba(140, 0, 0, 0.2)',
+                color: '#8C0000', fontWeight: '900', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                transition: 'all 0.3s'
+              }}
+              onMouseOver={e => e.currentTarget.style.background = 'rgba(140, 0, 0, 0.05)'}
+              onMouseOut={e => e.currentTarget.style.background = '#fff'}
+            >
+              <LogOut size={16} /> TERMINATE SESSION
+            </button>
+          </div>
         </div>
-      </div>
+      </Reveal>
     </div>
   );
 }
 
 function ProfileField({ icon, label, value }) {
   return (
-    <div>
-      <div style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <div className="profile-field-anim">
+      <div style={{ color: '#6B7281', fontSize: '0.8rem', fontWeight: '800', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         {icon} {label}
       </div>
-      <div style={{ color: '#cbd5e1', fontSize: '1.125rem', fontWeight: '500' }}>
+      <div style={{ color: '#1F1F1F', fontSize: '1.2rem', fontWeight: '800', letterSpacing: '-0.3px' }}>
         {value}
       </div>
     </div>
   );
+}
+
+function Loader2({ className, size }) {
+    return <Clock className={className} size={size} />
+}
+function AlertCircle({ className, size }) {
+    return <ShieldCheck className={className} size={size} />
 }

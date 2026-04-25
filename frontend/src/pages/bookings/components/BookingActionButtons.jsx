@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Pencil, Trash2, XCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 /**
@@ -46,9 +65,9 @@ const BookingActionButtons = ({
             className="action-btn btn-show-qr"
             onClick={() => onShowQR(booking)}
             style={{ 
-              background: 'rgba(99, 102, 241, 0.15)', 
-              color: '#818cf8', 
-              border: '1px solid rgba(99, 102, 241, 0.3)',
+              background: 'rgba(192, 128, 128, 0.15)', 
+              color: '#C08080', 
+              border: '1px solid rgba(192, 128, 128, 0.3)',
               fontWeight: '800'
             }}
           >
@@ -63,9 +82,9 @@ const BookingActionButtons = ({
           title="Report physical QR signage missing or scanner broken"
           onClick={() => onReportMissingQR(booking.id)}
           style={{ 
-            background: 'rgba(99, 102, 241, 0.05)', 
-            color: '#94a3b8', 
-            border: '1px solid rgba(255, 255, 255, 0.05)',
+            background: 'rgba(192, 128, 128, 0.05)', 
+            color: '#6B7281', 
+            border: '1px solid rgba(192, 128, 128, 0.06)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',

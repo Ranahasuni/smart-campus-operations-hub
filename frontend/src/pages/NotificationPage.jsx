@@ -1,4 +1,23 @@
 import React, { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useAuth } from '../context/AuthContext';
 import { 
   Bell, Trash2, CheckCircle, Info, Ticket, Calendar, Clock, 
@@ -23,8 +42,10 @@ export default function NotificationPage() {
 
   useEffect(() => {
     if (user) {
+      // Always fetch preferences for filtering
+      fetchPreferences();
+      
       if (view === 'FEED') fetchNotifications();
-      if (view === 'SETTINGS') fetchPreferences();
     }
   }, [user, view, filter]);
 
@@ -137,12 +158,12 @@ export default function NotificationPage() {
       case 'HIGH':   return { color: '#ef4444', label: 'HIGH',   icon: <TriangleAlert size={12} />, bg: 'rgba(239, 68, 68, 0.1)' };
       case 'MEDIUM': return { color: '#fbbf24', label: 'MEDIUM', icon: <EllipsisVertical size={12} />,  bg: 'rgba(251, 191, 36, 0.1)' };
       case 'LOW':    return { color: '#3b82f6', label: 'LOW',    icon: <Info size={12} />,          bg: 'rgba(59, 130, 246, 0.1)' };
-      default:       return { color: '#94a3b8', label: 'NORMAL', icon: <Bell size={12} />,          bg: 'rgba(148, 163, 184, 0.1)' };
+      default:       return { color: '#6B7281', label: 'NORMAL', icon: <Bell size={12} />,          bg: 'rgba(148, 163, 184, 0.1)' };
     }
   };
 
   const getTypeIcon = (type) => {
-    if (type?.includes('BOOKING')) return <Calendar size={20} color="#818cf8" />;
+    if (type?.includes('BOOKING')) return <Calendar size={20} color="#C08080" />;
     if (type?.includes('TICKET'))  return <Ticket size={20} color="#fb7185" />;
     if (type?.includes('SYSTEM') || type?.includes('SECURITY')) return <ShieldAlert size={20} color="#fcd34d" />;
     return <Bell size={20} color="#94a3b8" />;
@@ -156,7 +177,7 @@ export default function NotificationPage() {
   };
 
   return (
-    <div style={{ padding: '60px 24px', maxWidth: '900px', margin: '0 auto', color: '#f8fafc' }}>
+    <div style={{ padding: '60px 24px', maxWidth: '900px', margin: '0 auto', color: '#1F1F1F' }}>
       
       {/* Header */}
       <header style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -164,7 +185,7 @@ export default function NotificationPage() {
           <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' }}>
             Alert <span className="gradient-text">Hub</span>
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '1.05rem' }}>Personalize and manage your campus activity stream</p>
+          <p style={{ color: '#6B7281', fontSize: '1.05rem' }}>Personalize and manage your campus activity stream</p>
         </div>
         
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -187,8 +208,8 @@ export default function NotificationPage() {
       <main style={{ minHeight: '400px', position: 'relative' }}>
         
         {loading && (
-          <div style={{ padding: '100px', textAlign: 'center', color: '#64748b' }}>
-            <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: '#6366f1' }} />
+          <div style={{ padding: '100px', textAlign: 'center', color: '#6B7281' }}>
+            <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: '#C08080' }} />
             <p style={{ fontSize: '1.1rem', fontWeight: '500' }}>Syncing data...</p>
           </div>
         )}
@@ -205,7 +226,7 @@ export default function NotificationPage() {
              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div style={{ 
                   display: 'flex', gap: '8px', padding: '6px', 
-                  background: 'rgba(255,255,255,0.03)', borderRadius: '14px', width: 'fit-content'
+                  background: 'rgba(192, 128, 128, 0.06)', borderRadius: '14px', width: 'fit-content'
                 }}>
                   {['ALL', 'UNREAD', 'READ', 'HIGH'].map(t => (
                     <button 
@@ -214,9 +235,9 @@ export default function NotificationPage() {
                       style={{
                         padding: '10px 24px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '600',
                         border: 'none', cursor: 'pointer', transition: 'all 0.3s ease',
-                        background: filter === t ? '#6366f1' : 'transparent',
+                        background: filter === t ? '#C08080' : 'transparent',
                         color: filter === t ? '#fff' : '#64748b',
-                        boxShadow: filter === t ? '0 4px 12px rgba(99, 102, 241, 0.4)' : 'none'
+                        boxShadow: filter === t ? '0 4px 12px rgba(192, 128, 128, 0.4)' : 'none'
                       }}
                     >
                       {t.charAt(0) + t.slice(1).toLowerCase()}
@@ -229,25 +250,40 @@ export default function NotificationPage() {
                   className="glass-btn"
                   style={{ 
                     display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', 
-                    fontSize: '0.875rem', fontWeight: '600', color: '#818cf8', borderRadius: '12px'
+                    fontSize: '0.875rem', fontWeight: '600', color: '#C08080', borderRadius: '12px'
                   }}
                 >
                   <CheckCheck size={18} /> Mark All as Read
                 </button>
              </div>
 
+             {/* Get notifications filtered by preferences */}
+             {(() => {
+               const getCategoryForNotification = (type) => {
+                 if (type?.includes('BOOKING')) return 'BOOKINGS';
+                 if (type?.includes('TICKET') || type?.includes('MAINTENANCE')) return 'MAINTENANCE';
+                 if (type?.includes('SECURITY')) return 'SECURITY';
+                 return 'SYSTEM';
+               };
+
+               const filteredNotifications = notifications.filter(n => {
+                 const category = getCategoryForNotification(n.type);
+                 return preferences?.settings?.[category] !== false;
+               });
+
+               return (
              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {notifications.length === 0 ? (
+                {filteredNotifications.length === 0 ? (
                   <div style={{ 
-                    textAlign: 'center', padding: '80px 20px', background: 'rgba(255,255,255,0.02)', 
+                    textAlign: 'center', padding: '80px 20px', background: 'rgba(192, 128, 128, 0.06)', 
                     borderRadius: '24px', border: '1px dashed rgba(255,255,255,0.1)' 
                   }}>
-                    <MailOpen size={56} style={{ margin: '0 auto 1.5rem', opacity: 0.2, color: '#94a3b8' }} />
+                    <MailOpen size={56} style={{ margin: '0 auto 1.5rem', opacity: 0.2, color: '#6B7281' }} />
                     <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>Inbox is clean 🔕</h3>
-                    <p style={{ color: '#64748b' }}>We'll alert you based on your tailored preferences.</p>
+                    <p style={{ color: '#6B7281' }}>We'll alert you based on your tailored preferences.</p>
                   </div>
                 ) : (
-                  notifications.map(n => {
+                  filteredNotifications.map(n => {
                     const priority = getPriorityStyle(n.priority);
                     return (
                       <div 
@@ -256,8 +292,8 @@ export default function NotificationPage() {
                         onClick={() => !n.read && markRead(n.id)}
                         style={{
                           display: 'flex', gap: '20px', padding: '22px', borderRadius: '20px',
-                          background: !n.read ? 'rgba(99, 102, 241, 0.08)' : 'rgba(30, 41, 59, 0.4)',
-                          border: `1px solid ${!n.read ? 'rgba(99, 102, 241, 0.3)' : 'rgba(255,255,255,0.05)'}`,
+                          background: !n.read ? 'rgba(192, 128, 128, 0.08)' : 'rgba(250, 234, 234, 0.4)',
+                          border: `1px solid ${!n.read ? 'rgba(192, 128, 128, 0.3)' : 'rgba(192, 128, 128, 0.06)'}`,
                           position: 'relative', transition: 'all 0.2s ease',
                           opacity: n.read ? 0.75 : 1,
                           cursor: !n.read ? 'pointer' : 'default'
@@ -271,7 +307,7 @@ export default function NotificationPage() {
 
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '0.5px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#6B7281', letterSpacing: '0.5px' }}>
                               {n.type?.replace('_', ' ')}
                             </span>
                             <div style={{ 
@@ -283,11 +319,11 @@ export default function NotificationPage() {
                             </div>
                           </div>
 
-                          <h3 style={{ fontSize: '1.15rem', color: '#fff', fontWeight: !n.read ? '700' : '500', marginBottom: '6px' }}>
+                          <h3 style={{ fontSize: '1.15rem', color: '#1F1F1F', fontWeight: !n.read ? '700' : '500', marginBottom: '6px' }}>
                             {n.title}
                           </h3>
 
-                          <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '14px' }}>
+                          <p style={{ color: '#6B7281', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '14px' }}>
                             {n.message}
                           </p>
 
@@ -307,17 +343,19 @@ export default function NotificationPage() {
                   })
                 )}
              </div>
+               );
+             })()}
           </div>
         )}
 
         {/* SETTINGS VIEW */}
         {!loading && view === 'SETTINGS' && preferences && (
           <div className="fade-in">
-            <div style={{ background: 'rgba(30, 41, 59, 0.5)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', padding: '32px' }}>
+            <div style={{ background: 'rgba(250, 234, 234, 0.5)', borderRadius: '24px', border: '1px solid rgba(192, 128, 128, 0.06)', padding: '32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
                 <div>
                   <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '4px' }}>Delivery Preferences</h2>
-                  <p style={{ color: '#64748b' }}>Configure which categories of alerts you want to receive.</p>
+                  <p style={{ color: '#6B7281' }}>Configure which categories of alerts you want to receive.</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ fontSize: '0.75rem', color: '#475569', marginBottom: '6px', fontWeight: '600' }}>
@@ -335,14 +373,14 @@ export default function NotificationPage() {
                   <div 
                     key={key} 
                     style={{ 
-                      padding: '20px', borderRadius: '18px', background: 'rgba(15, 23, 42, 0.3)',
-                      border: '1px solid rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: '20px'
+                      padding: '20px', borderRadius: '18px', background: 'rgba(245, 230, 230, 0.3)',
+                      border: '1px solid rgba(192, 128, 128, 0.06)', display: 'flex', alignItems: 'center', gap: '20px'
                     }}
                   >
                     <div style={{ 
                       width: '44px', height: '44px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: info.locked ? 'rgba(234, 179, 8, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-                      color: info.locked ? '#eab308' : '#6366f1', border: `1px solid ${info.locked ? '#eab30830' : '#6366f130'}`
+                      background: info.locked ? 'rgba(234, 179, 8, 0.1)' : 'rgba(192, 128, 128, 0.1)',
+                      color: info.locked ? '#eab308' : '#C08080', border: `1px solid ${info.locked ? '#eab30830' : '#C0808030'}`
                     }}>
                       {info.icon}
                     </div>
@@ -356,7 +394,7 @@ export default function NotificationPage() {
                           </span>
                         )}
                       </div>
-                      <p style={{ color: '#64748b', fontSize: '0.85rem' }}>{info.desc}</p>
+                      <p style={{ color: '#6B7281', fontSize: '0.85rem' }}>{info.desc}</p>
                     </div>
 
                     <div className="toggle-wrapper">
@@ -377,7 +415,7 @@ export default function NotificationPage() {
               </div>
 
               {savingPrefs && (
-                <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '8px', color: '#6366f1', fontSize: '0.85rem', fontWeight: '600' }}>
+                <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '8px', color: '#C08080', fontSize: '0.85rem', fontWeight: '600' }}>
                   <Loader2 className="animate-spin" size={16} /> Syncing preferences to cloud...
                 </div>
               )}
@@ -389,30 +427,30 @@ export default function NotificationPage() {
 
       <style>{`
         .gradient-text {
-          background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+          background: linear-gradient(135deg, #C08080 0%, #c084fc 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
         .tab-toggle {
           display: flex; align-items: center; gap: 8px; padding: 10px 20px;
-          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+          background: rgba(192, 128, 128, 0.06); border: 1px solid rgba(192, 128, 128, 0.06);
           color: #94a3b8; border-radius: 12px; font-weight: 600; font-size: 0.9rem;
           cursor: pointer; transition: all 0.3s;
         }
         .tab-toggle.active {
-          background: #6366f1; color: white; border-color: #6366f1;
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+          background: #C08080; color: white; border-color: #C08080;
+          box-shadow: 0 4px 12px rgba(192, 128, 128, 0.3);
         }
         .notif-card { position: relative; transition: 0.2s; }
-        .notif-card:hover { transform: translateY(-2px); border-color: rgba(99,102,241,0.3) !important; background: rgba(99, 102, 241, 0.12) !important; }
+        .notif-card:hover { transform: translateY(-2px); border-color: rgba(192, 128, 128,0.3) !important; background: rgba(192, 128, 128, 0.12) !important; }
         .unread-dot {
           position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
-          width: 8px; height: 8px; background: #6366f1; border-radius: 50%;
-          box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+          width: 8px; height: 8px; background: #C08080; border-radius: 50%;
+          box-shadow: 0 0 10px rgba(192, 128, 128, 0.5);
         }
         .icon-badge {
           width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justifyContent: center;
-          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;
+          background: rgba(192, 128, 128, 0.06); border: 1px solid rgba(192, 128, 128, 0.06); flex-shrink: 0;
         }
         .notif-footer { margin-top: 12px; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #475569; font-weight: 600; }
         .trash-btn {
@@ -423,10 +461,10 @@ export default function NotificationPage() {
         .trash-btn:hover { background: #ef4444; color: white; transform: scale(1.1); }
         .reset-btn {
           display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(192, 128, 128, 0.06); background: rgba(192, 128, 128, 0.06);
           color: #64748b; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s;
         }
-        .reset-btn:hover { background: rgba(99, 102, 241, 0.1); color: #818cf8; border-color: #818cf830; }
+        .reset-btn:hover { background: rgba(192, 128, 128, 0.1); color: #C08080; border-color: #C0808030; }
         .reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Custom Toggle Switch */
@@ -435,22 +473,22 @@ export default function NotificationPage() {
         .toggle-label {
           position: absolute; top: 0; left: 0; right: 0; bottom: 0;
           background-color: #334155; border-radius: 34px; cursor: pointer;
-          transition: .3s; border: 1px solid rgba(255,255,255,0.05);
+          transition: .3s; border: 1px solid rgba(192, 128, 128, 0.06);
         }
         .toggle-label.disabled { cursor: not-allowed; opacity: 0.4; }
         .toggle-switch {
           position: absolute; height: 18px; width: 18px; left: 3px; bottom: 2px;
-          background-color: #f8fafc; border-radius: 50%; transition: .3s;
+          background-color: #1F1F1F; border-radius: 50%; transition: .3s;
           box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        input:checked + .toggle-label { background-color: #6366f1; border-color: #818cf8; }
+        input:checked + .toggle-label { background-color: #C08080; border-color: #C08080; }
         input:checked + .toggle-label .toggle-switch { transform: translateX(24px); }
         
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .glass-btn { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; cursor: pointer; }
-        .glass-btn:hover { background: rgba(99, 102, 241, 0.1); border-color: #6366f140; }
+        .glass-btn { background: rgba(192, 128, 128, 0.06); border: 1px solid rgba(192, 128, 128, 0.06); transition: 0.2s; cursor: pointer; }
+        .glass-btn:hover { background: rgba(192, 128, 128, 0.1); border-color: #C0808040; }
       `}</style>
     </div>
   );

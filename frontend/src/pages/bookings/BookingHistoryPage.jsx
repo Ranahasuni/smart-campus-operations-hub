@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useAuth } from '../../context/AuthContext';
 import { 
   Calendar, Clock, Users, History,
@@ -64,23 +83,23 @@ export default function BookingHistoryPage() {
 
   if (loading) return (
     <div className="my-bookings-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <Loader2 className="animate-spin" size={48} style={{ color: '#94a3b8' }} />
+      <Loader2 className="animate-spin" size={48} style={{ color: '#6B7281' }} />
     </div>
   );
 
   return (
-    <div className="my-bookings-container animate-fade-in" style={{ backgroundColor: '#0f172a' }}>
-      <header className="bookings-dashboard-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '32px' }}>
+    <div className="my-bookings-container animate-fade-in" style={{ backgroundColor: '#FFFFFF' }}>
+      <header className="bookings-dashboard-header" style={{ borderBottom: '1px solid rgba(192, 128, 128, 0.06)', paddingBottom: '32px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#64748b', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#6B7281', marginBottom: '8px' }}>
             <History size={20} />
             <span style={{ fontWeight: 600, letterSpacing: '1px', fontSize: '0.8rem', textTransform: 'uppercase' }}>Records Archive</span>
           </div>
-          <h1 style={{ color: '#e2e8f0', fontSize: '2.5rem', fontWeight: 800 }}>Booking History</h1>
-          <p style={{ color: '#64748b' }}>A complete log of your processed and past reservations.</p>
+          <h1 style={{ color: '#1F1F1F', fontSize: '2.5rem', fontWeight: 800 }}>Booking History</h1>
+          <p style={{ color: '#6B7281' }}>A complete log of your processed and past reservations.</p>
         </div>
 
-        <div className="glass-card" style={{ padding: '12px 20px', display: 'flex', gap: '16px', alignItems: 'center', background: 'rgba(30, 41, 59, 0.5)' }}>
+        <div className="glass-card" style={{ padding: '12px 20px', display: 'flex', gap: '16px', alignItems: 'center', background: 'rgba(250, 234, 234, 0.5)' }}>
           <div style={{ position: 'relative' }}>
             <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#475569' }} size={16} />
             <input 
@@ -118,8 +137,8 @@ export default function BookingHistoryPage() {
               gap: '24px', 
               alignItems: 'center',
               padding: '20px 24px',
-              background: 'rgba(30, 41, 59, 0.3)',
-              border: '1px solid rgba(255,255,255,0.03)',
+              background: 'rgba(250, 234, 234, 0.3)',
+              border: '1px solid rgba(192, 128, 128, 0.06)',
               opacity: 0.8
             }}>
               <div style={{ 
@@ -131,21 +150,21 @@ export default function BookingHistoryPage() {
                 alignItems: 'center', 
                 justifyContent: 'center',
                 fontSize: '1.2rem',
-                color: '#94a3b8'
+                color: '#6B7281'
               }}>
                 {CATEGORY_MAP[booking.resourceType]?.icon || '📍'}
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <h3 style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>{(booking.resourceNames || ['Unnamed Room']).join(', ')}</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#6366f1', fontWeight: 800 }}>
+                  <h3 style={{ color: '#4B5563', fontSize: '1.1rem', margin: 0 }}>{(booking.resourceNames || ['Unnamed Room']).join(', ')}</h3>
+                  <span style={{ fontSize: '0.75rem', color: '#C08080', fontWeight: 800 }}>
                     {booking.bookingCode || `RSV-${new Date(booking.date).getFullYear()}-${booking.id?.slice(-5).toUpperCase()}`}
                   </span>
                   <span style={{ fontSize: '0.7rem', color: '#475569', textTransform: 'uppercase', fontWeight: 600 }}>{booking.resourceType}</span>
                 </div>
                 
-                <div style={{ display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', gap: '16px', color: '#6B7281', fontSize: '0.85rem' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {booking.date}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {booking.startTime.substring(0, 5)} - {booking.endTime.substring(0, 5)}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={14} /> {booking.expectedAttendees}</span>
@@ -192,7 +211,7 @@ export default function BookingHistoryPage() {
           ))
         ) : (
           <div className="glass-card empty-state" style={{ padding: '80px 40px', opacity: 0.5 }}>
-            <FileText size={64} style={{ color: '#1e293b', marginBottom: '20px' }} />
+            <FileText size={64} style={{ color: '#FFFFFF', marginBottom: '20px' }} />
             <h3 style={{ color: '#475569' }}>Archive Empty</h3>
             <p style={{ color: '#334155' }}>No historical records found for the selected filter.</p>
           </div>

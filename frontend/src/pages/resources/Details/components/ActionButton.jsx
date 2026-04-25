@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useNavigate } from 'react-router-dom';
 import { CalendarCheck, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
@@ -36,8 +55,8 @@ export default function ActionButton({ status, resourceId, activeIssueTicket, se
         style={{ 
           opacity: isAvailable ? 1 : 0.7,
           cursor: isAvailable ? 'pointer' : 'not-allowed',
-          background: isAvailable ? '#6366f1' : '#94a3b8',
-          border: isAvailable ? 'none' : '2px solid #e2e8f0',
+          background: isAvailable ? '#C08080' : '#94a3b8',
+          border: isAvailable ? 'none' : '2px solid #6B7281',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

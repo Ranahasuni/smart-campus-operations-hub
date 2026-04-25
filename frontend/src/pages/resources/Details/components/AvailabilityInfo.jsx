@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Clock, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function AvailabilityInfo({ availability }) {
@@ -22,7 +41,7 @@ export default function AvailabilityInfo({ availability }) {
   return (
     <div style={boxBackground}>
       <h3 style={titleStyle}>
-        <Clock size={20} color="#6366f1" /> Weekly Schedule
+        <Clock size={20} color="#C08080" /> Weekly Schedule
       </h3>
 
       <div className="schedule-days-container">

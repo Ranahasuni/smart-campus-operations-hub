@@ -105,7 +105,7 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
               </option>
             ))}
           </select>
-          <p className="field-hint" style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+          <p className="field-hint" style={{ fontSize: '0.75rem', color: '#6B7281', marginTop: '4px' }}>
             The staff member responsible for check-ins at this facility.
           </p>
         </div>

@@ -1,126 +1,348 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useEffect, useRef } from 'react';
+import '../styles/homepage.css';
 
-// Role-Specific Module Lists
+// ── Role-Specific Module Lists ────────────────────────────
 const USER_FEATURES = [
-  { icon: '🏰', title: 'Facilities & Assets', desc: 'Browse and manage university lecture halls, labs, and catalogues.', link: '/resources' },
-  { icon: '📅', title: 'Reservations', desc: 'Reserve space for lectures, workshops, or study groups in real-time.', link: '/bookings' },
-  { icon: '🎫', title: 'Support Tickets', desc: 'Report facility issues or request technical support for campus assets.', link: '/tickets' },
-  { icon: '🔔', title: 'Notifications', desc: 'Real-time updates on booking approvals and ticket status.', link: '/notifications' }
+  { icon: '🏛️', title: 'Facilities & Assets',   desc: 'Browse and manage university lecture halls, labs, and catalogues across Campus.',             link: '/resources' },
+  { icon: '📅', title: 'Smart Reservations',     desc: 'Reserve space for lectures, workshops, or study groups with real-time availability.',        link: '/bookings' },
+  { icon: '🎫', title: 'Support Tickets',        desc: 'Report facility issues or request technical support for campus infrastructure.',              link: '/tickets' },
+  { icon: '🔔', title: 'Live Notifications',     desc: 'Receive real-time updates on booking approvals, reminders, and campus alerts.',               link: '/notifications' }
 ];
 
 const ADMIN_FEATURES = [
-  { icon: '🛡️', title: 'Admin Overview', desc: 'System-wide monitoring, status updates, and overall health reports.', link: '/admin' },
-  { icon: '👥', title: 'Account Control', desc: 'Manage users, assign roles, unlock accounts, and control system access.', link: '/admin/users' },
-  { icon: '📜', title: 'Security Logs', desc: 'View chronological audit trails of all system modifications and events.', link: '/admin/logs' },
-  { icon: '🔔', title: 'System Alerts', desc: 'Monitor failed login attempts and high-security system events.', link: '/notifications' }
+  { icon: '🛡️', title: 'Admin Dashboard',       desc: 'System-wide monitoring, performance metrics, and overall campus health reports.',              link: '/admin' },
+  { icon: '👥', title: 'Account Management',     desc: 'Manage users, assign roles, unlock accounts, and control system permissions.',               link: '/admin/users' },
+  { icon: '📜', title: 'Audit Trails',           desc: 'View chronological security logs of all system modifications and admin events.',              link: '/admin/logs' },
+  { icon: '🔔', title: 'System Alerts',          desc: 'Monitor login attempts, security events, and high-priority system notifications.',           link: '/notifications' }
 ];
 
 const LECTURER_FEATURES = [
-  { icon: '🏰', title: 'Facilities & Assets', desc: 'Browse and manage university lecture halls, labs, and catalogues.', link: '/resources' },
-  { icon: '📅', title: 'Reservations', desc: 'Reserve space for lectures, workshops, or study groups in real-time.', link: '/bookings' },
-  { icon: '🎫', title: 'Support Tickets', desc: 'Report facility issues or request technical support for campus assets.', link: '/tickets' },
-  { icon: '🔔', title: 'Notifications', desc: 'Real-time updates on booking approvals and ticket status.', link: '/notifications' }
+  { icon: '🏛️', title: 'Facilities & Assets',   desc: 'Browse and manage university lecture halls, labs, and catalogues across Campus.',             link: '/resources' },
+  { icon: '📅', title: 'Smart Reservations',     desc: 'Reserve space for lectures, workshops, or study groups with real-time availability.',        link: '/bookings' },
+  { icon: '🎫', title: 'Support Tickets',        desc: 'Report facility issues or request technical support for campus infrastructure.',              link: '/tickets' },
+  { icon: '🔔', title: 'Live Notifications',     desc: 'Receive real-time updates on booking approvals, reminders, and campus alerts.',               link: '/notifications' }
 ];
 
+
+// ── Animated Counter Hook ─────────────────────────────────
+function useCounter(end, duration = 2000) {
+  const ref = useRef(null);
+  const counted = useRef(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !counted.current) {
+        counted.current = true;
+        let start = 0;
+        const step = end / (duration / 16);
+        const tick = () => {
+          start += step;
+          if (start >= end) {
+            if (ref.current) ref.current.textContent = end.toLocaleString() + (end >= 100 ? '+' : '');
+            return;
+          }
+          if (ref.current) ref.current.textContent = Math.floor(start).toLocaleString();
+          requestAnimationFrame(tick);
+        };
+        tick();
+      }
+    }, { threshold: 0.5 });
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [end, duration]);
+
+  return ref;
+}
+
+// ── Scroll Reveal Hook ────────────────────────────────────
+function useScrollReveal() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return ref;
+}
+
+
+// ── Stat Item Component ───────────────────────────────────
+function StatItem({ number, label }) {
+  const counterRef = useCounter(number);
+  return (
+    <div className="hp-stat">
+      <div className="hp-stat-number" ref={counterRef}>0</div>
+      <div className="hp-stat-label">{label}</div>
+    </div>
+  );
+}
+
+// ── Reveal Wrapper ────────────────────────────────────────
+function Reveal({ children, className = '', style = {} }) {
+  const ref = useScrollReveal();
+  return (
+    <div ref={ref} className={`hp-reveal ${className}`} style={style}>
+      {children}
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// HOMEPAGE COMPONENT
+// ═══════════════════════════════════════════════════════════
 export default function HomePage() {
   const { user } = useAuth();
-  const features = user?.role === 'ADMIN' 
-    ? ADMIN_FEATURES 
+
+  const features = user?.role === 'ADMIN'
+    ? ADMIN_FEATURES
     : user?.role === 'LECTURER'
       ? LECTURER_FEATURES
       : user?.role === 'TECHNICIAN'
-        ? USER_FEATURES.filter(f => f.title !== 'Reservations')
+        ? USER_FEATURES.filter(f => f.title !== 'Smart Reservations')
         : USER_FEATURES;
 
+  const roleGreeting = user?.role === 'ADMIN'
+    ? 'Administrator Portal — Full system control authorized.'
+    : user?.role === 'LECTURER'
+      ? 'Lecturer Console — Manage academic reservations & facilities.'
+      : user?.role === 'TECHNICIAN'
+        ? 'Technician Dashboard — Monitor facilities & resolve issues.'
+        : 'Your digital gateway to campus facilities and services.';
+
   return (
-    <div className="home-hero" style={{
-      padding: '80px 24px',
-      background: 'radial-gradient(circle at 50% -20%, #8C0000 0%, #3B0000 70%)',
-      minHeight: 'calc(100vh - 64px)',
-      color: '#fff'
-    }}>
-      <div className="container" style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '3.5rem', marginBottom: '20px', color: '#fff' }}>
-          Welcome back, <span className="gradient-text">{user?.fullName || 'Academic Leader'}</span>
-        </h1>
-        <p style={{
-          color: 'rgba(255,255,255,0.85)',
-          fontSize: '1.25rem',
-          maxWidth: '800px',
-          margin: '0 auto 60px'
-        }}>
-          {user?.role === 'ADMIN'
-            ? 'Administrator Portal: Oversee campus operations and maintain system integrity with full security authorization.'
-            : user?.role === 'LECTURER'
-              ? 'Lecturer Console: Manage your academic reservations and monitor campus facilities in real-time.'
-              : 'Experience a smarter way to manage university operations. Seamlessly book space, monitor assets, and stay informed.'}
-        </p>
+    <div className="hp-root">
 
+      {/* ═══════ HERO ═══════ */}
+      <section className="hp-hero">
+        <div className="hp-hero-bg">
+          <img src="/images/campus-hero.png" alt="Smart Campus" loading="eager" />
+        </div>
+        <div className="hp-hero-overlay" />
 
-        {/* Feature Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '24px',
-          margin: '0 auto',
-        }}>
-          {features.map((f, i) => (
-            <Link key={i} to={f.link} className="glass-card feature-item" style={{
-              padding: '40px 32px',
-              textAlign: 'left',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              background: 'rgba(255, 255, 255, 0.95)',
-              border: '1px solid rgba(185, 122, 122, 0.3)',
-              boxShadow: '0 8px 32px rgba(140, 0, 0, 0.08)'
-            }}>
-              <div style={{ fontSize: '2.5rem' }}>{f.icon}</div>
-              <h3 style={{ color: '#1F1F1F' }}>{f.title}</h3>
-              <p style={{ color: '#4B5563', fontSize: '0.95rem' }}>{f.desc}</p>
-              <div style={{
-                marginTop: 'auto',
-                color: '#8C0000',
-                fontWeight: '700',
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                Open Module →
-              </div>
-            </Link>
-          ))}
+        <div className="hp-hero-content">
+          <div className="hp-hero-badge">
+            <span className="badge-dot" />
+            {user ? `${user.role} Access Active` : 'Smart Campus Platform'}
+          </div>
+
+          <h1>
+            {user
+              ? <>Welcome back, <span className="highlight">{user.fullName}</span></>
+              : <>Smart Campus <span className="highlight">Operations Hub</span></>
+            }
+          </h1>
+
+          <p className="hp-hero-sub">
+            {user
+              ? roleGreeting
+              : 'An intelligent platform for managing university facilities, reservations, and campus operations — all in one place.'
+            }
+          </p>
+
+          <div className="hp-hero-actions">
+            {user ? (
+              <>
+                <Link to="/resources" className="hp-btn-primary">
+                  Browse Facilities <span>→</span>
+                </Link>
+                <Link to="/bookings" className="hp-btn-outline">
+                  My Reservations
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="hp-btn-primary">
+                  Get Started <span>→</span>
+                </Link>
+                <Link to="/resources" className="hp-btn-outline">
+                  Explore Facilities
+                </Link>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Quick Help for Admin */}
-        {user?.role === 'ADMIN' && (
-          <div className="glass-card" style={{
-            marginTop: '60px',
-            padding: '24px',
-            border: '1px solid rgba(234, 179, 8, 0.3)',
-            background: 'rgba(234, 179, 8, 0.05)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <span style={{ fontSize: '1.5rem' }}>🛡️</span>
-            <span style={{ color: '#fbbf24', fontSize: '0.9rem', fontWeight: '500' }}>
-              Security Protocol: You are logged in with **Full Administrative Privileges**.
-            </span>
-          </div>
-        )}
-      </div>
+        <div className="hp-scroll-indicator">
+          Scroll
+          <div className="scroll-line" />
+        </div>
+      </section>
 
-      <style>{`
-        .feature-item:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-          border-color: var(--accent-primary);
-        }
-      `}</style>
+
+      {/* ═══════ STATS BAR ═══════ */}
+      <section className="hp-stats">
+        <div className="hp-stats-inner">
+          <StatItem number={120} label="Campus Facilities" />
+          <StatItem number={5000} label="Active Students" />
+          <StatItem number={350} label="Daily Bookings" />
+          <StatItem number={99} label="Uptime %" />
+        </div>
+      </section>
+
+
+      {/* ═══════ MODULES SECTION ═══════ */}
+      <section className="hp-section">
+        <Reveal>
+          {user?.role === 'ADMIN' && (
+            <div className="hp-admin-banner">
+              <span>🛡️</span>
+              <span>Security Protocol Active — You are logged in with <strong>Full Administrative Privileges</strong>. All actions are logged in the audit trail.</span>
+            </div>
+          )}
+          <div className="hp-section-label">
+            <span>◆</span> Your Modules
+          </div>
+          <h2 className="hp-section-title">Everything you need,<br />in one place</h2>
+          <p className="hp-section-desc">
+            Access all campus services through our unified platform. From facility management to real-time notifications, your campus experience starts here.
+          </p>
+        </Reveal>
+
+        <div className="hp-features-grid">
+          {features.map((f, i) => (
+            <Reveal key={i} style={{ transitionDelay: `${i * 0.1}s` }}>
+              <Link to={f.link} className="hp-feature-card">
+                <div className="hp-feature-icon">{f.icon}</div>
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
+                <div className="hp-feature-link">
+                  Open Module <span>→</span>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+
+      {/* ═══════ PARALLAX IMAGE BREAK ═══════ */}
+      <section className="hp-parallax-section">
+        <img src="/images/campus-library.png" alt="Campus Library" loading="lazy" />
+        <div className="hp-parallax-overlay" />
+        <div className="hp-parallax-content">
+          <Reveal>
+            <h2>Designed for the <span style={{ color: '#FFD5D5', textShadow: '0 0 30px rgba(255,180,180,0.4)' }}>Modern University</span></h2>
+            <p>
+              Our platform integrates facility management, reservation systems, and real-time communication
+              into a seamless experience for students, lecturers, and administrators.
+            </p>
+            <Link to="/resources" className="hp-btn-primary">
+              Explore Facilities <span>→</span>
+            </Link>
+          </Reveal>
+        </div>
+      </section>
+
+
+      {/* ═══════ BENTO CAPABILITIES ═══════ */}
+      <section className="hp-section">
+        <Reveal>
+          <div className="hp-section-label">
+            <span>◆</span> Platform Capabilities
+          </div>
+          <h2 className="hp-section-title">Built for scale,<br />crafted for ease</h2>
+          <p className="hp-section-desc">
+            Every feature has been thoughtfully designed to enhance your daily campus experience.
+          </p>
+        </Reveal>
+
+        <Reveal>
+          <div className="hp-bento-grid">
+            {/* Large dark item - Real-Time Availability */}
+            <div className="hp-bento-item bento-large hp-bento-dark bento-primary">
+              <div className="hp-bento-icon">⚡</div>
+              <h3>Real-Time Availability</h3>
+              <p>Instantly see which rooms, labs, and halls are available — no double bookings, no delays.</p>
+              <div className="hp-bento-shine"></div>
+            </div>
+
+            {/* Right column - stacked items */}
+            <div className="hp-bento-column">
+              <div className="hp-bento-item hp-bento-rose">
+                <div className="hp-bento-icon">🔒</div>
+                <h3>Role-Based Access</h3>
+                <p>Secure, role-specific views for Students, Lecturers, Technicians, and Admins.</p>
+              </div>
+              <div className="hp-bento-item hp-bento-coral">
+                <div className="hp-bento-icon">📊</div>
+                <h3>Analytics Dashboard</h3>
+                <p>Track usage patterns and optimize campus resource allocation.</p>
+              </div>
+            </div>
+
+            {/* Bottom row */}
+            <div className="hp-bento-item hp-bento-light">
+              <div className="hp-bento-icon">📋</div>
+              <h3>QR Check-In</h3>
+              <p>Scan and confirm your arrival with our contactless check-in system.</p>
+            </div>
+            <div className="hp-bento-item hp-bento-dark bento-secondary">
+              <div className="hp-bento-icon">🔔</div>
+              <h3>Smart Notifications</h3>
+              <p>Never miss an update with personalized, priority-based alerts.</p>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+
+      {/* ═══════ SECOND PARALLAX ═══════ */}
+      <section className="hp-parallax-section">
+        <img src="/images/campus-lecture.png" alt="Lecture Hall" loading="lazy" />
+        <div className="hp-parallax-overlay" />
+        <div className="hp-parallax-content">
+          <Reveal>
+            <h2>From <span style={{ color: '#fca5a5' }}>Lecture Halls</span> to <span style={{ color: '#fca5a5' }}>Labs</span></h2>
+            <p>
+              Manage every type of campus facility — seminar rooms, computer labs, auditoriums, and sports
+              complexes — all from a single, unified platform.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+
+      {/* ═══════ CTA ═══════ */}
+      <section className="hp-cta">
+        <Reveal>
+          <h2>Ready to get started?</h2>
+          <p>
+            Join thousands of students and faculty members who are already using Smart Campus Hub
+            to streamline their university experience.
+          </p>
+          {user ? (
+            <Link to="/resources" className="hp-btn-primary">
+              Browse Facilities <span>→</span>
+            </Link>
+          ) : (
+            <Link to="/login" className="hp-btn-primary">
+              Sign In Now <span>→</span>
+            </Link>
+          )}
+        </Reveal>
+      </section>
+
+
+      {/* ═══════ FOOTER ═══════ */}
+      <footer className="hp-footer">
+        <div className="hp-footer-brand">🏛️ Smart Campus Hub</div>
+        <p>© {new Date().getFullYear()} Smart Campus Operations Hub — SLIIT. All rights reserved.</p>
+      </footer>
+
     </div>
   );
 }

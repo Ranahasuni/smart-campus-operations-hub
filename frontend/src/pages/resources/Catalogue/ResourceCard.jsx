@@ -1,4 +1,23 @@
 import { useState } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Link } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Settings, AlertTriangle } from 'lucide-react';
 import './Catalogue.css';
@@ -53,7 +72,7 @@ export default function ResourceCard({ resource }) {
             <span>{resource.capacity || 0} Seats</span>
           </div>
           <div className="meta-item-blue">
-            <MapPin size={15} color="#6366f1" />
+            <MapPin size={15} color="#C08080" />
             <span className="location-text">
               {resource.building || 'MAIN BUILDING'} • {resource.floor === 0 ? 'G' : resource.floor}{['st', 'nd', 'rd', 'th'][Math.min((resource.floor - 1), 3)] || 'th'} FLOOR • {resource.roomNumber || 'A405'}
             </span>

@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { ImagePlus, X, Image as ImageIcon } from 'lucide-react';
 
 export default function ImagesSection({ formData, setFormValue, errors = {} }) {
@@ -45,13 +64,13 @@ export default function ImagesSection({ formData, setFormValue, errors = {} }) {
         </span>
       </div>
 
-      <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '-10px', marginBottom: '20px' }}>
+      <p style={{ fontSize: '0.85rem', color: '#6B7281', marginTop: '-10px', marginBottom: '20px' }}>
         Select 1 to 5 high-quality images from your computer to showcase this resource effectively.
       </p>
 
       <div className="image-grid-paf">
         {imageUrls.map((url, index) => (
-          <div key={index} className="image-slot-paf" style={{ borderColor: errors.images ? '#fca5a5' : '#e2e8f0' }}>
+          <div key={index} className="image-slot-paf" style={{ borderColor: errors.images ? '#fca5a5' : '#6B7281' }}>
             {url ? (
               <div className="image-preview-wrapper">
                 <img src={url} alt={`Preview ${index}`} className="image-preview-paf" />
@@ -100,8 +119,8 @@ export default function ImagesSection({ formData, setFormValue, errors = {} }) {
       </div>
 
       {imageUrls.length === 0 && (
-        <div className="empty-gallery-state" style={{ background: errors.images ? '#fff1f2' : '#f8fafc' }}>
-          <ImageIcon size={40} color={errors.images ? "#fca5a5" : "#e2e8f0"} />
+        <div className="empty-gallery-state" style={{ background: errors.images ? '#fff1f2' : '#1F1F1F' }}>
+          <ImageIcon size={40} color={errors.images ? "#fca5a5" : "#6B7281"} />
           <p style={{ color: errors.images ? '#ef4444' : '#94a3b8' }}>No images selected yet</p>
         </div>
       )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -12,6 +12,24 @@ import {
   ExternalLink
 } from 'lucide-react';
 import '../styles/staff-portal.css';
+
+// ── Shared Animation Hooks ─────────────────────────────────
+function useScrollReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal ${className}`}>{children}</div>;
+}
 
 export default function TechnicianPortal() {
   const { user, authFetch, API } = useAuth();
@@ -76,19 +94,31 @@ export default function TechnicianPortal() {
 
   return (
     <div className="staff-portal-container">
-      <header className="staff-page-header">
-        <div className="header-content">
-          <h1>Technician <span className="text-indigo">Maintenance Hub</span></h1>
-          <p>Logged in as: <strong>{user?.fullName}</strong>. Operational status is active.</p>
-        </div>
-        <div className="header-time">
-          <Clock size={16} />
-          <span>Last sync: {new Date().toLocaleTimeString()}</span>
-        </div>
-      </header>
+      <Reveal>
+        <header className="staff-page-header" style={{
+          background: 'rgba(255, 255, 255, 0.4)',
+          backdropFilter: 'blur(20px)',
+          padding: '32px 40px',
+          borderRadius: '32px',
+          border: '1px solid var(--glass-border)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div className="header-content">
+            <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '950' }}>Technician <span style={{ color: 'var(--accent-primary)' }}>Terminal</span></h1>
+            <p style={{ margin: '8px 0 0', fontWeight: '500', color: 'var(--text-secondary)' }}>System authenticated as: <strong>{user?.fullName}</strong>. Technical status: <strong>Active</strong></p>
+          </div>
+          <div className="header-time" style={{ background: 'var(--accent-primary)', color: 'white', border: 'none' }}>
+            <Clock size={16} />
+            <span>{new Date().toLocaleTimeString()}</span>
+          </div>
+        </header>
+      </Reveal>
 
       {/* Summary Statistics */}
-      <section className="staff-stats-grid">
+      <Reveal className="mt-12">
+        <section className="staff-stats-grid">
         <SummaryCard 
           title="Active Tickets" 
           value={stats.activeTickets} 
@@ -100,7 +130,7 @@ export default function TechnicianPortal() {
           title="My Assignments" 
           value={stats.myTickets} 
           icon={<Wrench size={24} />} 
-          color="#8b5cf6"
+          color="#A86A6A"
           subtitle="Assigned to you"
         />
         <SummaryCard 
@@ -117,7 +147,8 @@ export default function TechnicianPortal() {
           color="#10b981"
           subtitle="Total resolved today"
         />
-      </section>
+        </section>
+      </Reveal>
 
       <div className="staff-dashboard-content">
         <div className="staff-main-section">
@@ -154,21 +185,25 @@ export default function TechnicianPortal() {
               <h2>Recent Global Activity</h2>
               <button className="text-btn" onClick={() => navigate('/tickets')}>Open full board</button>
             </div>
-            <div className="recent-tickets-list">
+            <div className="recent-tickets-list mt-6">
               {loading ? (
-                <div className="p-8 text-center text-slate-500">Synchronizing ledger...</div>
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Synchronizing ledger...</div>
               ) : recentTickets.length === 0 ? (
-                <div className="p-8 text-center border-2 border-dashed border-slate-800 rounded-3xl">
-                   <p className="text-slate-500">No active maintenance tickets found.</p>
+                <div className="glass-card" style={{ padding: '48px', textAlign: 'center', borderStyle: 'dashed' }}>
+                  <p style={{ color: 'var(--text-muted)', fontWeight: '600' }}>No active maintenance tickets found.</p>
                 </div>
               ) : recentTickets.map(ticket => (
-                <div key={ticket.id} className="mini-ticket-row" onClick={() => navigate(`/tickets/${ticket.id}`)}>
-                  <div className={`priority-indicator ${ticket.priority.toLowerCase()}`} />
-                  <div className="row-content">
-                    <span className="ticket-title">{ticket.title}</span>
-                    <span className="ticket-meta">{ticket.building} • {ticket.category || 'Maintenance'}</span>
+                <div key={ticket.id} className="mini-ticket-row" onClick={() => navigate(`/tickets/${ticket.id}`)} 
+                     style={{ background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '20px', padding: '20px', display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                  <div className={`priority-indicator ${ticket.priority.toLowerCase()}`} style={{ width: '8px', height: '36px', borderRadius: '4px', marginRight: '20px' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{ticket.title}</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-secondary)' }}>{ticket.building} • {ticket.category || 'Maintenance'}</div>
                   </div>
-                  <div className={`status-badge ${ticket.status.toLowerCase().replace('_', '-')}`}>
+                  <div style={{ 
+                    fontSize: '0.75rem', fontWeight: '850', textTransform: 'uppercase', padding: '6px 14px', borderRadius: '99px',
+                    background: 'rgba(192, 128, 128, 0.1)', color: 'var(--accent-secondary)'
+                  }}>
                     {ticket.status.replace('_', ' ')}
                   </div>
                 </div>

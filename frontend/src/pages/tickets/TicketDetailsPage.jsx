@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
@@ -25,7 +44,7 @@ import '../../styles/tickets.css';
 export default function TicketDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, API } = useAuth();
+  const { user, API, authFetch } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,6 +53,7 @@ export default function TicketDetailsPage() {
   const [resolutionNote, setResolutionNote] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [images, setImages] = useState([]);
+  const [staffAssignedRooms, setStaffAssignedRooms] = useState([]);
 
   useEffect(() => {
     fetchTicketDetails();
@@ -41,7 +61,26 @@ export default function TicketDetailsPage() {
     if (user?.role === 'ADMIN') {
       fetchTechnicians();
     }
+    // For STAFF: Check their assigned rooms
+    if (user?.role === 'STAFF') {
+      fetchStaffAssignedRooms();
+    }
   }, [id, user]);
+
+  const fetchStaffAssignedRooms = async () => {
+    try {
+      const res = await authFetch(`${API}/api/resources`);
+      if (res.ok) {
+        const resources = await res.json();
+        const assignedRoomIds = resources
+          .filter(r => r.assignedStaffIds?.includes(user.id))
+          .map(r => r.id);
+        setStaffAssignedRooms(assignedRoomIds);
+      }
+    } catch (err) {
+      console.error('Failed to fetch assigned rooms:', err);
+    }
+  };
 
   const fetchTechnicians = async () => {
     try {
@@ -77,7 +116,10 @@ export default function TicketDetailsPage() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [updating, setUpdating] = useState(false);
 
+  // Determine if user can update ticket
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
+  const isStaffCanUpdate = user?.role === 'STAFF' && ticket && staffAssignedRooms.includes(ticket.resourceId);
+  const canUpdateTicket = isAdmin || isStaffCanUpdate;
 
   const handleStatusUpdate = async () => {
     if (!selectedStatus) return;
@@ -158,6 +200,18 @@ export default function TicketDetailsPage() {
         <h2 style={{ marginBottom: '12px' }}>Oops! Ticket Not Found</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>{error}</p>
         <button onClick={() => navigate('/tickets')} className="btn-primary">Back to Dashboard</button>
+      </div>
+    </div>
+  );
+
+  // STAFF access control: Can only view tickets in their assigned rooms
+  if (user?.role === 'STAFF' && ticket && !staffAssignedRooms.includes(ticket.resourceId)) return (
+    <div className="tickets-container" style={{ textAlign: 'center', paddingTop: '100px' }}>
+      <div className="glass-card" style={{ padding: '40px' }}>
+        <ShieldAlert size={48} style={{ marginBottom: '16px', color: '#ef4444' }} />
+        <h2 style={{ marginBottom: '12px' }}>Access Denied</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>You can only access tickets for your assigned rooms.</p>
+        <button onClick={() => navigate('/staff')} className="btn-primary">Return to Dashboard</button>
       </div>
     </div>
   );
@@ -331,9 +385,11 @@ export default function TicketDetailsPage() {
             </div>
           </div>
 
-          <div className="glass-card" style={{ padding: '24px', background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
-            <h4 style={{ marginBottom: '12px', fontSize: '1rem' }}>Staff Portal Update</h4>
-            {(isAdmin || (user.id === ticket.userId && (ticket.status === 'OPEN' || ticket.status === 'RESOLVED'))) ? (
+          <div className="glass-card" style={{ padding: '24px', background: 'rgba(192, 128, 128, 0.05)', border: '1px solid rgba(192, 128, 128, 0.1)' }}>
+            <h4 style={{ marginBottom: '12px', fontSize: '1rem' }}>
+              {user?.role === 'STAFF' ? '🔧 Quick Fix Panel' : 'Staff Portal Update'}
+            </h4>
+            {(canUpdateTicket || (user.id === ticket.userId && (ticket.status === 'OPEN' || ticket.status === 'RESOLVED'))) ? (
               <div className="space-y-4">
                 <div>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
@@ -350,7 +406,7 @@ export default function TicketDetailsPage() {
                 </div>
 
                 {user.role === 'ADMIN' && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                  <div style={{ borderTop: '1px solid rgba(192, 128, 128, 0.06)', paddingTop: '16px' }}>
                     <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '700' }}>
                       ASSIGN TECHNICIAN
                     </label>
@@ -384,7 +440,7 @@ export default function TicketDetailsPage() {
                 )}
                 
                 {ticket.technicianId && user.role !== 'ADMIN' && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                  <div style={{ borderTop: '1px solid rgba(192, 128, 128, 0.06)', paddingTop: '16px' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>ASSIGNED TO</div>
                     <div style={{ fontSize: '0.9rem', color: 'var(--accent-primary)' }}>
                       {getTechnicianDisplay(ticket.technicianFullName, ticket.technicianCampusId)}
@@ -410,7 +466,7 @@ export default function TicketDetailsPage() {
       {showStatusModal && (
         <div className="modal-overlay animate-fade-in" style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-          background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', 
+          background: 'rgba(140, 0, 0, 0.03)', display: 'flex', alignItems: 'center', 
           justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' 
         }}>
           <div className="glass-card animate-slide-up" style={{ width: '100%', maxWidth: '450px', padding: '32px' }}>
@@ -431,6 +487,22 @@ export default function TicketDetailsPage() {
                   {(ticket.status === 'IN_PROGRESS' || ticket.status === 'OPEN') && (
                     <button onClick={() => setSelectedStatus('RESOLVED')} className="btn-secondary w-full" style={{ justifyContent: 'space-between', border: selectedStatus === 'RESOLVED' ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)' }}>
                       Mark as RESOLVED <CheckCircle2 size={16} />
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* STAFF TIER-1 FIXING ACTIONS - For their assigned rooms only */}
+              {user?.role === 'STAFF' && isStaffCanUpdate && (
+                <>
+                  {ticket.status === 'OPEN' && (
+                    <button onClick={() => setSelectedStatus('IN_PROGRESS')} className="btn-secondary w-full" style={{ justifyContent: 'space-between', border: selectedStatus === 'IN_PROGRESS' ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                      🔧 Start Work <Clock size={16} />
+                    </button>
+                  )}
+                  {(ticket.status === 'IN_PROGRESS' || ticket.status === 'OPEN') && (
+                    <button onClick={() => setSelectedStatus('RESOLVED')} className="btn-secondary w-full" style={{ justifyContent: 'space-between', border: selectedStatus === 'RESOLVED' ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
+                      ✅ Mark as Fixed <CheckCircle2 size={16} />
                     </button>
                   )}
                 </>

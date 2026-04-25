@@ -1,7 +1,25 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/bookings.css';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
 
 /**
  * RESOURCE_TYPES configuration mapping role-based access to resource categories.
@@ -9,17 +27,10 @@ import '../../styles/bookings.css';
  */
 const RESOURCE_TYPES = [
   { 
-    id: 'LECTURE_THEATRE', 
-    name: 'Lecture Theatres', 
-    icon: '🏛️', 
-    description: 'Tiered theatres equipped with premium AV for large scale presentations.',
-    roles: ['ADMIN', 'LECTURER'] 
-  },
-  { 
     id: 'LECTURE_HALL', 
     name: 'Lecture Halls', 
     icon: '🏛️', 
-    description: 'Spacious halls suitable for lectures, exams, and large gatherings.',
+    description: 'Spacious halls and tiered theatres suitable for lectures, exams, and large academic gatherings.',
     roles: ['ADMIN', 'LECTURER'] 
   },
   { 

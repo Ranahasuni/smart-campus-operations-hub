@@ -192,8 +192,47 @@ a {
   margin: 0 auto;
   padding: 0 24px;
 }
-/* global style refinement: style: optimize primary color contrast ratio for accessibility compliance */
-/* global style refinement: style: refine global font smoothing for better cross-browser rendering */
-/* global style refinement: style: improve scrollbar aesthetics for modern dark-mode themes */
-/* global style refinement: style: synchronize focus-ring tokens for keyboard navigation consistency */
-/* global style refinement: style: optimize card-hover transition duration for improved perceived speed */
+/* ═══════ Scroll Reveal Animations ═══════ */
+.hp-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.hp-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+/* ═══════ Glassmorphism Refinement ═══════ */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(140, 0, 0, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(140, 0, 0, 0.05);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ═══════ Custom Scrollbar ═══════ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-secondary);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}

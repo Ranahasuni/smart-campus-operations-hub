@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -18,6 +18,24 @@ import {
 import { Html5Qrcode } from 'html5-qrcode';
 import '../styles/staff-portal.css';
 
+// ── Shared Animation Hooks ─────────────────────────────────
+function useScrollReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal ${className}`}>{children}</div>;
+}
+
 export default function StaffPortal() {
   const { user, authFetch, API } = useAuth();
   const navigate = useNavigate();
@@ -31,6 +49,7 @@ export default function StaffPortal() {
   const [assignedResources, setAssignedResources] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [myRoomTickets, setMyRoomTickets] = useState([]);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [bookingCode, setBookingCode] = useState('');
   const [verifying, setVerifying] = useState(false);
@@ -70,6 +89,13 @@ export default function StaffPortal() {
           }
         }
 
+        // For STAFF: Filter tickets to only those in their assigned rooms
+        const assignedResourcesList = resources.filter(r => r.assignedStaffIds?.includes(user.id));
+        const assignedRoomIds = assignedResourcesList.map(r => r.id);
+        const staffRoomTickets = user.role === 'STAFF' 
+          ? tickets.filter(t => assignedRoomIds.includes(t.resourceId) && t.status !== 'RESOLVED' && t.status !== 'CLOSED')
+          : [];
+
         setStats({
           activeTickets: ticketStats.activeTickets || 0,
           myTickets: user.role === 'LECTURER' ? myBookingsCount : (ticketStats.myTickets || 0),
@@ -78,7 +104,8 @@ export default function StaffPortal() {
         });
 
         setRecentTickets(tickets);
-        setAssignedResources(resources.filter(r => r.assignedStaffIds?.includes(user.id)));
+        setAssignedResources(assignedResourcesList);
+        setMyRoomTickets(staffRoomTickets);
         setTodaySchedule(schedule);
         setCheckInCount(schedule.filter(b => b.status === 'CHECKED_IN' || b.status === 'CHECKED_OUT').length);
       }
@@ -134,19 +161,31 @@ export default function StaffPortal() {
 
   return (
     <div className="staff-portal-container">
-      <header className="staff-page-header">
-        <div className="header-content">
-          <h1>Staff Portal</h1>
-          <p>Welcome back, <strong>{user?.fullName}</strong>. Here is your operational overview.</p>
-        </div>
-        <div className="header-time">
-          <Clock size={16} />
-          <span>Last updated: {new Date().toLocaleTimeString()}</span>
-        </div>
-      </header>
+      <Reveal>
+        <header className="staff-page-header" style={{
+          background: 'rgba(255, 255, 255, 0.4)',
+          backdropFilter: 'blur(20px)',
+          padding: '32px 40px',
+          borderRadius: '32px',
+          border: '1px solid var(--glass-border)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div className="header-content">
+            <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '950' }}>Staff <span style={{ color: 'var(--accent-primary)' }}>Portal</span></h1>
+            <p style={{ margin: '8px 0 0', fontWeight: '500', color: 'var(--text-secondary)' }}>Welcome back, <strong>{user?.fullName}</strong>. Operational status is active.</p>
+          </div>
+          <div className="header-time" style={{ background: 'var(--accent-primary)', color: 'white', border: 'none' }}>
+            <Clock size={16} />
+            <span>{new Date().toLocaleTimeString()}</span>
+          </div>
+        </header>
+      </Reveal>
 
       {/* Summary Statistics */}
-      <section className="staff-stats-grid">
+      <Reveal className="mt-12">
+        <section className="staff-stats-grid">
         <SummaryCard 
           title="Active Tickets" 
           value={stats.activeTickets} 
@@ -158,7 +197,7 @@ export default function StaffPortal() {
           title={user.role === 'LECTURER' ? "My Reservations" : "My Tasks"} 
           value={stats.myTickets} 
           icon={user.role === 'LECTURER' ? <Clock size={24} /> : <Wrench size={24} />} 
-          color="#8b5cf6"
+          color="#A86A6A"
           subtitle={user.role === 'LECTURER' ? "Booked slots" : "Assigned to you"}
         />
         <SummaryCard 
@@ -176,40 +215,67 @@ export default function StaffPortal() {
           subtitle="Processed today"
         />
       </section>
+      </Reveal>
 
       {/* NEW: Resource Check-In Section */}
-      <section className="staff-checkin-section glass-card mb-8 p-8" style={{ background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.4))' }}>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <section className="staff-checkin-section glass-card" style={{ padding: '32px', marginBottom: '40px', background: 'linear-gradient(135deg, rgba(250, 234, 234, 0.4), rgba(245, 230, 230, 0.4))' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
           <div className="checkin-info">
-            <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-              <UserCheck className="text-emerald-400" /> Verify Student Arrival
+            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: 'var(--accent-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <UserCheck size={28} /> Verify Student Arrival
             </h2>
-            <p className="text-slate-400">Scan student's Digital ID or enter the Booking Code to record check-in.</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: '500' }}>Scan student's Digital ID or enter the Booking Code to record check-in.</p>
           </div>
           
-          <div className="checkin-controls w-full md:w-auto">
-            <form onSubmit={handleCheckIn} className="flex gap-2">
-              <div className="relative flex-grow">
+          <div className="checkin-controls">
+            <form onSubmit={handleCheckIn} style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ position: 'relative' }}>
                 <input 
                   type="text" 
-                  placeholder="Enter Booking Code (e.g. RSV-X01)"
+                  placeholder="RSV-X01..."
                   value={bookingCode}
                   onChange={(e) => setBookingCode(e.target.value)}
-                  className="bg-slate-900/50 border border-slate-700 text-white px-4 py-3 rounded-xl w-full md:w-64 focus:border-indigo-500 transition-all outline-none"
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '2px solid var(--glass-border)',
+                    color: 'var(--text-primary)',
+                    padding: '14px 20px',
+                    borderRadius: '16px',
+                    width: '260px',
+                    fontWeight: '600',
+                    outline: 'none',
+                    transition: 'all 0.2s'
+                  }}
                 />
               </div>
               <button 
                 type="submit" 
                 disabled={verifying || !bookingCode}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+                style={{
+                  background: 'var(--accent-primary)',
+                  color: 'white',
+                  padding: '14px 28px',
+                  borderRadius: '16px',
+                  fontWeight: '800',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: 'var(--shadow-md)',
+                  opacity: (verifying || !bookingCode) ? 0.6 : 1
+                }}
               >
-                {verifying ? 'Verifying...' : 'Verify ID'}
+                {verifying ? '...' : 'Verify'}
               </button>
               <button 
                 type="button"
                 onClick={() => setShowCheckInModal(true)}
-                className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-xl transition-all"
-                title="Launch Scanner"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--accent-primary)',
+                  padding: '14px',
+                  borderRadius: '16px',
+                  border: '2px solid var(--glass-border)',
+                  cursor: 'pointer'
+                }}
               >
                 <QrCode size={24} />
               </button>
@@ -230,6 +296,69 @@ export default function StaffPortal() {
           </div>
         )}
       </section>
+
+      {/* STAFF: Room Health Section */}
+      {user?.role === 'STAFF' && myRoomTickets.length > 0 && (
+        <Reveal className="mb-12">
+          <section className="glass-card" style={{ padding: '32px', marginBottom: '40px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.06), rgba(251, 146, 60, 0.06))', border: '2px solid rgba(239, 68, 68, 0.15)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '12px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px' }}>
+                <AlertCircle size={24} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#1F1F1F', margin: '0 0 4px 0' }}>
+                  🏠 Room Health Status
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.95rem', fontWeight: '500' }}>
+                  {myRoomTickets.length} active issue{myRoomTickets.length !== 1 ? 's' : ''} in your assigned rooms — Fix them immediately
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: '12px' }}>
+              {myRoomTickets.map(ticket => (
+                <div key={ticket.id} style={{
+                  padding: '16px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.6)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  transition: 'all 0.3s'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                    <div style={{
+                      width: '8px', height: '8px', borderRadius: '50%',
+                      background: ticket.priority === 'HIGH' ? '#ef4444' : ticket.priority === 'MEDIUM' ? '#f59e0b' : '#3b82f6'
+                    }} />
+                    <div>
+                      <div style={{ fontWeight: '700', color: '#1F1F1F', marginBottom: '4px' }}>{ticket.title}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        {ticket.resourceName} • {new Date(ticket.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{
+                      fontSize: '0.75rem', fontWeight: '800', padding: '6px 12px', borderRadius: '8px',
+                      background: ticket.status === 'OPEN' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                      color: ticket.status === 'OPEN' ? '#f59e0b' : '#3b82f6'
+                    }}>
+                      {ticket.status}
+                    </span>
+                    <button
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      style={{
+                        background: 'var(--accent-primary)', color: 'white', border: 'none', padding: '8px 16px',
+                        borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem',
+                        transition: 'all 0.3s'
+                      }}
+                    >
+                      Handle Issue
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </Reveal>
+      )}
 
       <div className="staff-dashboard-content">
         {/* Quick Actions */}
@@ -268,38 +397,36 @@ export default function StaffPortal() {
               <span className="text-xs bg-slate-800 text-slate-400 px-3 py-1 rounded-full">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</span>
             </div>
             
-            <div className="today-bookings-list mt-4">
+            <div className="today-bookings-list mt-8">
               {loading ? (
-                <div className="p-8 text-center text-slate-500">Syncing schedule...</div>
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Syncing schedule...</div>
               ) : todaySchedule.length === 0 ? (
-                <div className="p-8 text-center glass-card border-dashed border-slate-700">
-                  <Clock className="mx-auto mb-3 text-slate-600" size={32} />
-                  <p className="text-slate-500">No bookings scheduled for your assigned resources today.</p>
+                <div className="glass-card" style={{ padding: '48px', textAlign: 'center', borderStyle: 'dashed' }}>
+                  <Clock className="mx-auto mb-4" size={48} style={{ opacity: 0.2 }} />
+                  <p style={{ color: 'var(--text-muted)', fontWeight: '600' }}>No bookings scheduled for today.</p>
                 </div>
               ) : (
-                <div className="grid gap-3">
+                <div style={{ display: 'grid', gap: '16px' }}>
                   {todaySchedule.map(booking => (
-                    <div key={booking.id} className="glass-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-l-indigo-500">
-                      <div className="flex items-center gap-4">
-                        <div className="time-block text-center min-w-[80px]">
-                          <div className="text-lg font-bold text-white">{booking.startTime.substring(0, 5)}</div>
-                          <div className="text-xs text-slate-500">to {booking.endTime.substring(0, 5)}</div>
+                    <div key={booking.id} className="glass-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        <div style={{ textAlign: 'center', minWidth: '80px' }}>
+                          <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--accent-primary)' }}>{booking.startTime.substring(0, 5)}</div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>to {booking.endTime.substring(0, 5)}</div>
                         </div>
-                        <div className="divider w-px h-10 bg-slate-800 hidden md:block"></div>
+                        <div style={{ width: '1px', height: '40px', background: 'var(--glass-border)' }}></div>
                         <div>
-                          <div className="font-bold text-white flex items-center gap-2">
-                             {booking.requesterName}
-                          </div>
-                          <div className="text-sm text-slate-400">{booking.resourceNames.join(', ')}</div>
+                          <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{booking.requesterName}</div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-secondary)' }}>{booking.resourceNames.join(', ')}</div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between md:justify-end gap-3">
-                        <div className={`text-xs px-3 py-1.5 rounded-full font-bold tracking-wider uppercase
-                          ${booking.status === 'APPROVED' ? 'bg-indigo-500/10 text-indigo-400' : 
-                            booking.status === 'CHECKED_IN' ? 'bg-emerald-500/10 text-emerald-400' : 
-                            'bg-slate-800 text-slate-500'}`}
-                        >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ 
+                          fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', padding: '6px 14px', borderRadius: '99px',
+                          background: booking.status === 'APPROVED' ? 'rgba(192, 128, 128, 0.1)' : (booking.status === 'CHECKED_IN' ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-primary)'),
+                          color: booking.status === 'APPROVED' ? 'var(--accent-secondary)' : (booking.status === 'CHECKED_IN' ? '#22c55e' : 'var(--text-muted)')
+                        }}>
                           {booking.status === 'APPROVED' ? 'Expected' : booking.status.replace('_', ' ')}
                         </div>
                         {booking.status === 'APPROVED' && (
@@ -308,7 +435,9 @@ export default function StaffPortal() {
                               setBookingCode(booking.bookingCode);
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
+                            style={{
+                              background: 'var(--accent-primary)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer'
+                            }}
                           >
                             Check In
                           </button>

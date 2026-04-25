@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ── Public Endpoints ───────────────
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/oauth2/authorization/**", "/login/oauth2/**", "/oauth2/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").permitAll()
                         .requestMatchers("/api/notifications/test-trigger").permitAll()
                         .requestMatchers("/api/uploads/**").permitAll()

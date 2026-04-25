@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
@@ -167,14 +186,14 @@ export default function CreateTicketPage() {
 
           {/* TOP MARKS: SMART ASSET SELECTION */}
           <div className="form-group" style={{ 
-            background: 'rgba(99, 102, 241, 0.1)', 
+            background: 'rgba(192, 128, 128, 0.1)', 
             padding: '24px', 
             borderRadius: '20px', 
-            border: '1px solid rgba(99, 102, 241, 0.2)',
+            border: '1px solid rgba(192, 128, 128, 0.2)',
             marginBottom: '32px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
           }}>
-            <label style={{ color: '#818cf8', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.8rem' }}>
+            <label style={{ color: '#C08080', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.8rem' }}>
               <Building2 size={18} /> 
               {isLinked ? 'Linked Asset (Verified)' : 'Target Facility (Optional)'}
             </label>
@@ -187,17 +206,17 @@ export default function CreateTicketPage() {
                 disabled={isLinked}
                 style={{ 
                   paddingLeft: '44px',
-                  background: isLinked ? 'rgba(0,0,0,0.2)' : 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
+                  background: isLinked ? 'rgba(140, 0, 0, 0.03)' : 'rgba(245, 230, 230, 0.6)',
+                  color: '#1F1F1F',
                   cursor: isLinked ? 'not-allowed' : 'pointer',
                   fontWeight: '500',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  border: '1px solid rgba(192, 128, 128, 0.3)',
                   backdropFilter: 'blur(10px)'
                 }}
               >
-                <option value="" style={{ background: '#1e293b', color: '#fff' }}>-- General / Common Area --</option>
+                <option value="" style={{ background: '#FFFFFF', color: '#1F1F1F' }}>-- General / Common Area --</option>
                 {resources.map(res => (
-                  <option key={res.id} value={res.id} style={{ background: '#1e293b', color: '#fff' }}>
+                  <option key={res.id} value={res.id} style={{ background: '#FFFFFF', color: '#1F1F1F' }}>
                     {res.name} ({res.building})
                   </option>
                 ))}
@@ -207,11 +226,11 @@ export default function CreateTicketPage() {
                 left: '14px', 
                 top: '50%', 
                 transform: 'translateY(-50%)', 
-                color: '#818cf8' 
+                color: '#C08080' 
               }} />
             </div>
             {!isLinked && (
-              <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '12px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <p style={{ fontSize: '0.75rem', color: '#6B7281', marginTop: '12px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <AlertCircle size={12} /> Tip: Linking a room directly helps technicians find the issue faster.
               </p>
             )}
@@ -262,10 +281,10 @@ export default function CreateTicketPage() {
               onChange={handleChange}
               placeholder="e.g., Block B, 3rd Floor, Room 304"
               style={{ 
-                background: 'rgba(15, 23, 42, 0.6)',
-                color: '#fff',
+                background: 'rgba(245, 230, 230, 0.6)',
+                color: '#1F1F1F',
                 fontWeight: '500',
-                border: '1px solid rgba(99, 102, 241, 0.2)'
+                border: '1px solid rgba(192, 128, 128, 0.2)'
               }}
             />
           </div>

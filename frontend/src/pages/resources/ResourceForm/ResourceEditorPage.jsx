@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
@@ -351,7 +370,7 @@ export default function ResourceEditorPage() {
   if (initLoading) {
     return (
       <div className="resource-form-container" style={{ textAlign: 'center', padding: '100px' }}>
-        <h2 style={{ color: '#94a3b8' }}>Loading Resource Data...</h2>
+        <h2 style={{ color: '#6B7281' }}>Loading Resource Data...</h2>
       </div>
     );
   }
@@ -362,10 +381,10 @@ export default function ResourceEditorPage() {
       {/* ADVANCED BACK BUTTON */}
       <Link to="/admin/resources" style={{
         display: 'inline-flex', alignItems: 'center', gap: '8px',
-        color: '#64748b', textDecoration: 'none', fontWeight: '600',
+        color: '#6B7281', textDecoration: 'none', fontWeight: '600',
         fontSize: '0.9rem', marginBottom: '24px', padding: '8px 0',
         transition: 'color 0.2s'
-      }} onMouseOver={e => e.currentTarget.style.color = '#6366f1'}
+      }} onMouseOver={e => e.currentTarget.style.color = '#C08080'}
         onMouseOut={e => e.currentTarget.style.color = '#64748b'}>
         <ArrowLeft size={16} /> Back to Management
       </Link>
@@ -401,15 +420,15 @@ export default function ResourceEditorPage() {
       {showSuccess && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.25)', backdropFilter: 'none !important', WebkitBackdropFilter: 'none !important', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, animation: 'fadeIn 0.3s' }}>
           <div style={{ background: '#fff', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '420px', textAlign: 'center', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)', color: '#1F1F1F', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}>
               <ShieldCheck size={40} />
             </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#0f172a', margin: '0 0 32px 0' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#FFFFFF', margin: '0 0 32px 0' }}>
               {isEdit ? 'Resource Updated Successfully' : 'New Asset Registered'}
             </h2>
             <button
               onClick={() => navigate('/admin/resources')}
-              style={{ width: '100%', marginTop: '12px', padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: '#fff', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.2)' }}
+              style={{ width: '100%', marginTop: '12px', padding: '16px', borderRadius: '14px', border: 'none', background: '#FFFFFF', color: '#1F1F1F', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 20px rgba(245, 230, 230, 0.2)' }}
             >
               Return to Management <Zap size={18} fill="#fff" />
             </button>
