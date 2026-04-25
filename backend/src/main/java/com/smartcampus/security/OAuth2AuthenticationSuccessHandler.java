@@ -43,7 +43,12 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     private final JwtUtil jwtUtil;
     private final AuditService auditService;
 
-    private static final String FRONTEND_CALLBACK = "http://localhost:5173/oauth2/callback";
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url}")
+    private String frontendUrl;
+
+    private String getFrontendCallback() {
+        return frontendUrl + "/oauth2/callback";
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -60,7 +65,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         // ── Null email guard ────────────────────────────────────────────
         if (email == null || email.isBlank()) {
-            response.sendRedirect(FRONTEND_CALLBACK + "?error=" +
+            response.sendRedirect(getFrontendCallback() + "?error=" +
                     URLEncoder.encode("Google account has no email attribute", StandardCharsets.UTF_8));
             return;
         }
@@ -71,7 +76,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         if (!email.endsWith("@my.sliit.lk")) {
             auditService.log(null, "OAUTH_DOMAIN_REJECTED",
                     "Google OAuth login rejected — non-SLIIT-student email: " + email);
-            response.sendRedirect(FRONTEND_CALLBACK + "?error=" +
+            response.sendRedirect(getFrontendCallback() + "?error=" +
                     URLEncoder.encode(
                             "Access denied. Only SLIIT student emails (@my.sliit.lk) are allowed. " +
                             "Staff and admin should use Campus ID login.",
@@ -106,12 +111,12 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         } else {
             // Check account status
             if (user.getStatus() == UserStatus.LOCKED) {
-                response.sendRedirect(FRONTEND_CALLBACK + "?error=" +
+                response.sendRedirect(getFrontendCallback() + "?error=" +
                         URLEncoder.encode("Your account is LOCKED. Contact an Administrator.", StandardCharsets.UTF_8));
                 return;
             }
             if (user.getStatus() == UserStatus.DISABLED) {
-                response.sendRedirect(FRONTEND_CALLBACK + "?error=" +
+                response.sendRedirect(getFrontendCallback() + "?error=" +
                         URLEncoder.encode("Your account is DISABLED. Contact Support.", StandardCharsets.UTF_8));
                 return;
             }
@@ -136,7 +141,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 "Google OAuth login successful for: " + email + " [SOURCE: GOOGLE]");
 
         // Redirect to frontend with token and user info
-        String redirectUrl = FRONTEND_CALLBACK
+        String redirectUrl = getFrontendCallback()
                 + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
                 + "&id=" + URLEncoder.encode(user.getId(), StandardCharsets.UTF_8)
                 + "&fullName=" + URLEncoder.encode(user.getFullName(), StandardCharsets.UTF_8)
