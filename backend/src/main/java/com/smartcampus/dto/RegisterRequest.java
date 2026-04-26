@@ -4,10 +4,8 @@ import com.smartcampus.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
 /** Request body for POST /auth/register */
-@Data
 public class RegisterRequest {
 
     @NotBlank(message = "Full name is required")
@@ -26,4 +24,23 @@ public class RegisterRequest {
 
     /** Optional – defaults to STUDENT if omitted */
     private Role role;
+
+    public RegisterRequest() {
+    }
+
+    // Getters and Setters
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getCampusEmail() { return campusEmail; }
+    public void setCampusEmail(String campusEmail) { this.campusEmail = campusEmail; }
+
+    public String getCampusId() { return campusId; }
+    public void setCampusId(String campusId) { this.campusId = campusId; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 }

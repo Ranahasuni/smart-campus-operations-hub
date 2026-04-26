@@ -8,8 +8,6 @@ import com.smartcampus.model.User;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.BookingService;
 import jakarta.validation.Valid;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +22,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
-@RequiredArgsConstructor
 public class BookingController {
 
     private final BookingService bookingService;
     private final UserRepository userRepository;
+
+    public BookingController(BookingService bookingService, UserRepository userRepository) {
+        this.bookingService = bookingService;
+        this.userRepository = userRepository;
+    }
 
     // ── Member Endpoints ──────────────────────────────────────────────────────
 
@@ -137,9 +139,17 @@ public class BookingController {
         ));
     }
 
-    @Data
     public static class StatusUpdateDTO {
         private BookingStatus status;
         private String reason;
+
+        public StatusUpdateDTO() {
+        }
+
+        public BookingStatus getStatus() { return status; }
+        public void setStatus(BookingStatus status) { this.status = status; }
+
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
     }
 }

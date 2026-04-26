@@ -2,7 +2,6 @@ package com.smartcampus.config;
 
 import com.smartcampus.security.JwtAuthFilter;
 import com.smartcampus.security.OAuth2AuthenticationSuccessHandler;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -25,7 +24,6 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -33,6 +31,18 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
     private final com.smartcampus.security.HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
     private final ClientRegistrationRepository clientRegistrationRepository;
+
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, 
+                          AuthenticationProvider authenticationProvider, 
+                          OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler, 
+                          com.smartcampus.security.HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository, 
+                          ClientRegistrationRepository clientRegistrationRepository) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.authenticationProvider = authenticationProvider;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+        this.cookieAuthorizationRequestRepository = cookieAuthorizationRequestRepository;
+        this.clientRegistrationRepository = clientRegistrationRepository;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

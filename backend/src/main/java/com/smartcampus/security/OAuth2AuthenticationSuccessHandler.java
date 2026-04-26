@@ -7,7 +7,6 @@ import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -20,28 +19,18 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Handles the redirect after a successful Google OAuth2 login.
- * Only @my.sliit.lk student emails are allowed.
- *
- * Flow:
- *  1. Google authenticates the student and Spring receives the OAuth2User.
- *  2. This handler finds or creates the user in MongoDB.
- *  3. A JWT is generated and the user is redirected to the frontend
- *     callback page with token + user info as query parameters.
- *
- * Security note:
- *   Google Auth is used only to verify the student's Google identity.
- *   The system still controls authorization by checking the email domain
- *   and assigning the STUDENT role from our backend.
- */
 @Component
-@RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final AuditService auditService;
+
+    public OAuth2AuthenticationSuccessHandler(UserRepository userRepository, JwtUtil jwtUtil, AuditService auditService) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.auditService = auditService;
+    }
 
     @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;

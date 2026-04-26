@@ -2,7 +2,6 @@ package com.smartcampus.security;
 
 import com.smartcampus.model.User;
 import com.smartcampus.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,10 +15,13 @@ import java.util.List;
  * perform authentication checks and populate the authority list.
  */
 @Service
-@RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
+
+    public UserDetailsServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String campusId) throws UsernameNotFoundException {

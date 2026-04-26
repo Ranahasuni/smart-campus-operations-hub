@@ -13,7 +13,6 @@ import com.smartcampus.repository.DatabaseSequenceRepository;
 import com.smartcampus.repository.TicketImageRepository;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.model.User;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.smartcampus.service.AuditService;
 import com.smartcampus.service.ResourceService;
@@ -25,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class TicketService {
 
     private final TicketRepository ticketRepository;
@@ -36,6 +34,24 @@ public class TicketService {
     private final ResourceService resourceService;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+
+    public TicketService(TicketRepository ticketRepository, 
+                         CommentRepository commentRepository, 
+                         TicketImageRepository ticketImageRepository, 
+                         DatabaseSequenceRepository sequenceRepository, 
+                         AuditService auditService, 
+                         ResourceService resourceService, 
+                         UserRepository userRepository, 
+                         NotificationService notificationService) {
+        this.ticketRepository = ticketRepository;
+        this.commentRepository = commentRepository;
+        this.ticketImageRepository = ticketImageRepository;
+        this.sequenceRepository = sequenceRepository;
+        this.auditService = auditService;
+        this.resourceService = resourceService;
+        this.userRepository = userRepository;
+        this.notificationService = notificationService;
+    }
 
     public Ticket createTicket(Ticket ticket) {
         System.out.println("DEBUG: Creating ticket for user: " + ticket.getUserId());

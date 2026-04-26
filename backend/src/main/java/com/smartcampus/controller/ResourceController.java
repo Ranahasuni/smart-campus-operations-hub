@@ -6,7 +6,6 @@ import com.smartcampus.model.ResourceStatus;
 import com.smartcampus.model.ResourceType;
 import com.smartcampus.service.ResourceService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,10 +16,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/resources")
-@RequiredArgsConstructor
 public class ResourceController {
 
         private final ResourceService resourceService;
+
+        public ResourceController(ResourceService resourceService) {
+                this.resourceService = resourceService;
+        }
 
         // GET /api/resources
         // GET /api/resources?building=X&floor=1&type=LAB

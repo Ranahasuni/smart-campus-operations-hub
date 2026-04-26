@@ -14,8 +14,8 @@ import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.service.NotificationService;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -27,14 +27,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class ResourceService {
+
+    private static final Logger log = LoggerFactory.getLogger(ResourceService.class);
 
     private final ResourceRepository resourceRepository;
     private final BookingRepository bookingRepository;
     private final NotificationService notificationService;
     private final MongoTemplate mongoTemplate;
+
+    public ResourceService(ResourceRepository resourceRepository, 
+                           BookingRepository bookingRepository, 
+                           NotificationService notificationService, 
+                           MongoTemplate mongoTemplate) {
+        this.resourceRepository = resourceRepository;
+        this.bookingRepository = bookingRepository;
+        this.notificationService = notificationService;
+        this.mongoTemplate = mongoTemplate;
+    }
 
     // ── HELPER — Build location string ─────────────────
     private String sanitize(String html) {

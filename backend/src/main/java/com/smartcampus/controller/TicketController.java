@@ -6,7 +6,6 @@ import com.smartcampus.model.Comment;
 import com.smartcampus.model.TicketImage;
 import com.smartcampus.service.TicketService;
 import com.smartcampus.service.FileService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,11 +18,15 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/tickets")
-@RequiredArgsConstructor
 public class TicketController {
 
     private final TicketService ticketService;
     private final FileService fileService;
+
+    public TicketController(TicketService ticketService, FileService fileService) {
+        this.ticketService = ticketService;
+        this.fileService = fileService;
+    }
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")

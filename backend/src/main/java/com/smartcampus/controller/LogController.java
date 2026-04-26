@@ -2,7 +2,6 @@ package com.smartcampus.controller;
 
 import com.smartcampus.model.AuditLog;
 import com.smartcampus.service.AuditService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +13,13 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/logs")
-@RequiredArgsConstructor
 public class LogController {
 
     private final AuditService auditService;
+
+    public LogController(AuditService auditService) {
+        this.auditService = auditService;
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")

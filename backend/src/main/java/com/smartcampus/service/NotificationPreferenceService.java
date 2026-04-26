@@ -4,8 +4,8 @@ import com.smartcampus.model.NotificationCategory;
 import com.smartcampus.model.NotificationPreference;
 import com.smartcampus.model.NotificationType;
 import com.smartcampus.repository.NotificationPreferenceRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,11 +13,15 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class NotificationPreferenceService {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationPreferenceService.class);
+
     private final NotificationPreferenceRepository preferenceRepository;
+
+    public NotificationPreferenceService(NotificationPreferenceRepository preferenceRepository) {
+        this.preferenceRepository = preferenceRepository;
+    }
 
     /**
      * The Central Gatekeeper for all notifications.

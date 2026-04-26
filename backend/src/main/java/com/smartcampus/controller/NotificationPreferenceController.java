@@ -5,7 +5,6 @@ import com.smartcampus.model.NotificationPreference;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.NotificationPreferenceService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,11 +14,15 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notification-preferences")
-@RequiredArgsConstructor
 public class NotificationPreferenceController {
 
     private final NotificationPreferenceService preferenceService;
     private final UserRepository userRepository;
+
+    public NotificationPreferenceController(NotificationPreferenceService preferenceService, UserRepository userRepository) {
+        this.preferenceService = preferenceService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Get notification preferences for the currently authenticated user.

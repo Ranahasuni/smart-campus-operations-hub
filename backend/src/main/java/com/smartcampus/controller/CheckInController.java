@@ -2,12 +2,9 @@ package com.smartcampus.controller;
 
 import com.smartcampus.model.Booking;
 import com.smartcampus.model.BookingStatus;
-import com.smartcampus.repository.BookingRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.smartcampus.service.CheckInService;
-
 import com.smartcampus.service.TicketService;
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.IssueType;
@@ -27,11 +24,15 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/check-in")
-@RequiredArgsConstructor
 public class CheckInController {
 
     private final CheckInService checkInService;
     private final UserRepository userRepository;
+
+    public CheckInController(CheckInService checkInService, UserRepository userRepository) {
+        this.checkInService = checkInService;
+        this.userRepository = userRepository;
+    }
 
     @PostMapping("/{bookingId}")
     public ResponseEntity<?> checkIn(@PathVariable String bookingId) {

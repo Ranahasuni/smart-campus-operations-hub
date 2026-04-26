@@ -4,27 +4,26 @@ import com.smartcampus.model.AuditLog;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.AuditLogRepository;
 import com.smartcampus.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Service to handle creation and retrieval of system audit logs.
- * Tracks user activity and security-related events.
- * Enriches each log with the user's campusId (principalId) and role (principalRole)
- * so that audit records are human-readable without a secondary lookup.
- */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AuditService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuditService.class);
 
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
+
+    public AuditService(AuditLogRepository auditLogRepository, UserRepository userRepository) {
+        this.auditLogRepository = auditLogRepository;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Lightweight identity cache to avoid DB round-trips on every audit write.

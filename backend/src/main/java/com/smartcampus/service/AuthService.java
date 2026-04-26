@@ -10,7 +10,6 @@ import com.smartcampus.model.User;
 import com.smartcampus.model.UserStatus;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.security.JwtUtil;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,14 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-/**
- * Handles registration and login with advanced security mechanisms:
- * - Account locking after 3 failed attempts
- * - Status checks (Active, Locked, Disabled)
- * - Security auditing via AuditService
- */
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository        userRepository;
@@ -38,6 +30,22 @@ public class AuthService {
     private final UserDetailsService    userDetailsService;
     private final AuditService          auditService;
     private final NotificationService   notificationService;
+
+    public AuthService(UserRepository userRepository, 
+                       PasswordEncoder passwordEncoder, 
+                       JwtUtil jwtUtil, 
+                       AuthenticationManager authManager, 
+                       UserDetailsService userDetailsService, 
+                       AuditService auditService, 
+                       NotificationService notificationService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+        this.authManager = authManager;
+        this.userDetailsService = userDetailsService;
+        this.auditService = auditService;
+        this.notificationService = notificationService;
+    }
 
     // ── Register ─────────────────────────────────────────────────────────────
 

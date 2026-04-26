@@ -6,19 +6,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Automatically creates MongoDB indexes on application startup.
- * This dramatically improves query performance for frequently queried fields.
- */
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class MongoIndexConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(MongoIndexConfig.class);
+
     private final MongoTemplate mongoTemplate;
+
+    public MongoIndexConfig(MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
+    }
 
     @EventListener(ContextRefreshedEvent.class)
     public void initializeIndexes() {

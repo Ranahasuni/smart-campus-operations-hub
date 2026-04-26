@@ -4,7 +4,6 @@ import com.smartcampus.model.User;
 import com.smartcampus.model.UserStatus;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller to manage user accounts and profiles.
- * Includes general profile retrieval and ADMIN-only CRUD.
- */
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
     private final UserService userService;
+
+    public UserController(UserRepository userRepository, UserService userService) {
+        this.userRepository = userRepository;
+        this.userService = userService;
+    }
 
     /** Get the currently authenticated user's profile */
     @GetMapping("/profile")
