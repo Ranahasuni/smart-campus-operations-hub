@@ -1,17 +1,10 @@
 export default function BasicInfoSection({ formData, handleChange, handleBlur, errors = {}, staffOptions = [] }) {
-  const getErrorStyle = (field) => {
-    if (errors[field]) {
-      return { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.02)' };
-    }
-    return {};
-  };
-
   return (
     <div className="form-section">
       <h3>Basic Information</h3>
       <div className="form-grid">
         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-          <label htmlFor="name" style={{ color: errors.name ? '#ef4444' : 'inherit' }}>Resource Name *</label>
+          <label htmlFor="name" className={errors.name ? 'label-error' : ''}>Resource Name *</label>
           <input
             type="text"
             id="name"
@@ -21,14 +14,13 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             value={formData.name || ''}
             onChange={handleChange}
             onBlur={handleBlur}
-            style={getErrorStyle('name')}
             autoFocus
           />
-          {errors.name && <p className="field-error-msg" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' }}>{errors.name}</p>}
+          {errors.name && <p className="field-error-msg">{errors.name}</p>}
         </div>
 
         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-          <label htmlFor="description" style={{ color: errors.description ? '#ef4444' : 'inherit' }}>Description *</label>
+          <label htmlFor="description" className={errors.description ? 'label-error' : ''}>Description *</label>
           <textarea
             id="description"
             name="description"
@@ -37,13 +29,12 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             value={formData.description || ''}
             onChange={handleChange}
             onBlur={handleBlur}
-            style={getErrorStyle('description')}
           />
-          {errors.description && <p className="field-error-msg" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' }}>{errors.description}</p>}
+          {errors.description && <p className="field-error-msg">{errors.description}</p>}
         </div>
 
         <div className="form-group">
-          <label htmlFor="type" style={{ color: errors.type ? '#ef4444' : 'inherit' }}>Resource Type *</label>
+          <label htmlFor="type" className={errors.type ? 'label-error' : ''}>Resource Type *</label>
           <select
             id="type"
             name="type"
@@ -51,7 +42,6 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             value={formData.type || ''}
             onChange={handleChange}
             onBlur={handleBlur}
-            style={getErrorStyle('type')}
           >
             <option value="" disabled>Select Type</option>
             <option value="LAB">Lab</option>
@@ -61,11 +51,11 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             <option value="SPORTS_FACILITY">Sports Facility</option>
             <option value="EQUIPMENT">Equipment</option>
           </select>
-          {errors.type && <p className="field-error-msg" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' }}>{errors.type}</p>}
+          {errors.type && <p className="field-error-msg">{errors.type}</p>}
         </div>
 
         <div className="form-group">
-          <label htmlFor="capacity" style={{ color: errors.capacity ? '#ef4444' : 'inherit' }}>Capacity (Seats) *</label>
+          <label htmlFor="capacity" className={errors.capacity ? 'label-error' : ''}>Capacity (Seats) *</label>
           <input
             type="number"
             id="capacity"
@@ -76,20 +66,18 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             value={formData.capacity || ''}
             onChange={handleChange}
             onBlur={handleBlur}
-            style={getErrorStyle('capacity')}
           />
-          {errors.capacity && <p className="field-error-msg" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' }}>{errors.capacity}</p>}
+          {errors.capacity && <p className="field-error-msg">{errors.capacity}</p>}
         </div>
 
         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-          <label htmlFor="assignedStaffIds" style={{ color: errors.assignedStaffIds ? '#ef4444' : 'inherit' }}>Assigned Caretaker (Staff)</label>
+          <label htmlFor="assignedStaffIds" className={errors.assignedStaffIds ? 'label-error' : ''}>Assigned Caretaker (Staff)</label>
           <select
             id="assignedStaffIds"
             name="assignedStaffIds"
             className={`form-select ${errors.assignedStaffIds ? 'input-error' : ''}`}
             value={formData.assignedStaffIds?.[0] || ''}
             onBlur={handleBlur}
-            style={getErrorStyle('assignedStaffIds')}
             onChange={(e) => {
               const val = e.target.value;
               handleChange({
@@ -108,9 +96,9 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             ))}
           </select>
           {errors.assignedStaffIds ? (
-            <p className="field-error-msg" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' }}>{errors.assignedStaffIds}</p>
+            <p className="field-error-msg">{errors.assignedStaffIds}</p>
           ) : (
-            <p className="field-hint" style={{ fontSize: '0.75rem', color: '#6B7281', marginTop: '4px' }}>
+            <p className="field-hint">
               The staff member responsible for check-ins at this facility.
             </p>
           )}

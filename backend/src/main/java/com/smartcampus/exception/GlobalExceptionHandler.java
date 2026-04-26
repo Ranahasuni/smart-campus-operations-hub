@@ -83,11 +83,13 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(err ->
                 errors.put(err.getField(), err.getDefaultMessage()));
 
+        String detailedMessage = errors.values().stream().findFirst().orElse("The request contains invalid parameters.");
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
                     .status(HttpStatus.BAD_REQUEST.value())
                     .error("Validation Failed")
-                    .message("The request contains invalid parameters.")
+                    .message(detailedMessage)
                     .validationErrors(errors)
                     .build());
     }

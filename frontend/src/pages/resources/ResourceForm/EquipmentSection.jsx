@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {

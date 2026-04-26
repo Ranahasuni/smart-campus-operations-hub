@@ -11,17 +11,6 @@ import '../../styles/booking-form.css';
 import { getLocalDateString } from '../../utils/dateUtils';
 
 // -- Shared Animation Hooks ---------------------------------
-function useScrollReveal() {
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) entry.target.classList.add('revealed');
-    }, { threshold: 0.1 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  return ref;
-}
 
 const CATEGORY_MAP = {
   LECTURE_THEATRE: { name: 'Lecture Theatre', icon: '🏛️' },
@@ -37,7 +26,6 @@ export default function CreateBookingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, authFetch, API } = useAuth();
-  const scrollRef = useScrollReveal();
 
   const queryParams = new URLSearchParams(location.search);
   const initialDate = queryParams.get('date') || getLocalDateString();
@@ -126,6 +114,12 @@ export default function CreateBookingPage() {
     // 1. Basic Policy Checks
     if (!resource) return "Facility not selected.";
     if (!formData.purpose.trim()) return "Please state your purpose.";
+    
+    // Explicit Capacity Validation
+    if (parseInt(formData.expectedAttendees) > resource.capacity) {
+        return `Capacity Exceeded: This facility (${resource.name}) only supports a maximum of ${resource.capacity} seats.`;
+    }
+
     if (formData.startTime >= formData.endTime) return "Invalid duration: End time must be after start time.";
     
     // 2. Temporal Validations
@@ -190,7 +184,6 @@ export default function CreateBookingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resourceIds: [resource.id],
-          userId: user.id,
           date: formData.date,
           startTime: formData.startTime,
           endTime: formData.endTime,
@@ -200,7 +193,15 @@ export default function CreateBookingPage() {
         })
       });
 
-      if (!res.ok) throw new Error((await res.json()).message || 'Submission failed');
+      if (!res.ok) {
+        const errorData = await res.json();
+        // If there are detailed validation errors, pick the first one for the main banner
+        if (errorData.validationErrors) {
+          const firstErr = Object.values(errorData.validationErrors)[0];
+          throw new Error(firstErr || 'Invalid form data');
+        }
+        throw new Error(errorData.message || 'Submission failed');
+      }
       setSuccess(true);
       setTimeout(() => navigate('/my-bookings'), 2000);
     } catch (err) {
@@ -223,7 +224,7 @@ export default function CreateBookingPage() {
   );
 
   return (
-    <div className="booking-form-container animate-fade-in" ref={scrollRef}>
+    <div className="booking-form-container animate-fade-in">
       <div className="breadcrumb">
         <Link to={`/resources/${id}`} className="back-link"><ChevronLeft size={18} /> Facility Specs</Link>
       </div>
@@ -290,19 +291,24 @@ export default function CreateBookingPage() {
                          const state = getSlotState(s);
                          const isLecturer = user?.role === 'LECTURER' || user?.role === 'ADMIN';
                          
+                         // Visual override: For standard students, Pending slots look like Occupied slots.
+                         // Faculty can still see the priority opportunity.
+                         let visualState = state;
+                         if (state === 'STUDENT_PENDING' && !isLecturer) visualState = 'APPROVED';
+
                          return (
-                            <div key={i} className={`slot-chip ${state.toLowerCase()}`}>
+                            <div key={i} className={`slot-chip ${visualState.toLowerCase()}`}>
                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                                   <span className="time">{s.startTime} - {s.endTime}</span>
-                                  {state === 'AVAILABLE' && <CheckCircle2 size={14} color="#4ade80" />}
-                                  {state === 'STUDENT_PENDING' && <ShieldAlert size={14} color="#fbbf24" />}
-                                  {state === 'LECTURER_PENDING' && <ShieldCheck size={14} color="#c08080" />}
-                                  {state === 'APPROVED' && <div className="dot" />}
+                                  {visualState === 'AVAILABLE' && <CheckCircle2 size={14} color="#4ade80" />}
+                                  {visualState === 'STUDENT_PENDING' && <ShieldAlert size={14} color="#fbbf24" />}
+                                  {visualState === 'LECTURER_PENDING' && <ShieldCheck size={14} color="#c08080" />}
+                                  {visualState === 'APPROVED' && <div className="dot" />}
                                </div>
                                <span className="label">
-                                  {state === 'AVAILABLE' ? 'Open for Booking' : 
-                                   state === 'STUDENT_PENDING' ? (isLecturer ? 'Priority Overridable' : 'Awaiting Review') :
-                                   state === 'LECTURER_PENDING' ? 'High Priority Review' : 'Occupied'}
+                                  {visualState === 'AVAILABLE' ? 'Open for Booking' : 
+                                   visualState === 'STUDENT_PENDING' ? 'Priority Overridable' :
+                                   visualState === 'LECTURER_PENDING' ? 'High Priority Review' : 'Reserved / In Review'}
                                </span>
                             </div>
                          );

@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.Locale;
 import java.util.Optional;
@@ -75,14 +76,26 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
         if (requester.getRole() == com.smartcampus.model.Role.STUDENT) {
-            long activeBookings = bookingRepository.findByUserId(userId).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.APPROVED)
-                    .count();
+            LocalDate today = LocalDate.now();
+            List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.APPROVED, BookingStatus.CHECKED_IN);
             
-            if (activeBookings >= 3) {
-                log.warn("Booking Quota Exceeded for user {}. Active count: {}", userId, activeBookings);
+            // ⚡ FAST PATH: Use DB count instead of fetching all history
+            long activeCount = bookingRepository.countByUserIdAndStatusInAndDateGreaterThanEqual(userId, activeStatuses, today);
+            
+            if (activeCount >= 3) {
+                // Only if quota full, fetch details to show in error (Rare path)
+                List<Booking> activeList = bookingRepository.findByUserId(userId).stream()
+                    .filter(b -> activeStatuses.contains(b.getStatus()) && !b.getDate().isBefore(today))
+                    .toList();
+
+                String bookingList = activeList.stream()
+                    .map(b -> (b.getBookingCode() != null ? b.getBookingCode() : "RSV-NEW") + " (" + b.getDate() + ")")
+                    .collect(Collectors.joining(", "));
+                
+                log.warn("Quota block for {}: {}", userId, bookingList);
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, 
-                    "Booking Quota Exceeded: Students are limited to 3 active reservations at a time to ensure fair access for all members.");
+                    "Quota Limit Reached (3/3). Active reservations: " + bookingList + 
+                    ". Please cancel or complete them to book more.");
             }
         }
 
@@ -112,7 +125,9 @@ public class BookingService {
             }
 
             if (dto.getExpectedAttendees() > resource.getCapacity()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Capacity exceeded for " + resource.getName());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    String.format("Capacity Exceeded: %s only supports a maximum of %d seats. Please reduce your attendee count.", 
+                        resource.getName(), resource.getCapacity()));
             }
 
             validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
@@ -172,7 +187,10 @@ public class BookingService {
             }
             validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
         }
-        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id, requester.getRole());
+        com.smartcampus.model.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id, user.getRole());
 
 
         booking.setDate(dto.getDate());
@@ -345,7 +363,13 @@ public class BookingService {
     // ── Admin Operations (Core Models) ────────────────────────────────────────
 
     public List<BookingResponseDTO> getAllBookings() {
-        List<Booking> bookings = bookingRepository.findAll();
+        // 🚀 HIGH PERFORMANCE: Only fetch the top 200 most recent records
+        // Loading thousands of records at once is what was causing the 6s+ delay.
+        org.springframework.data.domain.Pageable limit = org.springframework.data.domain.PageRequest.of(
+            0, 200, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+        );
+        
+        List<Booking> bookings = bookingRepository.findAll(limit).getContent();
         if (bookings.isEmpty()) return List.of();
 
         // 1. Bulk Fetch Resources
@@ -355,7 +379,7 @@ public class BookingService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
-                .collect(Collectors.toMap(Resource::getId, r -> r));
+                .collect(Collectors.toMap(Resource::getId, r -> r, (a, b) -> a));
 
         // 2. Bulk Fetch Users
         Set<String> userIds = bookings.stream()
@@ -363,7 +387,7 @@ public class BookingService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<String, com.smartcampus.model.User> userMap = userRepository.findAllById(userIds).stream()
-                .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u));
+                .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u, (a, b) -> a));
 
         return bookings.stream()
                 .map(b -> mapToResponseDTOWithData(b, userMap.get(b.getUserId()), resourceMap))
