@@ -97,6 +97,7 @@ public class ResourceService {
             String building, Integer floor,
             ResourceType type, ResourceStatus status,
             Integer capacity, String name,
+            List<String> features,
             int page, int size) {
 
         Query query = new Query();
@@ -120,6 +121,10 @@ public class ResourceService {
         if (name != null && !name.trim().isEmpty()) {
             // Regex for case-insensitive start-with search
             query.addCriteria(Criteria.where("name").regex("^" + java.util.regex.Pattern.quote(name.trim()), "i"));
+        }
+        if (features != null && !features.isEmpty()) {
+            // 🛡️ FILTER: Find resources that have ALL the selected features in their 'equipment' list
+            query.addCriteria(Criteria.where("equipment").all(features));
         }
 
         // Apply Pagination
@@ -192,12 +197,17 @@ public class ResourceService {
         long outOfService = 0;
         
         for (org.bson.Document doc : statusResults) {
-            String status = doc.get("_id") != null ? doc.get("_id").toString() : "UNKNOWN";
-            long count = doc.getInteger("count").longValue();
+            Object idObj = doc.get("_id");
+            String status = idObj != null ? idObj.toString() : "UNKNOWN";
+            
+            // ⚡ ROBUSTNESS FIX: Handle both Integer and Long from MongoDB aggregation
+            Number countNum = (Number) doc.get("count");
+            long count = countNum != null ? countNum.longValue() : 0L;
+            
             totalResources += count;
-            if ("ACTIVE".equals(status)) active = count;
-            else if ("MAINTENANCE".equals(status)) maintenance = count;
-            else if ("OUT_OF_SERVICE".equals(status)) outOfService = count;
+            if ("ACTIVE".equalsIgnoreCase(status)) active = count;
+            else if ("MAINTENANCE".equalsIgnoreCase(status)) maintenance = count;
+            else if ("OUT_OF_SERVICE".equalsIgnoreCase(status)) outOfService = count;
         }
 
         Map<String, Object> summary = new LinkedHashMap<>();
@@ -217,20 +227,25 @@ public class ResourceService {
         summary.put("distributionByBuilding", buildingResults.stream()
             .collect(Collectors.toMap(d -> d.getString("building"), d -> d.getInteger("count").longValue())));
 
-        // ── 2. Peak Booking Hours (Targeted Query + Java Binning) ─────
-        // ⚡ PERFORMANCE: Reduced window to 7 days for maximum dashboard responsiveness
+        // ── 2. Peak Booking Hours (Native High-Speed Aggregation) ─────
+        // ⚡ PERFORMANCE FIX: Moved calculation to DB side to avoid fetching thousands of records
         LocalDate peakCutoff = LocalDate.now().minusDays(7);
-        Query peakQuery = new Query(Criteria.where("date").gte(peakCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED));
-        peakQuery.fields().include("startTime");
+        org.springframework.data.mongodb.core.aggregation.Aggregation peakAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("date").gte(peakCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED)),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.project()
+                .andExpression("substr(startTime, 0, 2)").as("hour"),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.group("hour").count().as("count"),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.sort(org.springframework.data.domain.Sort.Direction.ASC, "_id")
+        );
         
-        List<Booking> peakData = mongoTemplate.find(peakQuery, Booking.class);
-        Map<String, Long> peakHours = peakData.stream()
-            .filter(b -> b.getStartTime() != null)
-            .collect(Collectors.groupingBy(
-                b -> String.format("%02d:00", b.getStartTime().getHour()),
-                java.util.TreeMap::new,
-                Collectors.counting()
-            ));
+        List<org.bson.Document> peakResults = mongoTemplate.aggregate(peakAgg, "bookings", org.bson.Document.class).getMappedResults();
+        Map<String, Long> peakHours = new java.util.TreeMap<>();
+        for (org.bson.Document doc : peakResults) {
+            String hour = doc.getString("_id");
+            if (hour != null) {
+                peakHours.put(hour + ":00", ((Number) doc.get("count")).longValue());
+            }
+        }
         summary.put("peakBookingHours", peakHours);
 
         // ── 3. Most Booked Resources (Leaderboard Aggregation) ───────
@@ -250,17 +265,22 @@ public class ResourceService {
         Map<String, Resource> topResources = resourceRepository.findAllById(topIds).stream()
             .collect(Collectors.toMap(Resource::getId, r -> r));
 
-        List<Map<String, Object>> mostBooked = leaderboardResults.stream().map(d -> {
-            String rid = d.getString("_id");
-            Resource r = topResources.get(rid);
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("resourceId", rid);
-            item.put("name", r != null ? r.getName() : "Unknown");
-            item.put("type", r != null && r.getType() != null ? r.getType().name() : "N/A");
-            item.put("building", r != null ? r.getBuilding() : "N/A");
-            item.put("count", d.getInteger("count").longValue());
-            return item;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> mostBooked = leaderboardResults.stream()
+            .map(d -> {
+                String rid = d.getString("_id");
+                Resource r = topResources.get(rid);
+                if (r == null) return null; // 🛡️ FILTER: Skip orphaned resources
+                
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("resourceId", rid);
+                item.put("name", r.getName());
+                item.put("type", r.getType() != null ? r.getType().name() : "N/A");
+                item.put("building", r.getBuilding() != null ? r.getBuilding() : "N/A");
+                item.put("count", ((Number) d.get("count")).longValue());
+                return item;
+            })
+            .filter(Objects::nonNull) // 🛡️ Cleanup nulls from skipped orphans
+            .collect(Collectors.toList());
         
         summary.put("mostBooked", mostBooked);
         return summary;
@@ -412,6 +432,15 @@ public class ResourceService {
                 org.springframework.http.HttpStatus.PRECONDITION_FAILED, 
                 "Cannot delete: This facility has active/pending bookings. Please cancel bookings first."
             );
+        }
+
+        // ⚡ CASCADE DELETE: Remove all historic bookings associated with this resource
+        // This ensures the resource disappears from analytics/leaderboards immediately.
+        try {
+            long deletedBookings = bookingRepository.deleteByResourceIdsContaining(id);
+            log.info("Cascaded delete: Removed {} historic bookings for resource {}", deletedBookings, id);
+        } catch (Exception e) {
+            log.error("Failed to cascade delete bookings for resource {}: {}", id, e.getMessage());
         }
 
         resourceRepository.delete(resource);

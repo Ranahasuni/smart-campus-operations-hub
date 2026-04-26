@@ -36,12 +36,14 @@ public class ResourceController {
                         @RequestParam(required = false) ResourceType type,
                         @RequestParam(required = false) ResourceStatus status,
                         @RequestParam(required = false) Integer capacity,
-                        @RequestParam(required = false) String name) {
+                        @RequestParam(required = false) String name,
+                        @RequestParam(required = false) List<String> features) {
 
                 return ResponseEntity.ok(
                                 resourceService.getResources(
                                                 building, floor, type,
                                                 status, capacity, name,
+                                                features,
                                                 page, size));
         }
 

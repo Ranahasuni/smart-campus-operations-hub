@@ -92,7 +92,14 @@ export default function UserActionTimeline() {
               logs.map((log) => (
                 <tr key={log.id} className="log-row">
                   <td className="log-time" style={{ whiteSpace: 'nowrap' }}>
-                    {new Date(log.timestamp).toLocaleString()}
+                    {(() => {
+                      const ts = log.timestamp;
+                      if (!ts) return 'Unknown';
+                      const date = Array.isArray(ts) 
+                        ? new Date(ts[0], ts[1]-1, ts[2], ts[3] || 0, ts[4] || 0, ts[5] || 0)
+                        : new Date(ts);
+                      return isNaN(date.getTime()) ? 'Invalid' : date.toLocaleString();
+                    })()}
                   </td>
                   <td>
                     <div className="log-action">

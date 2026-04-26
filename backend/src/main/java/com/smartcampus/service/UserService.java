@@ -137,9 +137,11 @@ public class UserService {
 
     public java.util.Map<String, Long> getUserStats() {
         java.util.Map<String, Long> stats = new java.util.HashMap<>();
-        stats.put("total", userRepository.count());
-        stats.put("active", userRepository.countByStatus(UserStatus.ACTIVE));
-        stats.put("locked", userRepository.countByStatus(UserStatus.LOCKED));
+        List<User> allUsers = userRepository.findAll();
+        
+        stats.put("total", (long) allUsers.size());
+        stats.put("active", allUsers.stream().filter(u -> u.getStatus() == UserStatus.ACTIVE).count());
+        stats.put("locked", allUsers.stream().filter(u -> u.getStatus() == UserStatus.LOCKED).count());
         return stats;
     }
 }
