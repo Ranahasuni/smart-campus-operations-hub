@@ -183,10 +183,10 @@ export default function Dashboard() {
               style={{
                 padding: '10px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '10px',
-                background: activeTab === 'ANALYTICS' ? '#10b981' : 'transparent',
+                background: activeTab === 'ANALYTICS' ? '#8b0000' : 'transparent',
                 color: activeTab === 'ANALYTICS' ? '#fff' : '#64748b',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeTab === 'ANALYTICS' ? '0 10px 20px -5px rgba(16, 185, 129, 0.2)' : 'none'
+                boxShadow: activeTab === 'ANALYTICS' ? '0 10px 20px -5px rgba(139, 0, 0, 0.2)' : 'none'
               }}
             >
               <TrendingUp size={18} /> Analytics
