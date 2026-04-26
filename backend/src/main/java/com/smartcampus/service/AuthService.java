@@ -59,6 +59,34 @@ public class AuthService {
 
         Role role = (req.getRole() != null) ? req.getRole() : Role.STUDENT;
 
+        // ── STRONG PASSWORD VALIDATION ──
+        String password = req.getPassword();
+        String passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
+        if (!password.matches(passwordRegex)) {
+            throw new IllegalArgumentException("Password too weak. Must contain uppercase, lowercase, digit, and special character.");
+        }
+
+        // ── CAMPUS SPECIFIC VALIDATIONS ──
+        String email = req.getCampusEmail().toLowerCase();
+        String cid = req.getCampusId().toUpperCase();
+
+        if (role == Role.STUDENT) {
+            if (!email.endsWith("@my.sliit.lk") && !email.endsWith("@sliit.lk")) {
+                throw new IllegalArgumentException("Students must register with a @my.sliit.lk or @sliit.lk email.");
+            }
+            if (!cid.startsWith("IT")) {
+                throw new IllegalArgumentException("Student ID must start with 'IT' prefix (e.g. IT23864306).");
+            }
+        } else if (role == Role.LECTURER) {
+            if (!cid.startsWith("LEC")) {
+                throw new IllegalArgumentException("Lecturer ID must start with 'LEC' prefix.");
+            }
+        } else if (role == Role.TECHNICIAN) {
+            if (!cid.startsWith("TECH")) {
+                throw new IllegalArgumentException("Technician ID must start with 'TECH' prefix.");
+            }
+        }
+
         // Security violation: Public registration cannot create ADMINs
         if (role == Role.ADMIN) {
             throw new IllegalStateException("Direct registration of Administrators is not permitted.");

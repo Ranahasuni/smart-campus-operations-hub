@@ -56,9 +56,32 @@ export default function Register() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\S+$).{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError('Password is too weak. Must include Uppercase, Lowercase, Number, and Special character (@#$%^&+=!)');
       return;
+    }
+
+    // Role-based validations
+    if (formData.role === 'STUDENT') {
+      if (!formData.campusEmail.toLowerCase().endsWith('@my.sliit.lk') && !formData.campusEmail.toLowerCase().endsWith('@sliit.lk')) {
+        setError('Please use your official @my.sliit.lk or @sliit.lk email');
+        return;
+      }
+      if (!formData.campusId.toUpperCase().startsWith('IT')) {
+        setError('Student ID must start with IT (e.g. IT23864306)');
+        return;
+      }
+    } else if (formData.role === 'LECTURER') {
+      if (!formData.campusId.toUpperCase().startsWith('LEC')) {
+        setError('Lecturer ID must start with LEC');
+        return;
+      }
+    } else if (formData.role === 'TECHNICIAN') {
+      if (!formData.campusId.toUpperCase().startsWith('TECH')) {
+        setError('Technician ID must start with TECH');
+        return;
+      }
     }
 
     setLoading(true);
@@ -184,6 +207,46 @@ export default function Register() {
               />
               <Lock size={18} className="input-icon" />
             </div>
+            {/* Password Strength Meter */}
+            {formData.password && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ display: 'flex', gap: '4px', height: '4px', marginBottom: '6px' }}>
+                  {[1, 2, 3, 4].map((step) => {
+                    const strength = (() => {
+                      let s = 0;
+                      if (formData.password.length >= 8) s++;
+                      if (/[A-Z]/.test(formData.password)) s++;
+                      if (/[0-9]/.test(formData.password)) s++;
+                      if (/[@#$%^&+=!]/.test(formData.password)) s++;
+                      return s;
+                    })();
+                    const colors = ['#f87171', '#fbbf24', '#34d399', '#10b981'];
+                    const active = step <= strength;
+                    return (
+                      <div key={step} style={{ 
+                        flex: 1, borderRadius: '2px', 
+                        background: active ? colors[strength-1] : '#E5E7EB',
+                        transition: 'all 0.3s ease'
+                      }} />
+                    );
+                  })}
+                </div>
+                <p style={{ fontSize: '0.75rem', color: '#6B7281', margin: 0, fontWeight: '600' }}>
+                  {(() => {
+                    let s = 0;
+                    if (formData.password.length >= 8) s++;
+                    if (/[A-Z]/.test(formData.password)) s++;
+                    if (/[0-9]/.test(formData.password)) s++;
+                    if (/[@#$%^&+=!]/.test(formData.password)) s++;
+                    if (s === 1) return 'Weak (Add upper/number/special)';
+                    if (s === 2) return 'Fair (Keep going)';
+                    if (s === 3) return 'Good (Almost there)';
+                    if (s === 4) return 'Strong Password';
+                    return 'Too short';
+                  })()}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Confirm Password */}

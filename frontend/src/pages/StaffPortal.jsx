@@ -66,33 +66,31 @@ export default function StaffPortal() {
       setLoading(true);
       
       // Use specialized high-performance endpoints added in Phase 1
-      const [statsRes, recentRes, resourceRes, scheduleRes] = await Promise.all([
+      const [statsRes, recentRes, resourceRes, scheduleRes, myBookingsRes] = await Promise.all([
         authFetch(`${API}/api/tickets/stats/technician/${user.id}`),
         authFetch(`${API}/api/tickets/recent?limit=5`),
-        authFetch(`${API}/api/resources`),
-        authFetch(`${API}/api/bookings/staff/today`)
+        user.role === 'STAFF' 
+          ? authFetch(`${API}/api/resources/assigned-to-me?staffId=${user.id}`)
+          : authFetch(`${API}/api/resources`),
+        authFetch(`${API}/api/bookings/staff/today`),
+        user.role === 'LECTURER' ? authFetch(`${API}/api/bookings/user`) : Promise.resolve({ ok: true, json: () => [] })
       ]);
 
       if (statsRes.ok && recentRes.ok && resourceRes.ok && scheduleRes.ok) {
-        const [ticketStats, tickets, resources, schedule] = await Promise.all([
+        const [ticketStats, tickets, resources, schedule, myBookings] = await Promise.all([
           statsRes.json(),
           recentRes.json(),
           resourceRes.json(),
-          scheduleRes.json()
+          scheduleRes.json(),
+          myBookingsRes.json()
         ]);
         
-        let myBookingsCount = 0;
-        if (user.role === 'LECTURER') {
-          const bRes = await authFetch(`${API}/api/bookings/user`);
-          if (bRes.ok) {
-            const bData = await bRes.json();
-            myBookingsCount = bData.length;
-          }
-        }
+        const myBookingsCount = Array.isArray(myBookings) ? myBookings.length : 0;
 
-        // For STAFF: Filter tickets to only those in their assigned rooms
-        const assignedResourcesList = resources.filter(r => r.assignedStaffIds?.includes(user.id));
+        // If staff, resources are already pre-filtered by backend
+        const assignedResourcesList = resources;
         const assignedRoomIds = assignedResourcesList.map(r => r.id);
+        
         const staffRoomTickets = user.role === 'STAFF' 
           ? tickets.filter(t => assignedRoomIds.includes(t.resourceId) && t.status !== 'RESOLVED' && t.status !== 'CLOSED')
           : [];

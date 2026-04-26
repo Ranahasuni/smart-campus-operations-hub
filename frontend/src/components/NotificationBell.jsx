@@ -48,7 +48,7 @@ export default function NotificationBell() {
       } catch (_) {}
     };
     fetchCount();
-    const id = setInterval(fetchCount, 15_000);
+    const id = setInterval(fetchCount, 60_000);
     return () => clearInterval(id);
   }, [user]);
 

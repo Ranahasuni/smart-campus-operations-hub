@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
+    org.springframework.data.domain.Page<Booking> findByUserId(String userId, org.springframework.data.domain.Pageable pageable);
     List<Booking> findByUserId(String userId);
     java.util.Optional<Booking> findByBookingCode(String bookingCode);
     

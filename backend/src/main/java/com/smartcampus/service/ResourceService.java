@@ -160,6 +160,15 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    // ── GET RESOURCES ASSIGNED TO STAFF ────────────────
+    public List<ResourceResponseDTO> getAssignedResources(String staffId) {
+        if (staffId == null || staffId.isBlank()) return new java.util.ArrayList<>();
+        return resourceRepository.findByAssignedStaffIdsContaining(staffId)
+                .stream()
+                .map(this::toSummaryDTO)
+                .collect(Collectors.toList());
+    }
+
 
     // ── GET FLOOR MAP ───────────────────────────────────
     public List<ResourceResponseDTO> getFloorMap(String building, Integer floor) {
@@ -169,12 +178,27 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
-    // ── ANALYTICS SUMMARY ───────────────────────────────
+    // ── ANALYTICS SUMMARY (CORE ENGINE) ─────────────────
     public Map<String, Object> getAnalyticsSummary() {
-        long totalResources = resourceRepository.count();
-        long active = resourceRepository.countByStatus(ResourceStatus.ACTIVE);
-        long maintenance = resourceRepository.countByStatus(ResourceStatus.MAINTENANCE);
-        long outOfService = resourceRepository.countByStatus(ResourceStatus.OUT_OF_SERVICE);
+        // ── Status Counts (Single Fast Aggregation binning) ──────────
+        org.springframework.data.mongodb.core.aggregation.Aggregation statusAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+            org.springframework.data.mongodb.core.aggregation.Aggregation.group("status").count().as("count")
+        );
+        List<org.bson.Document> statusResults = mongoTemplate.aggregate(statusAgg, "resources", org.bson.Document.class).getMappedResults();
+        
+        long totalResources = 0;
+        long active = 0;
+        long maintenance = 0;
+        long outOfService = 0;
+        
+        for (org.bson.Document doc : statusResults) {
+            String status = doc.get("_id") != null ? doc.get("_id").toString() : "UNKNOWN";
+            long count = doc.getInteger("count").longValue();
+            totalResources += count;
+            if ("ACTIVE".equals(status)) active = count;
+            else if ("MAINTENANCE".equals(status)) maintenance = count;
+            else if ("OUT_OF_SERVICE".equals(status)) outOfService = count;
+        }
 
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("totalResources", totalResources);
@@ -182,67 +206,63 @@ public class ResourceService {
         summary.put("maintenanceResources", maintenance);
         summary.put("outOfServiceResources", outOfService);
 
-        // ── 1. Distribution by Building (Pie Chart) ──────────────────
-        // ── 1. Distribution by Building (Pie Chart) ──────────────────
-        // ⚡ PERFORMANCE OPTIMIZATION: Use MongoDB Aggregation instead of fetching all resources
-        org.springframework.data.mongodb.core.aggregation.Aggregation agg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+        // ── 1. Distribution by Building (Aggregation) ────────────────
+        org.springframework.data.mongodb.core.aggregation.Aggregation buildingAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
             org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("building").ne(null).ne("")),
             org.springframework.data.mongodb.core.aggregation.Aggregation.group("building").count().as("count"),
             org.springframework.data.mongodb.core.aggregation.Aggregation.project("count").and("_id").as("building")
         );
         
-        List<org.bson.Document> aggResults = mongoTemplate.aggregate(agg, "resources", org.bson.Document.class).getMappedResults();
-        Map<String, Long> buildingDistribution = aggResults.stream()
-            .collect(Collectors.toMap(d -> d.getString("building"), d -> d.getInteger("count").longValue()));
-        summary.put("distributionByBuilding", buildingDistribution);
+        List<org.bson.Document> buildingResults = mongoTemplate.aggregate(buildingAgg, "resources", org.bson.Document.class).getMappedResults();
+        summary.put("distributionByBuilding", buildingResults.stream()
+            .collect(Collectors.toMap(d -> d.getString("building"), d -> d.getInteger("count").longValue())));
 
-        // ── 2. Peak Booking Hours (Area Chart) ───────────────────────
-        // Analyze bookings from the last 90 days for meaningful data
-        LocalDate cutoff = LocalDate.now().minusDays(90);
-        // ⚡ PERFORMANCE OPTIMIZATION: Query only last 90 days and only necessary fields
-        Query bookingQuery = new Query(Criteria.where("date").gte(cutoff)
-                .and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED));
-        bookingQuery.fields().include("resourceIds", "date", "startTime");
+        // ── 2. Peak Booking Hours (Targeted Query + Java Binning) ─────
+        // ⚡ PERFORMANCE: Reduced window to 7 days for maximum dashboard responsiveness
+        LocalDate peakCutoff = LocalDate.now().minusDays(7);
+        Query peakQuery = new Query(Criteria.where("date").gte(peakCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED));
+        peakQuery.fields().include("startTime");
         
-        List<Booking> recentBookings = mongoTemplate.find(bookingQuery, Booking.class);
+        List<Booking> peakData = mongoTemplate.find(peakQuery, Booking.class);
+        Map<String, Long> peakHours = peakData.stream()
+            .filter(b -> b.getStartTime() != null)
+            .collect(Collectors.groupingBy(
+                b -> String.format("%02d:00", b.getStartTime().getHour()),
+                java.util.TreeMap::new,
+                Collectors.counting()
+            ));
+        summary.put("peakBookingHours", peakHours);
 
-        // Count bookings by start hour (e.g., "08:00" -> 12, "09:00" -> 18)
-        Map<String, Long> peakHours = recentBookings.stream()
-                .collect(Collectors.groupingBy(
-                        b -> String.format("%02d:00", b.getStartTime().getHour()),
-                        Collectors.counting()
-                ));
-        // Sort by hour to ensure chronological order on the chart
-        Map<String, Long> sortedPeakHours = new java.util.TreeMap<>(peakHours);
-        summary.put("peakBookingHours", sortedPeakHours);
+        // ── 3. Most Booked Resources (Leaderboard Aggregation) ───────
+        LocalDate leaderCutoff = LocalDate.now().minusDays(30);
+        org.springframework.data.mongodb.core.aggregation.Aggregation leaderboardAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("date").gte(leaderCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED)),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.unwind("resourceIds"),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.group("resourceIds").count().as("count"),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.sort(org.springframework.data.domain.Sort.Direction.DESC, "count"),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.limit(10)
+        );
 
-        // ── 3. Most Booked Resources (Leaderboard Table) ─────────────
-        // Flatten resourceIds from bookings and count occurrences
-        Map<String, Long> resourceBookingCounts = recentBookings.stream()
-                .filter(b -> b.getResourceIds() != null)
-                .flatMap(b -> b.getResourceIds().stream())
-                .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
+        List<org.bson.Document> leaderboardResults = mongoTemplate.aggregate(leaderboardAgg, "bookings", org.bson.Document.class).getMappedResults();
+        
+        // Enrich ONLY the top 10 resource IDs
+        Set<String> topIds = leaderboardResults.stream().map(d -> d.getString("_id")).collect(Collectors.toSet());
+        Map<String, Resource> topResources = resourceRepository.findAllById(topIds).stream()
+            .collect(Collectors.toMap(Resource::getId, r -> r));
 
-        // Get top 10, enrich with resource details
-        Map<String, Resource> resourceMap = allResources.stream()
-                .collect(Collectors.toMap(Resource::getId, r -> r, (a, b) -> a));
-
-        List<Map<String, Object>> mostBooked = resourceBookingCounts.entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(10)
-                .map(entry -> {
-                    Map<String, Object> item = new LinkedHashMap<>();
-                    Resource r = resourceMap.get(entry.getKey());
-                    item.put("resourceId", entry.getKey());
-                    item.put("name", r != null ? r.getName() : "Unknown Facility");
-                    item.put("type", r != null && r.getType() != null ? r.getType().name() : "N/A");
-                    item.put("building", r != null ? r.getBuilding() : "N/A");
-                    item.put("count", entry.getValue());
-                    return item;
-                })
-                .collect(Collectors.toList());
+        List<Map<String, Object>> mostBooked = leaderboardResults.stream().map(d -> {
+            String rid = d.getString("_id");
+            Resource r = topResources.get(rid);
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("resourceId", rid);
+            item.put("name", r != null ? r.getName() : "Unknown");
+            item.put("type", r != null && r.getType() != null ? r.getType().name() : "N/A");
+            item.put("building", r != null ? r.getBuilding() : "N/A");
+            item.put("count", d.getInteger("count").longValue());
+            return item;
+        }).collect(Collectors.toList());
+        
         summary.put("mostBooked", mostBooked);
-
         return summary;
     }
 

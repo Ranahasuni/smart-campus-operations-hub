@@ -53,10 +53,12 @@ public class BookingController {
 
     @GetMapping("/user")
     public ResponseEntity<List<BookingResponseDTO>> getUserBookings(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         User user = userRepository.findByCampusId(userDetails.getUsername())
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User context lost"));
-        return ResponseEntity.ok(bookingService.getUserBookings(user.getId()));
+        return ResponseEntity.ok(bookingService.getUserBookings(user.getId(), page, size));
     }
 
     @PutMapping("/{id}/cancel")

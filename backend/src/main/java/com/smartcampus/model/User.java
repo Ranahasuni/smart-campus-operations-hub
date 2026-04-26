@@ -30,6 +30,7 @@ public class User {
 
     private Role role = Role.STUDENT;
 
+    @Indexed
     private UserStatus status = UserStatus.ACTIVE;
 
     private int failedAttempts = 0;
