@@ -48,6 +48,7 @@ public class BookingService {
 
         // 1. Bulk Fetch Resources
         Set<String> resourceIds = bookings.stream()
+                .filter(b -> b.getResourceIds() != null)
                 .flatMap(b -> b.getResourceIds().stream())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -140,7 +141,9 @@ public class BookingService {
         String code = "RSV-" + saved.getDate().getYear() + "-" + saved.getId().substring(Math.max(0, saved.getId().length() - 5)).toUpperCase();
         saved.setBookingCode(code);
         
-        return mapToResponseDTO(bookingRepository.save(saved));
+        BookingResponseDTO response = mapToResponseDTO(bookingRepository.save(saved));
+        auditService.log(userId, "BOOKING_CREATE", "Created booking for " + dto.getResourceIds().size() + " resource(s) on " + dto.getDate());
+        return response;
     }
 
     @org.springframework.transaction.annotation.Transactional
@@ -154,6 +157,8 @@ public class BookingService {
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending bookings can be modified");
         }
+        
+        auditService.log(userId, "BOOKING_UPDATE", "Updated booking " + id);
 
         List<Resource> resources = resourceRepository.findAllById(dto.getResourceIds());
         if (resources.size() != dto.getResourceIds().size()) {
@@ -253,6 +258,7 @@ public class BookingService {
 
         // Bulk fetch all required resources
         Set<String> resourceIds = bookings.stream()
+                .filter(b -> b.getResourceIds() != null)
                 .flatMap(b -> b.getResourceIds().stream())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -276,6 +282,7 @@ public class BookingService {
         log.info("Cancelling booking {} by user {}", bookingId, userId);
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+        auditService.log(userId, "BOOKING_CANCEL", "Cancelled booking " + bookingId);
     }
 
     public void deleteBooking(String bookingId, String userId) {
@@ -290,6 +297,7 @@ public class BookingService {
 
         // 1. Bulk Fetch Resources
         Set<String> resourceIds = bookings.stream()
+                .filter(b -> b.getResourceIds() != null)
                 .flatMap(b -> b.getResourceIds().stream())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -325,7 +333,7 @@ public class BookingService {
         if (bookings.isEmpty()) return List.of();
 
         // 3. Bulk Enrichment
-        Set<String> allResIds = bookings.stream().flatMap(b -> b.getResourceIds().stream()).collect(Collectors.toSet());
+        Set<String> allResIds = bookings.stream().filter(b -> b.getResourceIds() != null).flatMap(b -> b.getResourceIds().stream()).collect(Collectors.toSet());
         Map<String, Resource> resourceMap = resourceRepository.findAllById(allResIds).stream()
                 .collect(Collectors.toMap(Resource::getId, r -> r));
         

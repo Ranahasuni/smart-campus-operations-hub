@@ -21,6 +21,7 @@ function Reveal({ children, className = '' }) {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
+import { handleApiError } from '../../utils/apiErrorHandler';
 import { 
   PlusCircle, 
   ClipboardList, 
@@ -39,6 +40,7 @@ export default function TicketsPage() {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchTickets();
@@ -47,14 +49,18 @@ export default function TicketsPage() {
   const fetchTickets = async () => {
     try {
       setLoading(true);
+      setError(null);
       const isAdmin = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
       const response = isAdmin 
         ? await ticketApi.getAllTickets() 
         : await ticketApi.getTicketsByUser(user?.id);
       
-      setTickets(response.data);
+      setTickets(response.data || []);
     } catch (err) {
+      const errorMessage = handleApiError(err, 'Failed to load tickets. Please try again.');
+      setError(errorMessage);
       console.error('Failed to fetch tickets:', err);
+      setTickets([]);
     } finally {
       setLoading(false);
     }
@@ -114,6 +120,19 @@ export default function TicketsPage() {
       {loading ? (
         <div className="empty-state">
           <p className="animate-pulse">Loading your tickets...</p>
+        </div>
+      ) : error ? (
+        <div className="glass-card" style={{ padding: '40px', textAlign: 'center', borderColor: '#ef4444' }}>
+          <AlertCircle size={48} style={{ color: '#ef4444', margin: '0 auto 16px', display: 'block' }} />
+          <h3 style={{ color: '#dc2626', marginBottom: '8px' }}>Failed to Load Tickets</h3>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>{error}</p>
+          <button 
+            onClick={fetchTickets}
+            className="btn-primary"
+            style={{ display: 'inline-block' }}
+          >
+            Try Again
+          </button>
         </div>
       ) : tickets.length > 0 ? (
         <div className="glass-card animate-fade-in" style={{ padding: '0', overflow: 'hidden' }}>

@@ -57,7 +57,17 @@ public class TicketService {
         }
         
         Ticket savedTicket = ticketRepository.save(ticket);
-        auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket " + savedTicket.getDisplayId() + " created");
+        System.out.println("DEBUG: Ticket saved successfully with ID: " + savedTicket.getId());
+        
+        // Log audit event
+        try {
+            System.out.println("DEBUG: About to call auditService.log() for ticket: " + savedTicket.getDisplayId());
+            auditService.log(ticket.getUserId(), "TICKET_CREATED", "New ticket " + savedTicket.getDisplayId() + " created");
+            System.out.println("DEBUG: Audit log call completed successfully");
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to log audit for ticket creation: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // Impact Booking: If a ticket is HIGH priority, set associated resource to MAINTENANCE
         if (savedTicket.getResourceId() != null && savedTicket.getPriority() == Priority.HIGH) {
@@ -95,7 +105,10 @@ public class TicketService {
     }
 
     public List<Ticket> getAllTickets() {
-        return ticketRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        // Return only the latest 100 tickets for better performance
+        return ticketRepository.findAll(
+            org.springframework.data.domain.PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt"))
+        ).getContent();
     }
 
     public List<Ticket> getRecentTickets(int limit) {

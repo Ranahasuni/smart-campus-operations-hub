@@ -34,7 +34,15 @@ public class TicketController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'LECTURER')")
     public ResponseEntity<List<Ticket>> getAllTickets() {
-        return ResponseEntity.ok(ticketService.getAllTickets());
+        try {
+            return ResponseEntity.ok(ticketService.getAllTickets());
+        } catch (Exception e) {
+            // Log the error for debugging
+            System.err.println("Error fetching tickets: " + e.getMessage());
+            e.printStackTrace();
+            // Return empty list instead of failing completely
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
     }
 
     @GetMapping("/recent")

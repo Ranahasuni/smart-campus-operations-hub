@@ -3,6 +3,7 @@ package com.smartcampus.service;
 import com.smartcampus.model.AuditLog;
 import com.smartcampus.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,17 +14,29 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
+    
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        log(null, "SYSTEM_STARTUP", "Audit Service initialized and ready to track events.");
+    }
 
     public void log(String userId, String action, String details) {
-        AuditLog log = AuditLog.builder()
-                .userId(userId)
-                .action(action)
-                .details(details)
-                .build();
-        auditLogRepository.save(log);
+        try {
+            AuditLog auditLog = AuditLog.builder()
+                    .userId(userId)
+                    .action(action)
+                    .details(details)
+                    .timestamp(java.time.LocalDateTime.now())
+                    .build();
+            auditLogRepository.save(auditLog);
+            log.info("AUDIT LOG: User={} Action={} Details={}", userId, action, details);
+        } catch (Exception e) {
+            log.error("Failed to save audit log for action={}: {}", action, e.getMessage(), e);
+        }
     }
 
     public List<AuditLog> getAllLogs() {
