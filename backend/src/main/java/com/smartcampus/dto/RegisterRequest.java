@@ -19,7 +19,7 @@ public class RegisterRequest {
     private String campusId; // student ID / lecturer ID / admin ID
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
     /** Optional – defaults to STUDENT if omitted */

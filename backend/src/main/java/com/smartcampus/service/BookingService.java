@@ -309,8 +309,12 @@ public class BookingService {
         return mapToResponseDTOEnriched(booking);
     }
 
-    public List<BookingResponseDTO> getUserBookings(String userId) {
-        List<Booking> bookings = bookingRepository.findByUserId(userId);
+    public List<BookingResponseDTO> getUserBookings(String userId, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+        );
+        
+        List<Booking> bookings = bookingRepository.findByUserId(userId, pageable).getContent();
         if (bookings.isEmpty()) return List.of();
 
         // Bulk fetch all required resources
@@ -321,7 +325,7 @@ public class BookingService {
                 .collect(Collectors.toSet());
 
         Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
-                .collect(Collectors.toMap(Resource::getId, r -> r));
+                .collect(Collectors.toMap(Resource::getId, r -> r, (a, b) -> a));
 
         // Fetch user once
         com.smartcampus.model.User user = userRepository.findById(userId).orElse(null);

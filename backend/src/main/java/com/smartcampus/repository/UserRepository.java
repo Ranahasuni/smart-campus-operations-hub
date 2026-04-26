@@ -10,4 +10,5 @@ public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByCampusEmail(String campusEmail);
     Optional<User> findByCampusId(String campusId);
     List<User> findByRole(com.smartcampus.model.Role role);
+    long countByStatus(com.smartcampus.model.UserStatus status);
 }

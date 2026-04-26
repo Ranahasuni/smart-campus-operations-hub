@@ -49,6 +49,7 @@ export default function ResourceCard({ resource }) {
             src={imageUrl}
             alt={resource.name || 'Resource'}
             className="photo-edge-to-edge"
+            loading="lazy"
             onError={() => setImgError(true)}
           />
         ) : (

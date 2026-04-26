@@ -54,48 +54,70 @@ export default function Dashboard() {
   // Logic for switching tabs removed - now handled natively within the component
 
   const fetchDashData = async () => {
-    // If user info is not yet available, we stay in loading state to avoid blank render
     if (!user) return;
-    
-    // If user has no right to be here, stop loading and return
     if (!['ADMIN', 'LECTURER'].includes(user?.role)) {
       setLoading(false);
       return;
     }
 
-    try {
-      // Parallelize all baseline requests to avoid sequential blocking (Waterfall effect)
-      const [userStatsRes, logRes, ticketStatsRes, analyticsRes] = await Promise.all([
-        authFetch(`${API}/api/users/stats`),
-        authFetch(`${API}/api/logs?limit=6`),
-        authFetch(`${API}/api/tickets/stats/global`),
-        authFetch(`${API}/api/resources/analytics/summary`)
-      ]);
+    // Progressive Loading: Fetch each segment independently to avoid Waterfall sequential blocking
+    const fetchData = async (url, setter, defaultVal) => {
+      try {
+        const res = await authFetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          setter(data);
+        } else {
+          setter(defaultVal);
+        }
+      } catch (err) {
+        console.error(`Error fetching ${url}:`, err);
+        setter(defaultVal);
+      }
+    };
 
-      const [uStats, logs, tStats, rStats] = await Promise.all([
-        userStatsRes.ok ? userStatsRes.json() : { total: 0, active: 0, locked: 0 },
-        logRes.ok ? logRes.json() : [],
-        ticketStatsRes.ok ? ticketStatsRes.json() : { open: 0, total: 0 },
-        analyticsRes.ok ? analyticsRes.json() : null
-      ]);
+    // First load markers
+    let loadedCount = 0;
+    const checkInit = () => {
+      loadedCount++;
+      if (loadedCount >= 2) setLoading(false); // Show UI as soon as first 2 vital cards are ready
+    };
 
-      setStats({
-        totalUsers: uStats.total || 0,
-        lockedUsers: uStats.locked || 0,
-        activeUsers: uStats.active || 0,
-        openTickets: tStats.open || 0,
-        allTickets: tStats.total || 0,
-        recentLogs: Array.isArray(logs) ? logs.slice(-6).reverse() : [],
-        resourceStats: rStats
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    // Kick off all requests in parallel but update state individually
+    fetchData(`${API}/api/users/stats`, (d) => {
+      setStats(prev => ({ ...prev, totalUsers: d?.total || 0, activeUsers: d?.active || 0, lockedUsers: d?.locked || 0 }));
+      checkInit();
+    }, { total: 0, active: 0, locked: 0 });
+
+    fetchData(`${API}/api/tickets/stats/global`, (d) => {
+      setStats(prev => ({ ...prev, openTickets: d?.open || 0, allTickets: d?.total || 0 }));
+      checkInit();
+    }, { open: 0, total: 0 });
+
+    fetchData(`${API}/api/logs?limit=6`, (d) => {
+      setStats(prev => ({ ...prev, recentLogs: Array.isArray(d) ? d : [] }));
+    }, []);
+
+    fetchData(`${API}/api/resources/analytics/summary`, (d) => {
+      setStats(prev => ({ ...prev, resourceStats: d }));
+      setLoading(false); // Final assurance
+    }, null);
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+        height: '90vh', background: '#FFFFFF', color: 'var(--text-secondary)' 
+      }}>
+        <div className="spinner" style={{ width: '50px', height: '50px', border: '5px solid #f3f3f3', borderTop: '5px solid var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }}></div>
+        <p style={{ fontWeight: '800', letterSpacing: '2px', fontSize: '0.9rem' }}>SYNCHRONIZING COMMAND CENTER...</p>
+        <style>{`
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -131,7 +153,7 @@ export default function Dashboard() {
             border: '1px solid rgba(192, 128, 128, 0.06)'
           }}>
             <button
-              onClick={() => navigate('/admin')}
+              onClick={() => setActiveTab('OVERVIEW')}
               style={{
                 padding: '10px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '10px',
@@ -190,8 +212,8 @@ export default function Dashboard() {
                   <a href="/admin/logs" style={{ fontSize: '0.875rem', color: '#C08080', textDecoration: 'none', fontWeight: 'bold' }}>View All</a>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {stats.recentLogs.map((log, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', borderBottom: '1px solid rgba(192, 128, 128, 0.06)' }}>
+                  {stats.recentLogs.map((log) => (
+                    <div key={log.id || log.timestamp} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', borderBottom: '1px solid rgba(192, 128, 128, 0.06)' }}>
                       <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(192, 128, 128, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Clock size={16} color="#64748b" />
                       </div>
@@ -224,6 +246,9 @@ export default function Dashboard() {
       {/* VIEW 2: RESOURCE ANALYTICS */}
       {activeTab === 'ANALYTICS' && (
         <div className="fade-in anim-dash">
+          <Reveal>
+            <SummaryCards stats={stats.resourceStats || {}} />
+          </Reveal>
           <Reveal>
             <div style={{
               display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '40px'

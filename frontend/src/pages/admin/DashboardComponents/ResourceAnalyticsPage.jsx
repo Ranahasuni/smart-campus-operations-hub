@@ -54,8 +54,23 @@ export default function ResourceAnalyticsPage() {
     }
   };
 
-  if (loading) return null;
-  if (!stats) return <div style={{ padding: '40px', color: '#1F1F1F' }}>No analytics data found.</div>;
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+        height: '90vh', background: '#FFFFFF', color: '#6B7281' 
+      }}>
+        <div style={{ 
+          width: '50px', height: '50px', border: '5px solid #f3f3f3', borderTop: '5px solid #C08080', 
+          borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' 
+        }}></div>
+        <p style={{ fontWeight: '800', letterSpacing: '2px', fontSize: '0.9rem' }}>SYNCHRONIZING ANALYTICS ENGINE...</p>
+        <style>{`
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '40px 24px', minHeight: '100vh', background: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}>

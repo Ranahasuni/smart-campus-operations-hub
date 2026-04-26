@@ -32,6 +32,7 @@ public class Resource {
 
     private String location;
 
+    @Indexed
     private ResourceStatus status = ResourceStatus.ACTIVE;
 
     private List<String> equipment;

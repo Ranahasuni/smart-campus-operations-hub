@@ -85,7 +85,7 @@ export function AuthProvider({ children }) {
   };
 
   /** Authenticated fetch helper — auto-attaches Bearer token and handles expiration */
-  const authFetch = async (url, options = {}) => {
+  const authFetch = async (url, options = {}, timeout = 30000) => {
     // Proactive check: if token is null/empty, session is effectively gone
     if (!token) {
       logout();
@@ -93,28 +93,42 @@ export function AuthProvider({ children }) {
       throw new Error('No authentication token found');
     }
 
-    const res = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
 
-    // 401: Unauthorized (token expired/invalid) -> Log out
-    if (res.status === 401) {
-      logout();
-      window.location.href = '/login?expired=true';
-      throw new Error('Session expired');
+    try {
+      const res = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      clearTimeout(id);
+
+      // 401: Unauthorized (token expired/invalid) -> Log out
+      if (res.status === 401) {
+        logout();
+        window.location.href = '/login?expired=true';
+        throw new Error('Session expired');
+      }
+
+      // 403: Forbidden (Authenticated but insufficient role) -> Just throw, don't logout
+      if (res.status === 403) {
+        throw new Error('Access Denied');
+      }
+
+      return res;
+    } catch (err) {
+      clearTimeout(id);
+      if (err.name === 'AbortError') {
+        console.error(`Request to ${url} timed out after ${timeout}ms`);
+        throw new Error('Request Timeout');
+      }
+      throw err;
     }
-
-    // 403: Forbidden (Authenticated but insufficient role) -> Just throw, don't logout
-    if (res.status === 403) {
-      throw new Error('Access Denied');
-    }
-
-    return res;
   };
 
   // ── Role Simulation (Admin Only) ──

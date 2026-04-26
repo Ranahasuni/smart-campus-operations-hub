@@ -60,12 +60,22 @@ public class ResourceController {
                                 resourceService.getBuildings());
         }
 
-        // GET /api/resources/floors?building=X
         @GetMapping("/floors")
         public ResponseEntity<List<Integer>> getFloors(
                         @RequestParam String building) {
                 return ResponseEntity.ok(
                                 resourceService.getFloorsByBuilding(building));
+        }
+
+        // GET /api/resources/assigned-to-me
+        @GetMapping("/assigned-to-me")
+        @PreAuthorize("hasRole('STAFF')")
+        public ResponseEntity<List<ResourceResponseDTO>> getAssignedResources(
+                        @RequestParam(required = false) String staffId) {
+                // In a real app, staffId would come from SecurityContext, 
+                // but checking parameter for flexibility in this phase.
+                return ResponseEntity.ok(
+                                resourceService.getAssignedResources(staffId));
         }
 
 
