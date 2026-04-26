@@ -67,10 +67,13 @@ export default function ResourceTable({ resources, loading, onUpdateStatus, onDe
     if (confirmModal.type === 'DELETE') {
       await onDeleteResource(confirmModal.id);
       setSuccessModal({ show: true, title: 'Delete Successful', message: 'The resource has been permanently removed from the system.' });
+      setConfirmModal({ ...confirmModal, show: false });
     } else if (confirmModal.type === 'STATUS') {
-      await onUpdateStatus(confirmModal.id, confirmModal.nextStatus);
+      const id = confirmModal.id;
+      const status = confirmModal.nextStatus;
+      setConfirmModal({ ...confirmModal, show: false }); // ⚡ Close instantly
+      onUpdateStatus(id, status); // Fire and forget (Optimistic)
     }
-    setConfirmModal({ ...confirmModal, show: false });
   };
 
   const getOrdinalFloor = (floor) => {
@@ -297,7 +300,7 @@ export default function ResourceTable({ resources, loading, onUpdateStatus, onDe
             <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: confirmModal.type === 'DELETE' ? '#fef2f2' : '#f0f9ff', color: confirmModal.type === 'DELETE' ? '#ef4444' : '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               {confirmModal.type === 'DELETE' ? <AlertCircle size={32} /> : <CheckCircle2 size={32} />}
             </div>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.25rem', fontWeight: '800', color: '#FFFFFF' }}>{confirmModal.title}</h3>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.25rem', fontWeight: '800', color: '#1F1F1F' }}>{confirmModal.title}</h3>
             <p style={{ margin: '0 0 24px 0', color: '#6B7281', fontSize: '0.95rem', lineHeight: '1.5' }}>{confirmModal.message}</p>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button

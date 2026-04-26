@@ -49,7 +49,6 @@ public interface ResourceRepository
     long countByStatus(ResourceStatus status);
 
     List<Resource> findByAssignedStaffIdsContaining(String staffId);
-    
     // ── Paginated Queries for Large Result Sets ────────────────
     @Query("{ 'building': ?0 }")
     Page<Resource> findByBuildingPaginated(String building, PageRequest pageRequest);
@@ -59,4 +58,7 @@ public interface ResourceRepository
     
     @Query("{ 'status': ?0 }")
     Page<Resource> findByStatusPaginated(ResourceStatus status, PageRequest pageRequest);
+
+    // ⚡ ELITE CHECK: Find if a room already exists in this exact physical spot
+    java.util.Optional<Resource> findByBuildingAndFloorAndRoomNumber(String building, Integer floor, String roomNumber);
 }
