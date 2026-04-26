@@ -29,5 +29,6 @@ public class BookingResponseDTO {
     private Integer expectedAttendees;
     private String rejectionReason;
     private String bookingCode;
+    private com.smartcampus.model.Role requesterRole;
     private LocalDateTime createdAt;
 }

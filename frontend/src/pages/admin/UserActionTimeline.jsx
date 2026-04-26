@@ -38,12 +38,12 @@ export default function UserActionTimeline() {
     try {
       setLoading(true);
       const [logRes, userRes] = await Promise.all([
-        authFetch(`${API}/api/audit?userId=${id}`),
+        authFetch(`${API}/api/logs/user/${id}`),
         authFetch(`${API}/api/users/${id}`)
       ]);
       const logData = await logRes.json();
       const userData = await userRes.json();
-      setLogs(logData.content || logData);
+      setLogs(Array.isArray(logData) ? logData : []);
       setUser(userData);
     } catch (err) {
       console.error('Failed to fetch user timeline:', err);
@@ -52,11 +52,13 @@ export default function UserActionTimeline() {
     }
   };
 
-  const getActionIcon = (actionType) => {
-    if (actionType.includes('LOGIN')) return <LogIn className="log-icon login" size={16} />;
-    if (actionType.includes('BOOKING')) return <CheckCircle className="log-icon booking" size={16} />;
-    if (actionType.includes('TICKET')) return <Ticket className="log-icon ticket" size={16} />;
-    if (actionType.includes('SECURITY') || actionType.includes('ROLE')) return <Shield className="log-icon security" size={16} />;
+  const getActionIcon = (action) => {
+    if (!action) return <FileText className="log-icon system" size={16} />;
+    const a = action.toUpperCase();
+    if (a.includes('LOGIN')) return <LogIn className="log-icon login" size={16} />;
+    if (a.includes('BOOKING')) return <CheckCircle className="log-icon booking" size={16} />;
+    if (a.includes('TICKET')) return <Ticket className="log-icon ticket" size={16} />;
+    if (a.includes('SECURITY') || a.includes('ROLE')) return <Shield className="log-icon security" size={16} />;
     return <FileText className="log-icon system" size={16} />;
   };
 
@@ -81,12 +83,11 @@ export default function UserActionTimeline() {
               <th>Timestamp</th>
               <th>Action</th>
               <th>Details</th>
-              <th>Source</th>
             </tr>
           </thead>
           <tbody>
             {logs.length === 0 ? (
-              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>No recorded activity for this user.</td></tr>
+              <tr><td colSpan="3" style={{ textAlign: 'center', padding: '24px' }}>No recorded activity for this user.</td></tr>
             ) : (
               logs.map((log) => (
                 <tr key={log.id} className="log-row">
@@ -95,17 +96,12 @@ export default function UserActionTimeline() {
                   </td>
                   <td>
                     <div className="log-action">
-                      {getActionIcon(log.actionType)}
-                      <span className="log-type-badge">{log.actionType}</span>
+                      {getActionIcon(log.action)}
+                      <span className="log-type-badge">{log.action}</span>
                     </div>
                   </td>
                   <td className="log-details" style={{ maxWidth: '400px', whiteSpace: 'normal' }}>
-                    {log.details.includes('SOURCE: MICROSOFT') ? (
-                      <span style={{ color: '#0ea5e9' }}>{log.details}</span>
-                    ) : log.details}
-                  </td>
-                  <td className="log-ip" style={{ fontFamily: 'monospace' }}>
-                    {log.ipAddress || 'Internal'}
+                    {log.details}
                   </td>
                 </tr>
               ))

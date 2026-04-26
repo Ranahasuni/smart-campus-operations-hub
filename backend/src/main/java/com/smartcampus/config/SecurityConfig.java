@@ -60,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/notification-preferences/**").authenticated()
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "LECTURER")
+                        .requestMatchers("/api/logs/**").hasAnyRole("ADMIN", "LECTURER")
                         
                         // ── Remaining ────────────────────────
                         .requestMatchers("/actuator/**").permitAll()

@@ -1,4 +1,6 @@
+import React from 'react';
 import { Users, Building, MapPin, AlertTriangle, CheckCircle, Settings, Info } from 'lucide-react';
+
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
