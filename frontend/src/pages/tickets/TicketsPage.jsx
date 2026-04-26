@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
-import { 
-  PlusCircle, 
-  ClipboardList, 
-  Clock, 
-  CheckCircle2, 
+import {
+  PlusCircle,
+  ClipboardList,
+  Clock,
+  CheckCircle2,
   AlertCircle,
   ArrowRight,
   User,
@@ -29,10 +29,10 @@ export default function TicketsPage() {
     try {
       setLoading(true);
       const isAdmin = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
-      const response = isAdmin 
-        ? await ticketApi.getAllTickets() 
+      const response = isAdmin
+        ? await ticketApi.getAllTickets()
         : await ticketApi.getTicketsByUser(user?.id);
-      
+
       setTickets(response.data);
     } catch (err) {
       console.error('Failed to fetch tickets:', err);
@@ -57,13 +57,13 @@ export default function TicketsPage() {
     };
     const s = styles[status] || styles.OPEN;
     return (
-      <span style={{ 
-        display: 'inline-flex', 
-        alignItems: 'center', 
-        gap: '6px', 
-        padding: '4px 12px', 
-        borderRadius: '20px', 
-        fontSize: '0.75rem', 
+      <span style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '4px 12px',
+        borderRadius: '20px',
+        fontSize: '0.75rem',
         fontWeight: '600',
         background: s.bg,
         border: s.border,
@@ -137,7 +137,7 @@ export default function TicketsPage() {
                     {getStatusBadge(ticket.status)}
                   </td>
                   <td style={{ padding: '24px' }}>
-                    <span style={{ 
+                    <span style={{
                       color: ticket.priority === 'HIGH' ? '#fb7185' : 'var(--text-secondary)',
                       fontWeight: '600',
                       fontSize: '0.85rem'
@@ -146,9 +146,9 @@ export default function TicketsPage() {
                     </span>
                   </td>
                   <td style={{ padding: '24px', textAlign: 'right' }}>
-                    <button 
+                    <button
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
-                      className="btn-secondary" 
+                      className="btn-secondary"
                       style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                     >
                       View Details
@@ -171,9 +171,9 @@ export default function TicketsPage() {
               It looks like everything is running smoothly. If you spot a problem, report it here.
             </p>
           </div>
-          <button 
-            onClick={() => navigate('/tickets/new')} 
-            className="btn-secondary" 
+          <button
+            onClick={() => navigate('/tickets/new')}
+            className="btn-secondary"
             style={{ marginTop: '16px' }}
           >
             Submit First Ticket
@@ -188,7 +188,7 @@ export default function TicketsPage() {
 function Tag({ size }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m12 13.5 11-4L12 5.5l-11 4 11 4Z"/><path d="m12 22 11-4-11-4-11 4 11 4Z"/><path d="m1 9.5 11 4 11-4"/>
+      <path d="m12 13.5 11-4L12 5.5l-11 4 11 4Z" /><path d="m12 22 11-4-11-4-11 4 11 4Z" /><path d="m1 9.5 11 4 11-4" />
     </svg>
   );
 }
