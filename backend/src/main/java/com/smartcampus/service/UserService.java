@@ -4,23 +4,28 @@ import com.smartcampus.model.Role;
 import com.smartcampus.model.User;
 import com.smartcampus.model.UserStatus;
 import com.smartcampus.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Service to handle User management operations for Administrators.
- */
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
     private final NotificationService notificationService;
+
+    public UserService(UserRepository userRepository, 
+                       AuditService auditService, 
+                       PasswordEncoder passwordEncoder, 
+                       NotificationService notificationService) {
+        this.userRepository = userRepository;
+        this.auditService = auditService;
+        this.passwordEncoder = passwordEncoder;
+        this.notificationService = notificationService;
+    }
 
     public User createUser(User user, String adminId) {
         if (userRepository.findByCampusId(user.getCampusId()).isPresent()) {
@@ -128,5 +133,13 @@ public class UserService {
         }
         userRepository.deleteById(id);
         auditService.log(adminId, "USER_DELETE", "Deleted user: " + user.getCampusId());
+    }
+
+    public java.util.Map<String, Long> getUserStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("total", userRepository.count());
+        stats.put("active", userRepository.countByStatus(UserStatus.ACTIVE));
+        stats.put("locked", userRepository.countByStatus(UserStatus.LOCKED));
+        return stats;
     }
 }

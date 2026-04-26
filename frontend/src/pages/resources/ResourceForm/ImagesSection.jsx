@@ -70,9 +70,9 @@ export default function ImagesSection({ formData, setFormValue, errors = {} }) {
 
       <div className="image-grid-paf">
         {imageUrls.map((url, index) => (
-          <div key={index} className="image-slot-paf" style={{ borderColor: errors.images ? '#fca5a5' : '#6B7281' }}>
+          <div key={index} className="image-slot-paf" style={{ borderColor: errors.images ? '#fca5a5' : 'var(--form-border)' }}>
             {url ? (
-              <div className="image-preview-wrapper">
+              <div className="image-preview-wrapper" style={{ height: '100%' }}>
                 <img src={url} alt={`Preview ${index}`} className="image-preview-paf" />
                 <button
                   type="button"
@@ -93,7 +93,7 @@ export default function ImagesSection({ formData, setFormValue, errors = {} }) {
                 />
                 <div className="upload-placeholder-paf">
                   <ImagePlus size={24} color={errors.images ? "#f87171" : "#3b82f6"} />
-                  <span style={{ color: errors.images ? '#f87171' : '#64748b' }}>Browse</span>
+                  <span style={{ color: errors.images ? '#f87171' : '#64748b', fontWeight: '700' }}>Browse Image</span>
                 </div>
               </label>
             )}
@@ -112,16 +112,26 @@ export default function ImagesSection({ formData, setFormValue, errors = {} }) {
             }}
             title="Add another image slot"
           >
-            <ImagePlus size={20} />
-            <span>Add Slot</span>
+            <ImagePlus size={24} />
+            <span>Add Photo Slot</span>
           </button>
         )}
       </div>
 
       {imageUrls.length === 0 && (
-        <div className="empty-gallery-state" style={{ background: errors.images ? '#fff1f2' : '#1F1F1F' }}>
-          <ImageIcon size={40} color={errors.images ? "#fca5a5" : "#6B7281"} />
-          <p style={{ color: errors.images ? '#ef4444' : '#94a3b8' }}>No images selected yet</p>
+        <div className="empty-gallery-state" style={{ borderColor: errors.images ? '#fca5a5' : '#e2e8f0' }}>
+          <ImageIcon size={48} color={errors.images ? "#fca5a5" : "#cbd5e1"} />
+          <p style={{ color: errors.images ? '#ef4444' : '#64748b', fontSize: '1.1rem' }}>
+            No images selected yet
+          </p>
+          <button 
+            type="button" 
+            onClick={addImageSlot}
+            className="btn-secondary"
+            style={{ padding: '12px 24px', fontSize: '0.9rem' }}
+          >
+            Click to Start Uploading
+          </button>
         </div>
       )}
 

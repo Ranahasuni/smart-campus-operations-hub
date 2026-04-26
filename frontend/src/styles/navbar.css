@@ -88,19 +88,20 @@
 }
 
 .nav-link.active {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
-  font-weight: 700;
+  color: #fff !important;
+  background: var(--btn-pink-gradient) !important;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(192, 128, 128, 0.3);
 }
 
 .nav-link-admin {
   color: #fef3c7 !important;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .nav-link-admin:hover {
-  background: rgba(251, 191, 36, 0.12) !important;
-  color: #fcd34d !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
 }
 
 .nav-link-staff {
@@ -128,14 +129,14 @@
   text-decoration: none;
   padding: 8px 14px 8px 8px;
   border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s var(--ease-out);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .navbar-user:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(192, 128, 128, 0.15);
+  border-color: rgba(192, 128, 128, 0.3);
   transform: translateY(-2px);
 }
 
@@ -143,14 +144,14 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  background: var(--btn-pink-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 900;
   color: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(192, 128, 128, 0.3);
   flex-shrink: 0;
 }
 
@@ -186,7 +187,7 @@
   font-weight: 700;
   border: 1.5px solid rgba(255, 255, 255, 0.2);
   background: transparent;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s var(--ease-out);
   letter-spacing: 0.01em;
 }
 
@@ -198,51 +199,81 @@
 }
 
 .navbar-btn-primary {
-  padding: 10px 20px;
-  border-radius: 10px;
+  padding: 10px 24px;
+  border-radius: 12px;
   text-decoration: none;
   color: #fff;
   font-size: 0.85rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #D4A5A5, #B88888);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 16px rgba(192, 128, 128, 0.35);
-  letter-spacing: 0.01em;
+  font-weight: 800;
+  background: var(--btn-pink-gradient);
+  transition: all 0.3s var(--ease-out);
+  box-shadow: var(--btn-pink-shadow);
+  letter-spacing: 0.02em;
   border: none;
 }
 
 .navbar-btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(192, 128, 128, 0.5);
-  background: linear-gradient(135deg, #E5B5B5, #C89898);
+  box-shadow: 0 12px 28px rgba(192, 128, 128, 0.5);
+  filter: brightness(1.1);
 }
 
 .navbar-btn-primary:active {
   transform: translateY(-1px);
 }
 
-/* ── Logout ── */
-.navbar-logout {
-  padding: 10px 18px;
-  border-radius: 10px;
-  border: 1.5px solid rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.08);
-  color: #fca5a5;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  letter-spacing: 0.01em;
-}
-
-.navbar-logout:hover {
-  background: rgba(239, 68, 68, 0.18);
-  border-color: rgba(239, 68, 68, 0.6);
+/* ── Logout Premium ── */
+.navbar-logout-premium {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  cursor: pointer;
+  transition: all 0.4s var(--ease-out);
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  justify-content: center;
 }
 
-.navbar-logout:active {
-  transform: translateY(0);
+.navbar-logout-premium .logout-text {
+  max-width: 0;
+  opacity: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  transition: all 0.4s var(--ease-out);
+  letter-spacing: 0.02em;
+}
+
+.navbar-logout-premium:hover {
+  width: 130px;
+  gap: 10px;
+  padding: 10px 18px;
+  background: var(--btn-pink-gradient);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(192, 128, 128, 0.4);
+}
+
+.navbar-logout-premium:hover .logout-text {
+  max-width: 100px;
+  opacity: 1;
+}
+
+.navbar-logout-premium svg {
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.navbar-logout-premium:hover svg {
+  transform: translateX(-2px);
+}
+
+.navbar-logout-premium:active {
+  transform: scale(0.95);
 }

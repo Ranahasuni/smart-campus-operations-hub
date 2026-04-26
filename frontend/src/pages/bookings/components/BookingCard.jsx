@@ -44,6 +44,7 @@ const BookingCard = ({
   onUpdate, 
   onCancelAction, 
   onReportMissingQR, 
+  onConfirmArrival,
   onShowQR,
   isBookingActive 
 }) => {
@@ -83,7 +84,7 @@ const BookingCard = ({
         {(isBookingActive(booking) || booking.isCheckedIn) && (
           <ArrivalAction 
             booking={booking} 
-            onCheckIn={onReportMissingQR} 
+            onCheckIn={onConfirmArrival} 
           />
         )}
 

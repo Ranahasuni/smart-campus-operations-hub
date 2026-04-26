@@ -13,7 +13,8 @@ import {
   QrCode,
   UserCheck,
   ShieldAlert,
-  X
+  X,
+  Building2
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import '../styles/staff-portal.css';
@@ -117,25 +118,38 @@ export default function StaffPortal() {
   };
 
   const handleCheckIn = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!bookingCode) return;
     
     setVerifying(true);
     setVerificationResult(null);
     try {
-      const res = await authFetch(`${API}/api/check-in/verify-qr`, {
+      let endpoint = `${API}/api/check-in/verify-qr`;
+      let body = JSON.stringify({ bookingCode });
+
+      // SMART DETECTION: If scanned text is a URL, extract ID and call direct check-in
+      if (bookingCode.includes('/check-in/booking/')) {
+        const parts = bookingCode.split('/');
+        const bookingId = parts[parts.length - 1];
+        endpoint = `${API}/api/check-in/${bookingId}`;
+        body = null; // GET/POST with no body for direct endpoint
+      }
+
+      const res = await authFetch(endpoint, {
         method: 'POST',
-        body: JSON.stringify({ bookingCode })
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        body: body
       });
+      
       const data = await res.json();
       if (res.ok) {
         setVerificationResult({ 
           success: true, 
-          message: `✓ ${data.fullName} checked in for ${data.resourceNames.join(', ')}`,
+          message: `✓ ${data.fullName || 'Student'} checked in successfully.`,
           data 
         });
         setBookingCode('');
-        fetchDashboardData(); // Refresh list to show CHECKED_IN status
+        fetchDashboardData(); 
       } else {
         setVerificationResult({ success: false, error: data.error || data.message });
       }
@@ -201,13 +215,6 @@ export default function StaffPortal() {
           subtitle={user.role === 'LECTURER' ? "Booked slots" : "Assigned to you"}
         />
         <SummaryCard 
-          title="Urgent Alerts" 
-          value={stats.urgentTickets} 
-          icon={<AlertCircle size={24} />} 
-          color="#ef4444"
-          subtitle="Requires attention"
-        />
-        <SummaryCard 
           title="Daily Check-Ins" 
           value={checkInCount} 
           icon={<CheckCircle size={24} />} 
@@ -216,6 +223,47 @@ export default function StaffPortal() {
         />
       </section>
       </Reveal>
+      
+      {/* Managed Facilities Section */}
+      {user.role === 'STAFF' && assignedResources.length > 0 && (
+        <Reveal className="mt-12">
+          <section className="managed-facilities-section">
+            <div className="section-header">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <Building2 size={28} style={{ color: 'var(--accent-primary)' }} />
+                Facilities Under My Watch
+              </h2>
+              <span className="facility-count-badge">{assignedResources.length} Managed</span>
+            </div>
+            <div className="facilities-grid">
+              {assignedResources.map(resource => (
+                <div key={resource.id} className="facility-card-premium">
+                  <div className="facility-status-dot"></div>
+                  <div className="facility-info">
+                    <h3>{resource.name}</h3>
+                    <p>{resource.building} • Level {resource.floor}</p>
+                  </div>
+                  <div className="facility-actions">
+                    <button 
+                      className="report-btn-staff"
+                      onClick={() => navigate(`/tickets/new?resourceId=${resource.id}&resourceName=${encodeURIComponent(resource.name)}`)}
+                    >
+                      <AlertCircle size={14} />
+                      Report Issue
+                    </button>
+                    <button 
+                      className="view-btn-staff"
+                      onClick={() => navigate(`/resources/${resource.id}`)}
+                    >
+                      <Search size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </Reveal>
+      )}
 
       {/* NEW: Resource Check-In Section */}
       <section className="staff-checkin-section glass-card" style={{ padding: '32px', marginBottom: '40px', background: 'linear-gradient(135deg, rgba(250, 234, 234, 0.4), rgba(245, 230, 230, 0.4))' }}>
@@ -284,15 +332,19 @@ export default function StaffPortal() {
         </div>
 
         {verificationResult && (
-          <div className={`mt-6 p-4 rounded-xl flex items-center justify-between animate-fade-in ${verificationResult.success ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'}`}>
-            <div className="flex items-center gap-3">
-              {verificationResult.success ? <CheckCircle size={20} /> : <ShieldAlert size={20} />}
-              <div>
-                <div className="font-bold">{verificationResult.success ? 'Access Granted' : 'Access Denied'}</div>
-                <div className="text-sm opacity-80">{verificationResult.success ? (verificationResult.message || `Verified ${verificationResult.data.fullName}`) : verificationResult.error}</div>
+          <div className={`verification-alert-premium animate-zoom-in ${verificationResult.success ? 'success' : 'error'}`}>
+            <div className="alert-content-wrapper">
+              <div className="alert-icon-box">
+                {verificationResult.success ? <CheckCircle size={24} /> : <ShieldAlert size={24} />}
+              </div>
+              <div className="alert-text-group">
+                <h4 className="alert-title">{verificationResult.success ? 'Access Granted' : 'Access Denied'}</h4>
+                <p className="alert-message">{verificationResult.message}</p>
               </div>
             </div>
-            <button onClick={() => setVerificationResult(null)} className="text-xs uppercase tracking-widest font-black opacity-60 hover:opacity-100">Dismiss</button>
+            <button onClick={() => setVerificationResult(null)} className="alert-dismiss-btn">
+              Dismiss
+            </button>
           </div>
         )}
       </section>
@@ -479,28 +531,52 @@ export default function StaffPortal() {
 }
 
 function ScannerModal({ onClose, onScan }) {
-  useEffect(() => {
-    const html5QrCode = new Html5Qrcode("qr-reader");
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+  const scannerRef = useRef(null);
+  const [active, setActive] = useState(false);
 
-    html5QrCode.start(
-      { facingMode: "environment" }, 
-      config, 
-      (decodedText) => {
-        html5QrCode.stop().then(() => {
-          onScan(decodedText);
-        });
-      },
-      (errorMessage) => {
-        // Just keep scanning
+  useEffect(() => {
+    let html5QrCode;
+    
+    const startScanner = async () => {
+      try {
+        const cameras = await Html5Qrcode.getCameras();
+        if (!cameras || cameras.length === 0) {
+          console.error("No cameras found");
+          return;
+        }
+
+        // Prefer back camera
+        const backCamera = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0];
+        
+        html5QrCode = new Html5Qrcode("qr-reader");
+        scannerRef.current = html5QrCode;
+
+        const config = { 
+          fps: 25, 
+          aspectRatio: 1.0
+        };
+
+        await html5QrCode.start(
+          backCamera.id, 
+          config, 
+          (decodedText) => {
+            html5QrCode.stop().then(() => {
+              onScan(decodedText);
+            }).catch(() => onScan(decodedText));
+          }
+        );
+        setActive(true);
+      } catch (err) {
+        console.error("Scanner start failed:", err);
       }
-    ).catch((err) => {
-      console.error("Camera detection error:", err);
-    });
+    };
+
+    const timer = setTimeout(startScanner, 400);
 
     return () => {
-      if (html5QrCode.isScanning) {
-        html5QrCode.stop().catch(err => console.error("Stopping scan error", err));
+      clearTimeout(timer);
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(err => console.error("Cleanup stop error:", err));
       }
     };
   }, []);
@@ -512,15 +588,41 @@ function ScannerModal({ onClose, onScan }) {
       </button>
       
       <div className="scanner-viewport" onClick={e => e.stopPropagation()}>
-        {/* Real Camera Container */}
         <div id="qr-reader"></div>
         
-        {/* Hardware-style Overlay */}
-        <div className="scanner-frame-overlay">
-           <div className="scanning-window">
-              <div className="scanning-line"></div>
+        {/* Advanced Tactical HUD Overlay */}
+        <div className={`scanner-frame-overlay ${active ? 'active' : ''}`}>
+           <div className="hud-grid-lines"></div>
+           
+           <div className="scanning-window-advanced">
+              <div className="corner-bracket tl"></div>
+              <div className="corner-bracket tr"></div>
+              <div className="corner-bracket bl"></div>
+              <div className="corner-bracket br"></div>
+              
+              <div className="scanning-laser-line"></div>
+              <div className="scan-inner-glow"></div>
            </div>
-           <p className="scanning-text">Scanning for ID</p>
+
+           <div className="scanner-status-group">
+              <div className="status-badge-pulse">
+                <span className="pulse-dot"></span>
+                {active ? 'SYSTEM ACTIVE' : 'INITIALIZING'}
+              </div>
+              <p className="scanning-text-premium">{active ? 'ALIGN DIGITAL ID TO VERIFY' : 'CALIBRATING OPTICS...'}</p>
+           </div>
+
+           {/* Decorative HUD Data Elements */}
+           <div className="hud-data-left">
+              <span>SECURE_LINK: ESTABLISHED</span>
+              <span>LAT: 6.9271° N</span>
+              <span>LNG: 79.8612° E</span>
+           </div>
+           <div className="hud-data-right">
+              <span>AUTH_MODE: ENCRYPTED</span>
+              <span>VER: 4.2.0-STABLE</span>
+              <span>FPS: 25.0</span>
+           </div>
         </div>
       </div>
     </div>

@@ -6,8 +6,8 @@ import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.UserRepository;
 import com.smartcampus.config.CheckInProperties;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class CheckInService {
+
+    private static final Logger log = LoggerFactory.getLogger(CheckInService.class);
 
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
@@ -31,6 +31,22 @@ public class CheckInService {
     private final NotificationService notificationService;
     private final CheckInProperties checkInProperties;
     private final AuditService auditService;
+
+    public CheckInService(BookingRepository bookingRepository, 
+                          UserRepository userRepository, 
+                          ResourceRepository resourceRepository, 
+                          TicketService ticketService, 
+                          NotificationService notificationService, 
+                          CheckInProperties checkInProperties, 
+                          AuditService auditService) {
+        this.bookingRepository = bookingRepository;
+        this.userRepository = userRepository;
+        this.resourceRepository = resourceRepository;
+        this.ticketService = ticketService;
+        this.notificationService = notificationService;
+        this.checkInProperties = checkInProperties;
+        this.auditService = auditService;
+    }
 
     public ResponseEntity<?> checkInByBooking(String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)

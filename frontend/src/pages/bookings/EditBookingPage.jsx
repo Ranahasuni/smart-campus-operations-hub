@@ -215,15 +215,20 @@ export default function EditBookingPage() {
 
   if (loading) return <div className="loader-overlay"><Loader2 className="animate-spin" size={48} color="#C08080" /></div>;
 
-  if (success) return (
-    <div className="booking-form-container animate-fade-in">
-       <div className="glass-card success-card" style={{padding: '60px', textAlign: 'center'}}>
-          <CheckCircle2 size={64} color="#22c55e" style={{marginBottom: '24px'}} />
-          <h1 className="gradient-text">Changes Applied</h1>
-          <p>Your reservation update has been verified. Returning to dashboard...</p>
-       </div>
-    </div>
-  );
+  if (success) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, animation: 'fadeIn 0.3s ease-out' }}>
+        <div style={{ background: '#FFFFFF', padding: '48px 40px', borderRadius: '40px', width: '90%', maxWidth: '420px', textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+          <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
+            <CheckCircle2 size={40} strokeWidth={2.5} />
+          </div>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#111827', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>Changes Applied</h2>
+          <p style={{ color: '#6B7281', fontSize: '1.05rem', fontWeight: '500', marginBottom: '40px', lineHeight: '1.5' }}>Your reservation update has been verified. Returning to dashboard...</p>
+          <button onClick={() => navigate('/my-bookings')} style={{ background: 'none', border: 'none', color: '#111827', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', padding: '10px 20px' }}>Close</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="booking-form-container animate-fade-in">

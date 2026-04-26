@@ -1,6 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
+import { LogOut } from 'lucide-react';
 import '../styles/navbar.css';
 
 export default function Navbar() {
@@ -58,40 +59,40 @@ export default function Navbar() {
 
       {/* Role-Specific Navigation */}
       <div className="navbar-links">
-        <Link to="/" className="nav-link">Home</Link>
+        <NavLink to="/" className="nav-link">Home</NavLink>
 
         {/* Admin Navigation (Restricted) */}
         {user?.role === 'ADMIN' ? (
           <>
-            <Link to="/admin" className="nav-link nav-link-admin">Overview</Link>
-            <Link to="/admin/users" className="nav-link nav-link-admin">Accounts</Link>
-            <Link to="/admin/resources" className="nav-link nav-link-admin">Facilities</Link>
-            <Link to="/admin/bookings" className="nav-link nav-link-admin">Reservations</Link>
-            <Link to="/tickets" className="nav-link nav-link-admin">Tickets</Link>
-            <Link to="/admin/logs" className="nav-link nav-link-admin">System Logs</Link>
-            <Link to="/notifications" className="nav-link nav-link-admin">Alerts</Link>
+            <NavLink to="/admin" end className="nav-link nav-link-admin">Overview</NavLink>
+            <NavLink to="/admin/users" className="nav-link nav-link-admin">Accounts</NavLink>
+            <NavLink to="/admin/resources" className="nav-link nav-link-admin">Facilities</NavLink>
+            <NavLink to="/admin/bookings" className="nav-link nav-link-admin">Reservations</NavLink>
+            <NavLink to="/tickets" className="nav-link nav-link-admin">Tickets</NavLink>
+            <NavLink to="/admin/logs" className="nav-link nav-link-admin">System Logs</NavLink>
+            <NavLink to="/notifications" className="nav-link nav-link-admin">Alerts</NavLink>
           </>
         ) : (
           /* User / Lecturer / Staff Navigation */
           <>
-            <Link to="/resources" className="nav-link">Resources</Link>
+            <NavLink to="/resources" className="nav-link">Resources</NavLink>
             
             {['STUDENT', 'LECTURER'].includes(user?.role) && (
               <>
-                <Link to="/bookings" className="nav-link">Bookings</Link>
-                <Link to="/my-bookings" className="nav-link">Active Bookings</Link>
-                <Link to="/booking-history" className="nav-link">Booking History</Link>
+                <NavLink to="/bookings" className="nav-link">Bookings</NavLink>
+                <NavLink to="/my-bookings" className="nav-link">Active Bookings</NavLink>
+                <NavLink to="/booking-history" className="nav-link">Booking History</NavLink>
               </>
             )}
 
-            <Link to="/tickets" className="nav-link">Tickets</Link>
+            <NavLink to="/tickets" className="nav-link">Tickets</NavLink>
 
             {user?.role === 'TECHNICIAN' && (
-              <Link to="/technician" className="nav-link nav-link-staff">Maintenance Hub</Link>
+              <NavLink to="/technician" className="nav-link nav-link-staff">Maintenance Hub</NavLink>
             )}
 
             {['STAFF', 'LECTURER'].includes(user?.role) && (
-              <Link to="/staff" className="nav-link nav-link-staff">Staff Portal</Link>
+              <NavLink to="/staff" className="nav-link nav-link-staff">Staff Portal</NavLink>
             )}
           </>
         )}
@@ -113,10 +114,12 @@ export default function Navbar() {
             </Link>
             <button
               id="btn-navbar-logout"
-              className="navbar-logout"
+              className="navbar-logout-premium"
               onClick={handleLogout}
+              title="Sign Out"
             >
-              Sign Out
+              <LogOut size={18} />
+              <span className="logout-text">Sign Out</span>
             </button>
           </>
         ) : (

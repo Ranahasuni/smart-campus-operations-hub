@@ -6,7 +6,6 @@ import com.smartcampus.model.ResourceStatus;
 import com.smartcampus.model.ResourceType;
 import com.smartcampus.service.ResourceService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,16 +16,21 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/resources")
-@RequiredArgsConstructor
 public class ResourceController {
 
         private final ResourceService resourceService;
+
+        public ResourceController(ResourceService resourceService) {
+                this.resourceService = resourceService;
+        }
 
         // GET /api/resources
         // GET /api/resources?building=X&floor=1&type=LAB
         // GET /api/resources?name=lab&status=ACTIVE
         @GetMapping
         public ResponseEntity<List<ResourceResponseDTO>> getResources(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size,
                         @RequestParam(required = false) String building,
                         @RequestParam(required = false) Integer floor,
                         @RequestParam(required = false) ResourceType type,
@@ -37,7 +41,8 @@ public class ResourceController {
                 return ResponseEntity.ok(
                                 resourceService.getResources(
                                                 building, floor, type,
-                                                status, capacity, name));
+                                                status, capacity, name,
+                                                page, size));
         }
 
         // GET /api/resources/{id}

@@ -37,6 +37,8 @@ export default function BookingReview() {
   const [error, setError] = useState('');
   const [reason, setReason] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
     fetchReviewData();
@@ -70,6 +72,8 @@ export default function BookingReview() {
     }
     
     if (status === 'APPROVED' && conflicts.length > 0) {
+      // Simplified for flow, but ideally a custom modal for this too. 
+      // For now, keeping confirm but updating success feedback.
       if (!window.confirm('SECURITY WARNING: Active conflicts detected. Approving this will lead to scheduling overlap. Proceed?')) return;
     }
 
@@ -80,13 +84,14 @@ export default function BookingReview() {
         body: JSON.stringify({ status, reason })
       });
       if (res.ok) {
-        navigate('/admin/bookings');
+        setSuccessMsg(status === 'APPROVED' ? 'The reservation has been officially authorized.' : 'The reservation request has been declined.');
+        setShowSuccess(true);
       } else {
         const data = await res.json();
-        alert(data.message || 'Moderation rejected by system policy');
+        setError(data.message || 'Moderation failed');
       }
     } catch (err) {
-      alert('Network communication interrupted');
+      setError('Network communication interrupted');
     } finally {
       setProcessing(false);
     }
@@ -198,6 +203,19 @@ export default function BookingReview() {
           )}
         </main>
       </div>
+      {/* ═══ MINIMAL SUCCESS MODAL ═══ */}
+      {showSuccess && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ background: '#FFFFFF', padding: '48px 40px', borderRadius: '40px', width: '90%', maxWidth: '420px', textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
+              <CheckCircle size={40} strokeWidth={2.5} />
+            </div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#111827', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>Moderation Complete</h2>
+            <p style={{ color: '#6B7281', fontSize: '1.05rem', fontWeight: '500', marginBottom: '40px', lineHeight: '1.5' }}>{successMsg}</p>
+            <button onClick={() => navigate('/admin/bookings')} style={{ background: 'none', border: 'none', color: '#111827', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', padding: '10px 20px' }}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

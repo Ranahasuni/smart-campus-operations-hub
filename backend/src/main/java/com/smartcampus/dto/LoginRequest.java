@@ -1,11 +1,8 @@
 package com.smartcampus.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
 /** Request body for POST /auth/login */
-@Data
 public class LoginRequest {
 
     @NotBlank
@@ -13,4 +10,14 @@ public class LoginRequest {
 
     @NotBlank
     private String password;
+
+    public LoginRequest() {
+    }
+
+    // Getters and Setters
+    public String getCampusId() { return campusId; }
+    public void setCampusId(String campusId) { this.campusId = campusId; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

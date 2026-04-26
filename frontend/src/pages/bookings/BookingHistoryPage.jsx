@@ -19,6 +19,7 @@ function Reveal({ children, className = '' }) {
 }
 
 import { useAuth } from '../../context/AuthContext';
+import { isPastBooking } from '../../utils/dateUtils';
 import { 
   Calendar, Clock, Users, History,
   Search, Loader2, CheckCircle2, XCircle, Clock4, Filter,
@@ -61,7 +62,9 @@ export default function BookingHistoryPage() {
         const historyData = data.filter(b => 
           b.status === 'REJECTED' || 
           b.status === 'CANCELLED' || 
-          (b.status === 'APPROVED' && b.date < today)
+          b.status === 'CHECKED_OUT' || 
+          b.status === 'NO_SHOW' || 
+          isPastBooking(b.date, b.endTime)
         );
         
         setBookings(historyData.sort((a, b) => new Date(b.date) - new Date(a.date)));

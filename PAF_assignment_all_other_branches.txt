@@ -1,0 +1,465 @@
+You’re thinking exactly right here 👍 — this is a **good design decision question**
+
+---
+
+# ✅ PART 1 — ROLE.JAVA (YOUR MAIN QUESTION)
+
+👉 YES, you are **100% CORRECT**
+
+```text
+✔ DO NOT create another Role.java ❌
+✔ MODIFY existing Role.java ✅
+```
+
+---
+
+## 🔧 WHAT TO DO
+
+Your current:
+
+```java
+public enum Role {
+    ADMIN,
+    LECTURER,
+    STUDENT,
+    STAFF,
+    USER
+}
+```
+
+---
+
+## ✅ MODIFY TO:
+
+```java
+public enum Role {
+    ADMIN,
+    LECTURER,
+    STUDENT,
+    STAFF,
+    TECHNICIAN   // 🔥 ADD THIS
+}
+```
+
+---
+
+## 🧠 WHY THIS IS CORRECT
+
+👉 Roles are **shared across whole system**
+
+* Booking → uses User
+* Tickets → needs Technician
+* Auth → uses Role
+
+👉 So ONE enum = best practice 💯
+
+---
+
+## ⚠️ IMPORTANT (DON’T MISS)
+
+After adding:
+
+### 👉 1. Restart backend
+
+(Spring Boot reload)
+
+### 👉 2. Existing users?
+
+Your MongoDB already has:
+
+```json
+"role": "STUDENT"
+```
+
+👉 That’s fine
+👉 New users can now have `"TECHNICIAN"`
+
+---
+
+# 💥 PART 2 — DO YOU REALLY NEED TECHNICIAN?
+
+👉 YES — for your module 🔥
+
+Because:
+
+```text
+Ticket → assignTechnician()
+```
+
+So you need:
+
+```java
+private String technicianId;
+```
+
+---
+
+# 🧠 PART 3 — ALL MODELS YOUR PROJECT NEEDS
+
+I’ll give you **FINAL CLEAN LIST (based on your system)**
+
+---
+
+# 🟢 MEMBER 1 — RESOURCE
+
+```text
+Resource
+```
+
+---
+
+# 🟡 MEMBER 2 — BOOKING
+
+```text
+Booking
+BookingSuggestion (optional)
+```
+
+---
+
+# 🔴 YOU — TICKETS
+
+```text
+Ticket        ✅ (create)
+Comment       ✅ (create)
+TicketImage   (optional)
+```
+
+---
+
+# 🔵 MEMBER 4 — AUTH + NOTIFICATION
+
+```text
+User         ✅ already
+Role         ✅ modified
+Notification ✅ already
+```
+
+---
+
+# 💥 FINAL MASTER MODEL LIST
+
+```text
+User
+Role
+Resource
+Booking
+Ticket
+Comment
+Notification
+```
+
+---
+
+# 🔥 OPTIONAL (HIGH MARKS BOOST)
+
+```text
+TicketImage
+BookingSuggestion
+```
+
+---
+
+# 🧠 RELATIONSHIP (VERY IMPORTANT FOR YOU)
+
+```text
+User
+ ├── creates → Booking
+ ├── creates → Ticket
+ └── assigned as → Technician
+
+Ticket
+ ├── belongs to → Resource
+ ├── created by → User
+ ├── assigned to → Technician
+ └── has → Comments
+```
+
+---
+
+# 🎯 FINAL ANSWER
+
+### ✔ Role.java
+
+```text
+✔ modify existing file
+✔ add TECHNICIAN
+✔ DO NOT create new file
+```
+
+### ✔ Models
+
+```text
+✔ Only create Ticket + Comment (+ optional Image)
+✔ Others already exist in project
+```
+
+---
+
+
+
+2) Each Model include things 
+Perfect timing 🔥 — this is exactly what you need before coding
+I’ll give you **ALL MODELS + EXACT FIELDS (final, clean, MongoDB-ready)**
+
+👉 This matches your project + your modules + your viva 💯
+
+---
+
+# 🧠 FORMAT
+
+For each model:
+
+```text
+Model Name
+→ Fields (what to include)
+→ Why needed (simple)
+```
+
+---
+
+# 🔵 1. USER (already exists)
+
+### ✔ Fields
+
+```text
+id
+name
+email
+password
+role (ADMIN / STUDENT / LECTURER / STAFF / TECHNICIAN)
+googleId (optional)
+createdAt
+```
+
+---
+
+### 🧠 Why
+
+✔ Authentication
+✔ Booking owner
+✔ Ticket creator
+✔ Technician assignment
+
+---
+
+# 🟢 2. RESOURCE (Member 1)
+
+### ✔ Fields
+
+```text
+id
+name
+type (LAB / ROOM / HALL)
+capacity
+location
+status (ACTIVE / MAINTENANCE / OUT_OF_SERVICE)
+equipment (List<String>)
+createdAt
+```
+
+---
+
+### 🧠 Why
+
+✔ Used for booking
+✔ Used in tickets
+
+---
+
+# 🟡 3. BOOKING (YOUR FRIEND)
+
+### ✔ Fields
+
+```text
+id
+userId
+resourceId
+
+date
+startTime
+endTime
+
+status (PENDING / APPROVED / REJECTED / CANCELLED)
+
+purpose
+createdAt
+```
+
+---
+
+### 🧠 Why
+
+✔ Reserve resources
+✔ Connect with tickets (blocking logic)
+
+---
+
+# 🔴 4. TICKET (YOUR MAIN 🔥)
+
+### ✔ Fields (VERY IMPORTANT)
+
+```text
+id
+userId
+resourceId
+
+issueType (ELECTRICAL / NETWORK / HARDWARE / OTHER)
+description
+
+status (OPEN / IN_PROGRESS / RESOLVED)
+
+priority (LOW / MEDIUM / HIGH)
+
+technicianId   🔥 (IMPORTANT)
+
+createdAt
+resolvedAt     🔥 (for SLA)
+```
+
+---
+
+### 🧠 Why
+
+✔ Report issues
+✔ Assign technician
+✔ Track status
+✔ SLA calculation
+
+---
+
+# 🔴 5. COMMENT (YOUR MODULE)
+
+### ✔ Fields
+
+```text
+id
+ticketId
+userId
+message
+createdAt
+```
+
+---
+
+### 🧠 Why
+
+✔ Discussion under ticket
+✔ Communication
+
+---
+
+# 🔴 6. TICKET IMAGE (OPTIONAL 🔥)
+
+### ✔ Fields
+
+```text
+id
+ticketId
+imageUrl
+uploadedAt
+```
+
+---
+
+### 🧠 Why
+
+✔ Attach proof images
+✔ High marks feature
+
+---
+
+# 🟣 7. NOTIFICATION (already exists)
+
+### ✔ Fields
+
+```text
+id
+userId
+
+message
+type (BOOKING / TICKET / SYSTEM)
+
+read (true / false)
+
+createdAt
+```
+
+---
+
+### 🧠 Why
+
+✔ Inform users
+✔ Ticket updates
+✔ Booking updates
+
+---
+
+# 🟡 8. BOOKING SUGGESTION (OPTIONAL)
+
+### ✔ Fields
+
+```text
+id
+resourceId
+recommendedTime
+reason
+```
+
+---
+
+### 🧠 Why
+
+✔ Smart feature
+✔ AI-like suggestion
+
+---
+
+# 💥 FINAL MASTER LIST
+
+## ✅ CORE MODELS
+
+```text
+User
+Role
+Resource
+Booking
+Ticket
+Comment
+Notification
+```
+
+---
+
+## 🔥 OPTIONAL (BOOST MARKS)
+
+```text
+TicketImage
+BookingSuggestion
+```
+
+---
+
+# 🧠 RELATIONSHIP SUMMARY (IMPORTANT)
+
+```text
+User
+ ├── creates → Booking
+ ├── creates → Ticket
+ └── assigned as → Technician
+
+Resource
+ ├── used in → Booking
+ └── linked in → Ticket
+
+Ticket
+ ├── belongs to → Resource
+ ├── created by → User
+ ├── assigned to → Technician
+ ├── has → Comments
+ └── triggers → Notification
+```
+
+---
+
+

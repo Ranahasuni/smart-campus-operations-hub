@@ -6,16 +6,21 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class NotificationCleanupService {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationCleanupService.class);
+
     private final MongoTemplate mongoTemplate;
+
+    public NotificationCleanupService(MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
+    }
 
     /**
      * Runs every day at 3:00 AM to prune deep history.

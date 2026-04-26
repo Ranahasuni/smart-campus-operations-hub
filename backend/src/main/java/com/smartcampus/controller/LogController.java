@@ -2,7 +2,6 @@ package com.smartcampus.controller;
 
 import com.smartcampus.model.AuditLog;
 import com.smartcampus.service.AuditService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,24 +13,27 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/logs")
-@RequiredArgsConstructor
 public class LogController {
 
     private final AuditService auditService;
 
+    public LogController(AuditService auditService) {
+        this.auditService = auditService;
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
-    public ResponseEntity<List<AuditLog>> getAllLogs(@RequestParam(required = false) Integer limit) {
+    public ResponseEntity<List<AuditLog>> getAllLogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(required = false) Integer limit) {
         try {
             List<AuditLog> logs;
             if (limit != null) {
-                System.out.println("DEBUG: LogController.getAllLogs() called with limit=" + limit);
                 logs = auditService.getRecentLogs(limit);
             } else {
-                System.out.println("DEBUG: LogController.getAllLogs() called without limit");
-                logs = auditService.getAllLogs();
+                logs = auditService.getAllLogs(page, size);
             }
-            System.out.println("DEBUG: Returning " + logs.size() + " audit logs");
             return ResponseEntity.ok(logs);
         } catch (Exception e) {
             System.err.println("ERROR in LogController.getAllLogs(): " + e.getMessage());

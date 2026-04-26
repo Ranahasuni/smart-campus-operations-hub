@@ -8,8 +8,8 @@ import com.smartcampus.model.Resource;
 import com.smartcampus.model.ResourceStatus;
 import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,7 +22,6 @@ import java.util.Locale;
 import java.util.Optional;
 import com.smartcampus.model.DayAvailability;
 
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,15 +29,27 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class BookingService {
+
+    private static final Logger log = LoggerFactory.getLogger(BookingService.class);
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
     private final NotificationService notificationService;
     private final AuditService auditService;
     private final com.smartcampus.repository.UserRepository userRepository;
+
+    public BookingService(BookingRepository bookingRepository, 
+                          ResourceRepository resourceRepository, 
+                          NotificationService notificationService, 
+                          AuditService auditService, 
+                          com.smartcampus.repository.UserRepository userRepository) {
+        this.bookingRepository = bookingRepository;
+        this.resourceRepository = resourceRepository;
+        this.notificationService = notificationService;
+        this.auditService = auditService;
+        this.userRepository = userRepository;
+    }
 
     // ── Member Operations (DTO Based) ────────────────────────────────────────
 
@@ -362,14 +373,13 @@ public class BookingService {
 
     // ── Admin Operations (Core Models) ────────────────────────────────────────
 
-    public List<BookingResponseDTO> getAllBookings() {
-        // 🚀 HIGH PERFORMANCE: Only fetch the top 200 most recent records
-        // Loading thousands of records at once is what was causing the 6s+ delay.
-        org.springframework.data.domain.Pageable limit = org.springframework.data.domain.PageRequest.of(
-            0, 200, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+    public List<BookingResponseDTO> getAllBookings(int page, int size) {
+        // 🚀 HIGH PERFORMANCE: Use proper pagination instead of loading everything
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
         );
         
-        List<Booking> bookings = bookingRepository.findAll(limit).getContent();
+        List<Booking> bookings = bookingRepository.findAll(pageable).getContent();
         if (bookings.isEmpty()) return List.of();
 
         // 1. Bulk Fetch Resources

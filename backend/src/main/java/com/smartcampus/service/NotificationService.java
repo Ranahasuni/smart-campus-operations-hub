@@ -8,7 +8,6 @@ import com.smartcampus.model.NotificationType;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.NotificationRepository;
 import com.smartcampus.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -18,20 +17,23 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Core notification logic (MongoDB implementation).
- *
- * Other services (BookingService, TicketService) call
- * notificationService.send(...) to trigger notifications.
- */
 @Service
-@RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository         userRepository;
     private final MongoTemplate          mongoTemplate;
     private final NotificationPreferenceService preferenceService;
+
+    public NotificationService(NotificationRepository notificationRepository, 
+                               UserRepository userRepository, 
+                               MongoTemplate mongoTemplate, 
+                               NotificationPreferenceService preferenceService) {
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+        this.mongoTemplate = mongoTemplate;
+        this.preferenceService = preferenceService;
+    }
 
     // ── Public API used by other services ────────────────────────────────────
 

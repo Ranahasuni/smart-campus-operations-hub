@@ -32,3 +32,28 @@ export const getDayShortName = (dateString) => {
     .toLowerCase()
     .substring(0, 3);
 };
+/**
+ * Determines if a booking slot has already passed based on date and time.
+ * date: YYYY-MM-DD
+ * endTime: HH:mm or HH:mm:ss
+ */
+export const isPastBooking = (date, endTime) => {
+  if (!date || !endTime) return false;
+  
+  const today = getLocalDateString();
+  if (date < today) return true;
+  if (date > today) return false;
+  
+  // Same day: compare time
+  const now = new Date();
+  const nowTime = now.getHours() * 60 + now.getMinutes();
+  
+  try {
+    const [endH, endM] = endTime.split(':').map(Number);
+    const endMinutes = endH * 60 + endM;
+    // Buffer: give 5 minutes grace period before moving to history
+    return nowTime > (endMinutes + 5);
+  } catch (e) {
+    return false;
+  }
+};

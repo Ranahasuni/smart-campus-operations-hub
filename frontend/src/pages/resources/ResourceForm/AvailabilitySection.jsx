@@ -70,11 +70,11 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
         <h3 style={{ color: errors.availability ? '#ef4444' : '#334155' }}>Operational Availability</h3>
         <span style={{
           fontSize: '0.85rem',
-          color: errors.availability ? '#ef4444' : '#64748b',
-          background: errors.availability ? '#fff1f2' : '#1F1F1F',
+          color: errors.availability ? '#ef4444' : '#3b82f6',
+          background: errors.availability ? '#fff1f2' : '#eff6ff',
           padding: '4px 12px',
           borderRadius: '20px',
-          fontWeight: '500'
+          fontWeight: '700'
         }}>
           Multiple slots supported per day
         </span>
@@ -90,14 +90,14 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
               flexDirection: 'column',
               gap: '12px',
               padding: '20px',
-              background: item.isAvailable ? '#1F1F1F' : '#fff',
-              border: item.isAvailable ? '1px solid #C08080' : (errors.availability ? '1px solid #fca5a5' : '1px dashed #6B7281'),
+              background: item.isAvailable ? '#fdf2f2' : '#fff',
+              border: item.isAvailable ? '1px solid #C08080' : (errors.availability ? '1px solid #fca5a5' : '1px dashed #e2e8f0'),
               borderRadius: '20px',
               transition: 'all 0.2s ease'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div style={{ width: '60px', fontWeight: '800', color: item.isAvailable ? '#FFFFFF' : (errors.availability ? '#fca5a5' : '#94a3b8'), fontSize: '1.1rem' }}>
+              <div style={{ width: '60px', fontWeight: '800', color: item.isAvailable ? '#C08080' : (errors.availability ? '#fca5a5' : '#94a3b8'), fontSize: '1.1rem' }}>
                 {item.day}
               </div>
 
@@ -115,7 +115,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                 }}>
                   <span style={{
                     position: 'absolute', content: '""', height: '18px', width: '18px', left: item.isAvailable ? '26px' : '4px', bottom: '3px',
-                    backgroundcolor: '#1F1F1F', transition: '.4s', borderRadius: '50%'
+                    backgroundColor: '#FFFFFF', transition: '.4s', borderRadius: '50%'
                   }}></span>
                 </span>
               </label>
@@ -128,7 +128,8 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                 <button
                   type="button"
                   onClick={() => handleAddTimeSlot(dayIndex)}
-                  style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', border: '1px solid #C08080', background: 'transparent', color: '#C08080', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
+                  className="btn-add-time-slot"
+                  style={{ marginLeft: 'auto' }}
                 >
                   <Plus size={14} /> Add Slot
                 </button>
@@ -155,7 +156,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                           type="time"
                           value={slot.startTime}
                           onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'startTime', e.target.value)}
-                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#1F1F1F', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#FFFFFF' }}
+                          style={{ border: '1.5px solid #e2e8f0', background: isTimeInvalid ? '#fff1f2' : '#ffffff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#1e293b' }}
                         />
                       </div>
                       <span style={{ color: isTimeInvalid ? '#ef4444' : '#94a3b8', fontWeight: '900' }}>→</span>
@@ -165,7 +166,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                           type="time"
                           value={slot.endTime}
                           onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'endTime', e.target.value)}
-                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#1F1F1F', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#FFFFFF' }}
+                          style={{ border: '1.5px solid #e2e8f0', background: isTimeInvalid ? '#fff1f2' : '#ffffff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#1e293b' }}
                         />
                       </div>
                       {item.slots.length > 1 && (

@@ -12,7 +12,7 @@ import {
   Loader2, ArrowRight
 } from 'lucide-react';
 import '../../styles/my-bookings.css';
-import { getLocalDateString } from '../../utils/dateUtils';
+import { getLocalDateString, isPastBooking } from '../../utils/dateUtils';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -126,7 +126,7 @@ export default function MyBookingsPage() {
       const [endH, endM] = booking.endTime.split(':').map(Number);
       const startTime = startH * 60 + startM;
       const endTime = endH * 60 + endM;
-      return nowTime >= (startTime - 10) && nowTime <= endTime;
+      return nowTime >= (startTime - 15) && nowTime <= endTime;
     } catch (e) {
       return false;
     }
@@ -135,10 +135,12 @@ export default function MyBookingsPage() {
   const filteredBookings = bookings.filter(b => {
     const today = getLocalDateString();
     
-    // Statuses that are considered "History" (Not counting towards active quota)
-    const isHistory = b.status === 'REJECTED' || b.status === 'CANCELLED' || 
-                      b.status === 'CHECKED_OUT' || b.status === 'NO_SHOW' || 
-                     (b.status === 'APPROVED' && b.date < today);
+    // Statuses that are considered "History"
+    const isHistory = b.status === 'REJECTED' || 
+                      b.status === 'CANCELLED' || 
+                      b.status === 'CHECKED_OUT' || 
+                      b.status === 'NO_SHOW' || 
+                      isPastBooking(b.date, b.endTime);
     
     if (isHistory) return false;
 

@@ -31,6 +31,8 @@ export default function ManageUsers() {
   
   // Modal State
   const [showModal, setShowModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     campusId: '',
@@ -70,6 +72,8 @@ export default function ManageUsers() {
       if (res.ok) {
         setUsers([...users, data]);
         setShowModal(false);
+        setSuccessMsg(`Account for ${formData.fullName} has been successfully provisioned.`);
+        setShowSuccess(true);
         setFormData({ fullName: '', campusId: '', campusEmail: '', password: '', role: 'STUDENT' });
       } else {
         setError(data.message || 'Creation failed');
@@ -302,6 +306,19 @@ export default function ManageUsers() {
               </div>
             </form>
           </Reveal>
+        </div>
+      )}
+      {/* ═══ MINIMAL SUCCESS MODAL ═══ */}
+      {showSuccess && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ background: '#FFFFFF', padding: '48px 40px', borderRadius: '40px', width: '90%', maxWidth: '420px', textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
+              <Shield size={40} strokeWidth={2.5} />
+            </div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#111827', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>Account Authorized</h2>
+            <p style={{ color: '#6B7281', fontSize: '1.05rem', fontWeight: '500', marginBottom: '40px', lineHeight: '1.5' }}>{successMsg}</p>
+            <button onClick={() => setShowSuccess(false)} style={{ background: 'none', border: 'none', color: '#111827', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', padding: '10px 20px' }}>Close</button>
+          </div>
         </div>
       )}
     </div>
