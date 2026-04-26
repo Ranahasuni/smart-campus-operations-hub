@@ -373,14 +373,13 @@ public class BookingService {
 
     // ── Admin Operations (Core Models) ────────────────────────────────────────
 
-    public List<BookingResponseDTO> getAllBookings() {
-        // 🚀 HIGH PERFORMANCE: Only fetch the top 200 most recent records
-        // Loading thousands of records at once is what was causing the 6s+ delay.
-        org.springframework.data.domain.Pageable limit = org.springframework.data.domain.PageRequest.of(
-            0, 200, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+    public List<BookingResponseDTO> getAllBookings(int page, int size) {
+        // 🚀 HIGH PERFORMANCE: Use proper pagination instead of loading everything
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
         );
         
-        List<Booking> bookings = bookingRepository.findAll(limit).getContent();
+        List<Booking> bookings = bookingRepository.findAll(pageable).getContent();
         if (bookings.isEmpty()) return List.of();
 
         // 1. Bulk Fetch Resources

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -31,6 +32,7 @@ import {
  * Features: Multi-category Feed, Preference Settings, Enforced Security Alerts.
  */
 export default function NotificationPage() {
+  const navigate = useNavigate();
   const { user, authFetch, API } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,39 +155,80 @@ export default function NotificationPage() {
     }
   };
 
+  const handleNotificationClick = async (notif) => {
+    // 1. Mark as read if not already
+    if (!notif.read) {
+      markRead(notif.id);
+    }
+
+    // 2. Navigation logic based on type and referenceId
+    if (!notif.referenceId) return;
+
+    if (notif.type?.includes('BOOKING')) {
+      try {
+        // Fetch booking to see if it's history or active
+        const res = await authFetch(`${API}/api/bookings/${notif.referenceId}`);
+        if (!res.ok) {
+          navigate('/my-bookings');
+          return;
+        }
+        const b = await res.json();
+        
+        // Smart Redirect Logic
+        const today = new Date().toISOString().split('T')[0];
+        const isHistory = b.status === 'REJECTED' || b.status === 'CANCELLED' || 
+                          b.status === 'CHECKED_OUT' || b.status === 'NO_SHOW' || 
+                         (b.status === 'APPROVED' && b.date < today);
+
+        if (isHistory) {
+          navigate('/booking-history');
+        } else {
+          navigate('/my-bookings');
+        }
+      } catch (err) {
+        navigate('/my-bookings');
+      }
+    } else if (notif.type?.includes('TICKET')) {
+      // Direct user to specific ticket details
+      navigate(`/tickets/${notif.referenceId}`);
+    } else if (notif.type?.includes('SECURITY')) {
+      navigate('/profile');
+    }
+  };
+
   const getPriorityStyle = (p) => {
     switch (p) {
-      case 'HIGH':   return { color: '#ef4444', label: 'HIGH',   icon: <TriangleAlert size={12} />, bg: 'rgba(239, 68, 68, 0.1)' };
-      case 'MEDIUM': return { color: '#fbbf24', label: 'MEDIUM', icon: <EllipsisVertical size={12} />,  bg: 'rgba(251, 191, 36, 0.1)' };
-      case 'LOW':    return { color: '#3b82f6', label: 'LOW',    icon: <Info size={12} />,          bg: 'rgba(59, 130, 246, 0.1)' };
-      default:       return { color: '#6B7281', label: 'NORMAL', icon: <Bell size={12} />,          bg: 'rgba(148, 163, 184, 0.1)' };
+      case 'HIGH':   return { color: '#ef4444', label: 'HIGH',   icon: <TriangleAlert size={12} style={{ display: 'block' }} />, bg: 'rgba(239, 68, 68, 0.1)' };
+      case 'MEDIUM': return { color: '#fbbf24', label: 'MEDIUM', icon: <EllipsisVertical size={12} style={{ display: 'block' }} />,  bg: 'rgba(251, 191, 36, 0.1)' };
+      case 'LOW':    return { color: '#3b82f6', label: 'LOW',    icon: <Info size={12} style={{ display: 'block' }} />,          bg: 'rgba(59, 130, 246, 0.1)' };
+      default:       return { color: '#6B7281', label: 'NORMAL', icon: <Bell size={12} style={{ display: 'block' }} />,          bg: 'rgba(148, 163, 184, 0.1)' };
     }
   };
 
   const getTypeIcon = (type) => {
-    if (type?.includes('BOOKING')) return <Calendar size={20} color="#C08080" />;
-    if (type?.includes('TICKET'))  return <Ticket size={20} color="#fb7185" />;
-    if (type?.includes('SYSTEM') || type?.includes('SECURITY')) return <ShieldAlert size={20} color="#fcd34d" />;
-    return <Bell size={20} color="#94a3b8" />;
+    if (type?.includes('BOOKING')) return <Calendar size={18} />;
+    if (type?.includes('TICKET'))  return <Ticket size={18} />;
+    if (type?.includes('SYSTEM') || type?.includes('SECURITY')) return <ShieldAlert size={18} />;
+    return <Bell size={18} />;
   };
 
   const CATEGORY_MAP = {
-    SYSTEM: { label: 'System Updates', desc: 'Platform announcements, new features, and campus-wide notices.', icon: <Activity size={20} /> },
-    BOOKINGS: { label: 'Reservations', desc: 'Alerts for room bookings, lab check-ins, and schedule changes.', icon: <Calendar size={20} /> },
-    MAINTENANCE: { label: 'Service Support', desc: 'Status updates on your technical tickets and maintenance tasks.', icon: <Wrench size={20} /> },
-    SECURITY: { label: 'Critical Security', desc: 'Identity verification, login alerts, and account safety warnings.', icon: <ShieldCheck size={20} />, locked: true }
+    SYSTEM: { label: 'System Updates', desc: 'Critical platform announcements and campus-wide technical notices.', icon: <Activity size={18} /> },
+    BOOKINGS: { label: 'Reservations', desc: 'Alerts for room bookings, lab check-ins, and schedule modifications.', icon: <Calendar size={18} /> },
+    MAINTENANCE: { label: 'Service Support', desc: 'Operational status on technical tickets and infrastructure tasks.', icon: <Wrench size={18} /> },
+    SECURITY: { label: 'Account Security', desc: 'Identity verification, login alerts, and multi-factor safety warnings.', icon: <ShieldCheck size={18} />, locked: true }
   };
 
   return (
-    <div style={{ padding: '60px 24px', maxWidth: '900px', margin: '0 auto', color: '#1F1F1F' }}>
+    <div style={{ padding: '80px 24px', maxWidth: '1000px', margin: '0 auto', color: '#0f172a' }}>
       
       {/* Header */}
-      <header style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-            Alert <span className="gradient-text">Hub</span>
+          <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '8px', letterSpacing: '-2px', color: '#1e293b' }}>
+            Alert <span style={{ color: '#8C0000' }}>Hub</span>
           </h1>
-          <p style={{ color: '#6B7281', fontSize: '1.05rem' }}>Personalize and manage your campus activity stream</p>
+          <p style={{ color: '#64748b', fontSize: '1.1rem', fontWeight: '500' }}>Manage your university activity stream and security notifications.</p>
         </div>
         
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -223,21 +266,22 @@ export default function NotificationPage() {
         {/* FEED VIEW */}
         {!loading && view === 'FEED' && (
           <div className="fade-in">
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                 <div style={{ 
-                  display: 'flex', gap: '8px', padding: '6px', 
-                  background: 'rgba(192, 128, 128, 0.06)', borderRadius: '14px', width: 'fit-content'
+                  display: 'flex', gap: '4px', padding: '4px', 
+                  background: '#f1f5f9', borderRadius: '10px', width: 'fit-content',
+                  border: '1px solid #e2e8f0'
                 }}>
                   {['ALL', 'UNREAD', 'READ', 'HIGH'].map(t => (
                     <button 
                       key={t}
                       onClick={() => setFilter(t)}
                       style={{
-                        padding: '10px 24px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '600',
-                        border: 'none', cursor: 'pointer', transition: 'all 0.3s ease',
-                        background: filter === t ? '#C08080' : 'transparent',
-                        color: filter === t ? '#fff' : '#64748b',
-                        boxShadow: filter === t ? '0 4px 12px rgba(192, 128, 128, 0.4)' : 'none'
+                        padding: '8px 20px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '700',
+                        border: 'none', cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        background: filter === t ? '#fff' : 'transparent',
+                        color: filter === t ? '#0f172a' : '#64748b',
+                        boxShadow: filter === t ? '0 4px 10px rgba(0,0,0,0.05)' : 'none'
                       }}
                     >
                       {t.charAt(0) + t.slice(1).toLowerCase()}
@@ -247,13 +291,13 @@ export default function NotificationPage() {
                 
                 <button 
                   onClick={markAllRead}
-                  className="glass-btn"
                   style={{ 
                     display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', 
-                    fontSize: '0.875rem', fontWeight: '600', color: '#C08080', borderRadius: '12px'
+                    fontSize: '0.85rem', fontWeight: '700', color: '#8C0000', borderRadius: '10px',
+                    background: 'transparent', border: '1px solid #e2e8f0', cursor: 'pointer'
                   }}
                 >
-                  <CheckCheck size={18} /> Mark All as Read
+                  <CheckCheck size={18} /> Mark All Read
                 </button>
              </div>
 
@@ -275,12 +319,12 @@ export default function NotificationPage() {
              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {filteredNotifications.length === 0 ? (
                   <div style={{ 
-                    textAlign: 'center', padding: '80px 20px', background: 'rgba(192, 128, 128, 0.06)', 
-                    borderRadius: '24px', border: '1px dashed rgba(255,255,255,0.1)' 
+                    textAlign: 'center', padding: '100px 20px', background: '#f8fafc', 
+                    borderRadius: '20px', border: '1px dashed #e2e8f0' 
                   }}>
-                    <MailOpen size={56} style={{ margin: '0 auto 1.5rem', opacity: 0.2, color: '#6B7281' }} />
-                    <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>Inbox is clean 🔕</h3>
-                    <p style={{ color: '#6B7281' }}>We'll alert you based on your tailored preferences.</p>
+                    <MailOpen size={48} style={{ margin: '0 auto 1.5rem', color: '#cbd5e1' }} />
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '8px', color: '#334155' }}>No alerts found</h3>
+                    <p style={{ color: '#64748b', fontWeight: '500' }}>Your activity stream is currently up to date.</p>
                   </div>
                 ) : (
                   filteredNotifications.map(n => {
@@ -289,47 +333,54 @@ export default function NotificationPage() {
                       <div 
                         key={n.id} 
                         className={`notif-card ${!n.read ? 'unread' : 'read'}`}
-                        onClick={() => !n.read && markRead(n.id)}
+                        onClick={() => handleNotificationClick(n)}
                         style={{
-                          display: 'flex', gap: '20px', padding: '22px', borderRadius: '20px',
-                          background: !n.read ? 'rgba(192, 128, 128, 0.08)' : 'rgba(250, 234, 234, 0.4)',
-                          border: `1px solid ${!n.read ? 'rgba(192, 128, 128, 0.3)' : 'rgba(192, 128, 128, 0.06)'}`,
-                          position: 'relative', transition: 'all 0.2s ease',
-                          opacity: n.read ? 0.75 : 1,
-                          cursor: !n.read ? 'pointer' : 'default'
+                          display: 'flex', gap: '24px', padding: '24px', borderRadius: '16px',
+                          background: '#fff',
+                          border: '1px solid #e2e8f0',
+                          position: 'relative', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          opacity: n.read ? 0.6 : 1,
+                          boxShadow: !n.read ? '0 10px 30px rgba(99, 102, 241, 0.08)' : 'none',
+                          cursor: 'pointer'
                         }}
                       >
                         {!n.read && <div className="unread-dot" />}
 
-                        <div className="icon-badge">
+                        <div style={{
+                          width: '52px', height: '52px', borderRadius: '12px', background: '#f1f5f9',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b',
+                          border: '1px solid #e2e8f0', flexShrink: 0
+                        }}>
                           {getTypeIcon(n.type)}
                         </div>
 
                         <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#6B7281', letterSpacing: '0.5px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
                               {n.type?.replace('_', ' ')}
                             </span>
                             <div style={{ 
-                              display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 10px', 
-                              borderRadius: '6px', fontSize: '0.65rem', fontWeight: '800',
+                              display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 12px', 
+                              borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900',
                               background: priority.bg, color: priority.color, border: `1px solid ${priority.color}30`
                             }}>
-                              {priority.icon} {priority.label}
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{priority.icon}</div> 
+                              {priority.label}
                             </div>
                           </div>
 
-                          <h3 style={{ fontSize: '1.15rem', color: '#1F1F1F', fontWeight: !n.read ? '700' : '500', marginBottom: '6px' }}>
+                          <h3 style={{ fontSize: '1.2rem', color: '#1e293b', fontWeight: '800', marginBottom: '6px', letterSpacing: '-0.3px' }}>
                             {n.title}
                           </h3>
 
-                          <p style={{ color: '#6B7281', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '14px' }}>
+                          <p style={{ color: '#475569', fontSize: '1rem', lineHeight: '1.6', marginBottom: '16px', fontWeight: '500' }}>
                             {n.message}
                           </p>
 
-                          <div className="notif-footer">
-                            <Clock size={13} /> {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(n.createdAt).toLocaleDateString()}
-                            {n.referenceId && <span style={{ marginLeft: '12px', color: '#4b5563' }}>ID: {n.referenceId}</span>}
+                          <div className="notif-footer" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', fontWeight: '700', color: '#94a3b8' }}>
+                            <Clock size={14} /> 
+                            <span>{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(n.createdAt).toLocaleDateString()}</span>
+                            {n.referenceId && <span style={{ marginLeft: '12px', paddingLeft: '12px', borderLeft: '2px solid #f1f5f9' }}>REF: {n.referenceId}</span>}
                           </div>
                         </div>
 
@@ -351,50 +402,49 @@ export default function NotificationPage() {
         {/* SETTINGS VIEW */}
         {!loading && view === 'SETTINGS' && preferences && (
           <div className="fade-in">
-            <div style={{ background: 'rgba(250, 234, 234, 0.5)', borderRadius: '24px', border: '1px solid rgba(192, 128, 128, 0.06)', padding: '32px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
+            <div style={{ background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '40px', boxShadow: '0 20px 50px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem' }}>
                 <div>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '4px' }}>Delivery Preferences</h2>
-                  <p style={{ color: '#6B7281' }}>Configure which categories of alerts you want to receive.</p>
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '8px', letterSpacing: '-1px' }}>Notification Settings</h2>
+                  <p style={{ color: '#64748b', fontWeight: '500' }}>Control how you receive alerts across university modules.</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#475569', marginBottom: '6px', fontWeight: '600' }}>
-                    <Clock size={12} style={{ marginRight: '4px' }} />
-                    LAST UPDATED: {preferences.lastUpdated ? new Date(preferences.lastUpdated).toLocaleString() : 'Never'}
+                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '8px', fontWeight: '700' }}>
+                    SYNCED: {preferences.lastUpdated ? new Date(preferences.lastUpdated).toLocaleString() : 'Never'}
                   </p>
                   <button onClick={resetPreferences} disabled={savingPrefs} className="reset-btn">
-                    <RotateCcw size={14} /> Reset Defaults
+                    <RotateCcw size={14} /> Restore Defaults
                   </button>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {Object.entries(CATEGORY_MAP).map(([key, info]) => (
                   <div 
                     key={key} 
                     style={{ 
-                      padding: '20px', borderRadius: '18px', background: 'rgba(245, 230, 230, 0.3)',
-                      border: '1px solid rgba(192, 128, 128, 0.06)', display: 'flex', alignItems: 'center', gap: '20px'
+                      padding: '24px', borderRadius: '16px', background: '#f8fafc',
+                      border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '20px'
                     }}
                   >
                     <div style={{ 
-                      width: '44px', height: '44px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: info.locked ? 'rgba(234, 179, 8, 0.1)' : 'rgba(192, 128, 128, 0.1)',
-                      color: info.locked ? '#eab308' : '#C08080', border: `1px solid ${info.locked ? '#eab30830' : '#C0808030'}`
+                      width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: info.locked ? '#fffbeb' : '#fff',
+                      color: info.locked ? '#d97706' : '#8C0000', border: `1px solid ${info.locked ? '#fffbeb' : '#e2e8f0'}`
                     }}>
                       {info.icon}
                     </div>
 
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <h4 style={{ fontWeight: '700', fontSize: '1.05rem' }}>{info.label}</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                        <h4 style={{ fontWeight: '800', fontSize: '1.1rem', color: '#1e293b' }}>{info.label}</h4>
                         {info.locked && (
-                          <span style={{ fontSize: '0.65rem', padding: '2px 8px', background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', borderRadius: '100px', fontWeight: '800', border: '1px solid #eab30830' }}>
+                          <span style={{ fontSize: '0.65rem', padding: '4px 10px', background: '#fffbeb', color: '#d97706', borderRadius: '6px', fontWeight: '900', border: '1px solid #fef3c7' }}>
                             ENFORCED
                           </span>
                         )}
                       </div>
-                      <p style={{ color: '#6B7281', fontSize: '0.85rem' }}>{info.desc}</p>
+                      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '500' }}>{info.desc}</p>
                     </div>
 
                     <div className="toggle-wrapper">
@@ -432,63 +482,54 @@ export default function NotificationPage() {
           -webkit-text-fill-color: transparent;
         }
         .tab-toggle {
-          display: flex; align-items: center; gap: 8px; padding: 10px 20px;
-          background: rgba(192, 128, 128, 0.06); border: 1px solid rgba(192, 128, 128, 0.06);
-          color: #94a3b8; border-radius: 12px; font-weight: 600; font-size: 0.9rem;
-          cursor: pointer; transition: all 0.3s;
+          display: flex; align-items: center; gap: 8px; padding: 10px 24px;
+          background: transparent; border: 1px solid #e2e8f0;
+          color: #64748b; border-radius: 10px; font-weight: 700; font-size: 0.9rem;
+          cursor: pointer; transition: 0.2s;
         }
         .tab-toggle.active {
-          background: #C08080; color: white; border-color: #C08080;
-          box-shadow: 0 4px 12px rgba(192, 128, 128, 0.3);
+          background: #0f172a; color: white; border-color: #0f172a;
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1);
         }
-        .notif-card { position: relative; transition: 0.2s; }
-        .notif-card:hover { transform: translateY(-2px); border-color: rgba(192, 128, 128,0.3) !important; background: rgba(192, 128, 128, 0.12) !important; }
         .unread-dot {
-          position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
-          width: 8px; height: 8px; background: #C08080; border-radius: 50%;
-          box-shadow: 0 0 10px rgba(192, 128, 128, 0.5);
+          position: absolute; left: -4px; top: 24px;
+          width: 8px; height: 8px; background: #8C0000; border-radius: 50%;
+          box-shadow: 0 0 12px rgba(140, 0, 0, 0.4);
         }
-        .icon-badge {
-          width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justifyContent: center;
-          background: rgba(192, 128, 128, 0.06); border: 1px solid rgba(192, 128, 128, 0.06); flex-shrink: 0;
-        }
-        .notif-footer { margin-top: 12px; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #475569; font-weight: 600; }
+        .notif-card:hover { border-color: #cbd5e1 !important; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.04); }
         .trash-btn {
-          width: 36px; height: 36px; border-radius: 10px; border: none; background: rgba(239, 68, 68, 0.08);
-          color: #ef4444; cursor: pointer; display: flex; align-items: center; justifyContent: center;
-          transition: 0.2s;
+          width: 40px; height: 40px; border-radius: 10px; border: none; background: #fef2f2;
+          color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center;
+          transition: all 0.2s;
         }
-        .trash-btn:hover { background: #ef4444; color: white; transform: scale(1.1); }
+        .trash-btn:hover { background: #fee2e2; transform: scale(1.05); }
         .reset-btn {
-          display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px;
-          border: 1px solid rgba(192, 128, 128, 0.06); background: rgba(192, 128, 128, 0.06);
-          color: #64748b; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+          display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px;
+          border: 1px solid #e2e8f0; background: #f8fafc;
+          color: #475569; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: 0.2s;
         }
-        .reset-btn:hover { background: rgba(192, 128, 128, 0.1); color: #C08080; border-color: #C0808030; }
+        .reset-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
         .reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Custom Toggle Switch */
-        .toggle-wrapper { position: relative; width: 48px; height: 24px; }
+        .toggle-wrapper { position: relative; width: 44px; height: 22px; }
         .toggle-wrapper input { opacity: 0; width: 0; height: 0; }
         .toggle-label {
           position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-          background-color: #334155; border-radius: 34px; cursor: pointer;
-          transition: .3s; border: 1px solid rgba(192, 128, 128, 0.06);
+          background-color: #e2e8f0; border-radius: 34px; cursor: pointer;
+          transition: .3s;
         }
         .toggle-label.disabled { cursor: not-allowed; opacity: 0.4; }
         .toggle-switch {
-          position: absolute; height: 18px; width: 18px; left: 3px; bottom: 2px;
-          background-color: #1F1F1F; border-radius: 50%; transition: .3s;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+          background-color: #fff; border-radius: 50%; transition: .3s;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        input:checked + .toggle-label { background-color: #C08080; border-color: #C08080; }
-        input:checked + .toggle-label .toggle-switch { transform: translateX(24px); }
+        input:checked + .toggle-label { background-color: #10b981; }
+        input:checked + .toggle-label .toggle-switch { transform: translateX(22px); }
         
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .glass-btn { background: rgba(192, 128, 128, 0.06); border: 1px solid rgba(192, 128, 128, 0.06); transition: 0.2s; cursor: pointer; }
-        .glass-btn:hover { background: rgba(192, 128, 128, 0.1); border-color: #C0808040; }
       `}</style>
     </div>
   );

@@ -40,6 +40,7 @@ export default function TicketsPage() {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -65,6 +66,10 @@ export default function TicketsPage() {
       setLoading(false);
     }
   };
+
+  const filteredTickets = tickets.filter(t => 
+    statusFilter === 'ALL' || t.status === statusFilter
+  );
 
   const getTechnicianDisplay = (fullName, campusId) => {
     if (!fullName) return null;
@@ -108,13 +113,37 @@ export default function TicketsPage() {
           <p>{user?.role === 'ADMIN' ? 'Managing all campus issues' : 'Track your reported issues and view their status updates.'}</p>
         </div>
 
-        <button
-          onClick={() => navigate('/tickets/new')}
-          className="btn-primary"
-        >
-          <PlusCircle size={20} />
-          Report New Issue
-        </button>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '12px',
+              border: '1.5px solid var(--glass-border)',
+              background: 'rgba(255, 255, 255, 0.5)',
+              color: 'var(--text-primary)',
+              fontWeight: '600',
+              fontSize: '0.9rem',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="ALL">All Status</option>
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+
+          <button
+            onClick={() => navigate('/tickets/new')}
+            className="btn-primary"
+          >
+            <PlusCircle size={20} />
+            Report Issue
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -134,7 +163,7 @@ export default function TicketsPage() {
             Try Again
           </button>
         </div>
-      ) : tickets.length > 0 ? (
+      ) : filteredTickets.length > 0 ? (
         <div className="glass-card animate-fade-in" style={{ padding: '0', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'rgba(192, 128, 128, 0.06)', borderBottom: '1px solid var(--glass-border)' }}>
@@ -147,7 +176,7 @@ export default function TicketsPage() {
               </tr>
             </thead>
             <tbody>
-              {tickets.map((ticket) => (
+              {filteredTickets.map((ticket) => (
                 <tr key={ticket.id} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }} className="hover:bg-white/5">
                   <td style={{ padding: '24px' }}>
                     <div style={{ fontWeight: '600', color: '#1F1F1F', marginBottom: '2px' }}>{ticket.title}</div>
@@ -204,17 +233,26 @@ export default function TicketsPage() {
             <ClipboardList size={32} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>No Tickets Found</h2>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>
+              {statusFilter === 'ALL' ? 'No Tickets Found' : `No ${statusFilter.replace('_', ' ')} Tickets`}
+            </h2>
             <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>
-              It looks like everything is running smoothly. If you spot a problem, report it here.
+              {statusFilter === 'ALL' 
+                ? "It looks like everything is running smoothly. If you spot a problem, report it here."
+                : `There are currently no tickets with the status "${statusFilter.replace('_', ' ')}". Check another category or report a new issue.`}
             </p>
           </div>
+          {statusFilter !== 'ALL' && (
+            <button onClick={() => setStatusFilter('ALL')} className="btn-secondary" style={{ marginTop: '16px', marginRight: '10px' }}>
+              Clear Filter
+            </button>
+          )}
           <button
             onClick={() => navigate('/tickets/new')}
-            className="btn-secondary"
+            className="btn-primary"
             style={{ marginTop: '16px' }}
           >
-            Submit First Ticket
+            Report Issue
           </button>
         </div>
       )}

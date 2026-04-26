@@ -27,6 +27,7 @@
   --role-accent-LECTURER:  #B97A7A;
   --role-accent-STUDENT:   #475569;
   --role-accent-TECHNICIAN:#5A0000;
+  --role-accent-STAFF:     #8C0000;
 
   --success: #166534;
   --warning: #9a3412;
@@ -56,6 +57,12 @@
   --shadow-lg:  0 20px 50px -12px rgba(140,0,0,0.15);
   --shadow-xl:  0 32px 64px -16px rgba(140,0,0,0.2);
   --shadow-glow: 0 0 40px var(--accent-glow);
+
+  /* ── Buttons (Pink/Blush Theme) ── */
+  --btn-pink:         #C08080;
+  --btn-pink-hover:   #D4A5A5;
+  --btn-pink-gradient: linear-gradient(135deg, #C08080 0%, #B97A7A 100%);
+  --btn-pink-shadow:  0 10px 25px -5px rgba(192, 128, 128, 0.4);
 
   /* ── Motion ── */
   --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
@@ -186,6 +193,42 @@ a {
   transform: scale(0.95);
 }
 
+/* ═══════ Global Buttons ═══════ */
+.btn-primary {
+  background: var(--btn-pink-gradient);
+  color: #FFFFFF;
+  padding: 12px 28px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.4s var(--ease-out);
+  box-shadow: var(--btn-pink-shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 30px -5px rgba(192, 128, 128, 0.6);
+  filter: brightness(1.05);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
 /* ═══════ Utility ═══════ */
 .container {
   max-width: 1280px;
@@ -195,8 +238,9 @@ a {
 /* ═══════ Scroll Reveal Animations ═══════ */
 .hp-reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(20px);
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+  will-change: transform, opacity;
   pointer-events: none;
 }
 

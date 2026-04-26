@@ -1,0 +1,400 @@
+Alright 😤🔥 this is your **ULTIMATE MASTER PLAN**
+👉 Branches + Files + EXACT commits (to hit 100+ cleanly)
+
+This is **exam-ready + lab-sheet aligned + real dev workflow**
+
+---
+
+# 🧠 RULE (REMEMBER THIS)
+
+```text
+1 branch = 1 feature
+1 feature = 8–10 commits
+backend + frontend together
+```
+
+---
+
+# 🥇 1. feature/ticket-backend-setup
+
+## 📁 Files
+
+```text
+model/
+ ├── Ticket.java
+ ├── Comment.java
+ ├── TicketStatus.java
+ └── Priority.java
+
+repository/
+ ├── TicketRepository.java
+ └── CommentRepository.java
+
+service/
+ └── TicketService.java
+
+controller/
+ └── TicketController.java
+```
+
+## ✅ Commits
+
+```bash
+feat: create Ticket model
+feat: create Comment model
+feat: add TicketStatus enum
+feat: add Priority enum
+feat: create TicketRepository
+feat: create CommentRepository
+feat: create TicketService skeleton
+feat: create TicketController skeleton
+chore: configure MongoDB properties
+```
+
+---
+
+# 🥈 2. feature/ticket-create
+
+## 📁 Files
+
+```text
+backend:
+ TicketController.java
+ TicketService.java
+
+frontend:
+ pages/tickets/CreateTicketPage.jsx
+ api/ticketApi.js
+```
+
+## ✅ Commits
+
+```bash
+feat: add createTicket service method
+feat: add POST /tickets endpoint
+feat: connect repository save logic
+feat: create ticket API function
+feat: create CreateTicketPage UI
+feat: implement form submission
+style: improve ticket form UI
+fix: handle validation errors
+test: verify ticket creation
+```
+
+---
+
+# 🥈 3. feature/ticket-list
+
+## 📁 Files
+
+```text
+backend:
+ TicketController.java
+ TicketService.java
+
+frontend:
+ pages/tickets/TicketsPage.jsx
+ api/ticketApi.js
+```
+
+## ✅ Commits
+
+```bash
+feat: add getAllTickets service
+feat: add GET /tickets endpoint
+feat: create getTickets API
+feat: display ticket list UI
+feat: add filtering logic
+style: improve ticket list UI
+fix: handle empty state
+test: verify ticket listing
+```
+
+---
+
+# 🥈 4. feature/ticket-details
+
+## 📁 Files
+
+```text
+backend:
+ TicketController.java
+
+frontend:
+ pages/tickets/TicketDetailsPage.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: add getTicketById service
+feat: add GET /tickets/{id} endpoint
+feat: create TicketDetailsPage UI
+feat: display ticket details
+style: improve details page
+fix: handle missing ticket
+test: verify ticket details
+```
+
+---
+
+# 🥈 5. feature/ticket-status-update
+
+## 📁 Files
+
+```text
+backend:
+ TicketService.java
+ TicketController.java
+
+frontend:
+ components/TicketStatusDropdown.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: add updateStatus service method
+feat: enforce status workflow logic
+feat: add PUT /tickets/{id}/status endpoint
+feat: create status dropdown component
+feat: connect status update API
+style: improve status UI
+fix: prevent invalid transitions
+test: verify status updates
+```
+
+---
+
+# 🥈 6. feature/ticket-assign
+
+## 📁 Files
+
+```text
+backend:
+ TicketService.java
+ TicketController.java
+
+frontend:
+ components/AssignTechnician.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: add technicianId to Ticket model
+feat: implement assignTechnician logic
+feat: add PUT /assign endpoint
+feat: create AssignTechnician UI
+feat: connect assign API
+style: improve assign UI
+fix: handle invalid assignment
+test: verify technician assignment
+```
+
+---
+
+# 🥈 7. feature/comments
+
+## 📁 Files
+
+```text
+backend:
+ CommentRepository.java
+ TicketService.java
+ TicketController.java
+
+frontend:
+ components/CommentSection.jsx
+ pages/tickets/TicketDetailsPage.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: create comment DTO/model logic
+feat: implement addComment service
+feat: add POST /comments endpoint
+feat: create CommentSection component
+feat: display comments list
+feat: add comment submission
+style: improve comments UI
+fix: handle empty comments
+test: verify comments feature
+```
+
+---
+
+# 🥈 8. feature/ticket-delete
+
+## 📁 Files
+
+```text
+backend:
+ TicketService.java
+ TicketController.java
+
+frontend:
+ components/DeleteTicketButton.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: implement deleteTicket service
+feat: add DELETE /tickets endpoint
+feat: create delete button UI
+feat: connect delete API
+style: improve delete button
+fix: prevent deleting invalid ticket
+test: verify delete feature
+```
+
+---
+
+# 🥉 9. feature/ticket-priority
+
+## 📁 Files
+
+```text
+backend:
+ Ticket.java
+ TicketService.java
+
+frontend:
+ components/PriorityBadge.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: add priority field to Ticket
+feat: implement auto priority logic
+feat: integrate priority in create flow
+feat: create PriorityBadge UI
+style: improve priority display
+test: verify priority logic
+```
+
+---
+
+# 🥉 10. feature/ticket-sla
+
+## 📁 Files
+
+```text
+backend:
+ Ticket.java
+ TicketService.java
+
+frontend:
+ components/SLATimer.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: add createdAt and resolvedAt fields
+feat: implement SLA calculation logic
+feat: update service for SLA tracking
+feat: create SLA timer component
+style: improve timer UI
+test: verify SLA tracking
+```
+
+---
+
+# 🥉 11. feature/ticket-booking-impact
+
+## 📁 Files
+
+```text
+backend:
+ TicketService.java
+```
+
+## ✅ Commits
+
+```bash
+feat: add booking validation logic
+feat: block booking when ticket active
+feat: integrate with booking service
+fix: handle edge cases
+test: verify booking blocking
+```
+
+---
+
+# 🥉 12. feature/ticket-image-upload
+
+## 📁 Files
+
+```text
+backend:
+ TicketImage.java
+ TicketService.java
+ TicketController.java
+
+frontend:
+ components/ImageUpload.jsx
+```
+
+## ✅ Commits
+
+```bash
+feat: create TicketImage model
+feat: implement image upload logic
+feat: add upload endpoint
+feat: create ImageUpload UI
+feat: connect upload API
+style: improve upload UI
+fix: handle upload errors
+test: verify image upload
+```
+
+---
+
+# 🥉 13. feature/ticket-notifications
+
+## 📁 Files
+
+```text
+backend:
+ TicketService.java
+```
+
+## ✅ Commits
+
+```bash
+feat: integrate notification service
+feat: send notification on ticket create
+feat: send notification on status update
+fix: handle notification errors
+test: verify notifications
+```
+
+---
+
+# 💥 FINAL RESULT
+
+👉 Total branches: **13**
+👉 Avg commits per branch: **8–10**
+
+```text
+🔥 TOTAL = 100–120 COMMITS EASY
+```
+
+---
+
+# 🎯 FINAL ADVICE
+
+👉 YES — your idea is correct:
+
+✔ backend commit
+✔ frontend commit
+✔ UI improvements
+✔ bug fixes
+
+👉 all inside SAME branch → THEN merge
+
+

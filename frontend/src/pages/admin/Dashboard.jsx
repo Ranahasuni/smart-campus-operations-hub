@@ -29,6 +29,7 @@ function Reveal({ children, className = '' }) {
 // Sub-components
 import SummaryCards from './DashboardComponents/SummaryCards';
 import ResourcesByBuildingChart from './DashboardComponents/ResourcesByBuildingChart';
+import PeakBookingHoursChart from './DashboardComponents/PeakBookingHoursChart';
 import MostBookedTable from './DashboardComponents/MostBookedTable';
 
 export default function Dashboard() {
@@ -50,12 +51,7 @@ export default function Dashboard() {
     fetchDashData();
   }, [user]);
 
-  useEffect(() => {
-    if (activeTab === 'ANALYTICS') {
-      const timer = setTimeout(() => navigate('/admin/dashboard'), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [activeTab, navigate]);
+  // Logic for switching tabs removed - now handled natively within the component
 
   const fetchDashData = async () => {
     // If user info is not yet available, we stay in loading state to avoid blank render
@@ -69,28 +65,26 @@ export default function Dashboard() {
 
     try {
       // Parallelize all baseline requests to avoid sequential blocking (Waterfall effect)
-      const [userRes, logRes, ticketDataRes, analyticsRes] = await Promise.all([
-        authFetch(`${API}/api/users`),
+      const [userStatsRes, logRes, ticketStatsRes, analyticsRes] = await Promise.all([
+        authFetch(`${API}/api/users/stats`),
         authFetch(`${API}/api/logs?limit=6`),
-        ticketApi.getAllTickets(),
+        authFetch(`${API}/api/tickets/stats/global`),
         authFetch(`${API}/api/resources/analytics/summary`)
       ]);
 
-      const [users, logs, ticketRes, rStats] = await Promise.all([
-        userRes.ok ? userRes.json() : [],
+      const [uStats, logs, tStats, rStats] = await Promise.all([
+        userStatsRes.ok ? userStatsRes.json() : { total: 0, active: 0, locked: 0 },
         logRes.ok ? logRes.json() : [],
-        ticketDataRes, // ticketApi already returns data
+        ticketStatsRes.ok ? ticketStatsRes.json() : { open: 0, total: 0 },
         analyticsRes.ok ? analyticsRes.json() : null
       ]);
 
-      const ticketData = Array.isArray(ticketRes.data) ? ticketRes.data : [];
-
       setStats({
-        totalUsers: Array.isArray(users) ? users.length : 0,
-        lockedUsers: Array.isArray(users) ? users.filter(u => u.status === 'LOCKED').length : 0,
-        activeUsers: Array.isArray(users) ? users.filter(u => u.status === 'ACTIVE').length : 0,
-        openTickets: ticketData.filter(t => t.status === 'OPEN').length,
-        allTickets: ticketData.length,
+        totalUsers: uStats.total || 0,
+        lockedUsers: uStats.locked || 0,
+        activeUsers: uStats.active || 0,
+        openTickets: tStats.open || 0,
+        allTickets: tStats.total || 0,
         recentLogs: Array.isArray(logs) ? logs.slice(-6).reverse() : [],
         resourceStats: rStats
       });
@@ -150,7 +144,7 @@ export default function Dashboard() {
               <LayoutDashboard size={18} /> Overview
             </button>
             <button
-              onClick={() => navigate('/admin/dashboard')}
+              onClick={() => setActiveTab('ANALYTICS')}
               style={{
                 padding: '10px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '10px',
@@ -227,11 +221,29 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* VIEW 2: RESOURCE ANALYTICS - DEPRECATED (LIVE AT /admin/dashboard) */}
+      {/* VIEW 2: RESOURCE ANALYTICS */}
       {activeTab === 'ANALYTICS' && (
-        <div style={{ padding: '80px', textAlign: 'center', color: '#6B7281' }}>
-          <Activity className="animate-pulse" size={48} style={{ margin: '0 auto 20px' }} />
-          <p>Redirecting to dedicated Intelligence engine...</p>
+        <div className="fade-in anim-dash">
+          <Reveal>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '40px'
+            }}>
+              <PeakBookingHoursChart data={stats.resourceStats?.peakBookingHours} />
+              <ResourcesByBuildingChart data={stats.resourceStats?.distributionByBuilding} />
+            </div>
+          </Reveal>
+
+          <Reveal>
+            <div className="glass-panel" style={{ borderRadius: '32px', padding: '32px' }}>
+              <div style={{ marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '1.25rem', color: '#1F1F1F', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <TrendingUp size={20} color="#10b981" /> High-Utility Facilities
+                </h2>
+                <p style={{ color: '#6B7281', fontSize: '0.85rem', fontWeight: 500 }}>Most booked resources across the campus</p>
+              </div>
+              <MostBookedTable data={stats.resourceStats?.mostBooked} isDark={false} />
+            </div>
+          </Reveal>
         </div>
       )}
 

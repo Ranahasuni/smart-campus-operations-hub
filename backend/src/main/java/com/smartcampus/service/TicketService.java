@@ -346,6 +346,13 @@ public class TicketService {
         return ticketImageRepository.findByTicketId(ticketId);
     }
 
+    public java.util.Map<String, Long> getGlobalStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("open", ticketRepository.countByStatusIn(List.of(TicketStatus.OPEN)));
+        stats.put("total", ticketRepository.count());
+        return stats;
+    }
+
     private long generateSequence(String seqName) {
         DatabaseSequence counter = sequenceRepository.findById(seqName).orElse(null);
         if (counter == null) {

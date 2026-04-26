@@ -91,7 +91,19 @@ export default function CreateTicketPage() {
     setFetchingResources(true);
     try {
       const res = await api.get('/resources');
-      setResources(res.data || []);
+      let data = res.data || [];
+      
+      // SECURITY: If staff member, restrict to only assigned facilities
+      if (user?.role === 'STAFF') {
+        data = data.filter(r => {
+          const staffIds = r.assignedStaffIds;
+          if (!Array.isArray(staffIds)) return false;
+          // Check both DB ID and Campus ID for maximum compatibility
+          return staffIds.includes(user.id) || staffIds.includes(user.campusId);
+        });
+      }
+      
+      setResources(data);
     } catch (err) {
       console.error('Failed to fetch resources:', err);
     } finally {
@@ -151,13 +163,14 @@ export default function CreateTicketPage() {
 
   if (success) {
     return (
-      <div className="tickets-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-        <div className="glass-card success-overlay">
-          <div className="success-icon-wrapper">
-            <CheckCircle2 size={40} />
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, animation: 'fadeIn 0.3s ease-out' }}>
+        <div style={{ background: '#FFFFFF', padding: '48px 40px', borderRadius: '40px', width: '90%', maxWidth: '420px', textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+          <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
+            <CheckCircle2 size={40} strokeWidth={2.5} />
           </div>
-          <h2 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '12px' }}>Ticket Submitted!</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Your maintenance request is now in the system. Redirecting you...</p>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#111827', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>Ticket Submitted!</h2>
+          <p style={{ color: '#6B7281', fontSize: '1.05rem', fontWeight: '500', marginBottom: '40px', lineHeight: '1.5' }}>Your maintenance request is now in the system. Redirecting you...</p>
+          <button onClick={() => navigate('/tickets')} style={{ background: 'none', border: 'none', color: '#111827', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', padding: '10px 20px' }}>Close</button>
         </div>
       </div>
     );
@@ -167,8 +180,8 @@ export default function CreateTicketPage() {
     <div className="tickets-container">
       <div className="tickets-header">
         <div>
-          <h1 className="gradient-text">Report an Issue</h1>
-          <p>Provide details for our maintenance and technical staff.</p>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#1e293b', letterSpacing: '-2px' }}>Report <span style={{ color: '#8C0000' }}>Issue</span></h1>
+          <p style={{ color: '#64748b', fontWeight: '500' }}>Provide details for our maintenance and technical staff.</p>
         </div>
         <button onClick={() => navigate('/tickets')} className="btn-secondary">
           <X size={18} />
@@ -186,14 +199,14 @@ export default function CreateTicketPage() {
 
           {/* TOP MARKS: SMART ASSET SELECTION */}
           <div className="form-group" style={{ 
-            background: 'rgba(192, 128, 128, 0.1)', 
+            background: '#f8fafc', 
             padding: '24px', 
-            borderRadius: '20px', 
-            border: '1px solid rgba(192, 128, 128, 0.2)',
+            borderRadius: '16px', 
+            border: '1px solid #e2e8f0',
             marginBottom: '32px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+            boxShadow: '0 8px 32px rgba(0,0,0,0.02)'
           }}>
-            <label style={{ color: '#C08080', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.8rem' }}>
+            <label style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.75rem' }}>
               <Building2 size={18} /> 
               {isLinked ? 'Linked Asset (Verified)' : 'Target Facility (Optional)'}
             </label>
@@ -206,12 +219,11 @@ export default function CreateTicketPage() {
                 disabled={isLinked}
                 style={{ 
                   paddingLeft: '44px',
-                  background: isLinked ? 'rgba(140, 0, 0, 0.03)' : 'rgba(245, 230, 230, 0.6)',
-                  color: '#1F1F1F',
+                  background: isLinked ? '#f1f5f9' : '#fff',
+                  color: '#1e293b',
                   cursor: isLinked ? 'not-allowed' : 'pointer',
-                  fontWeight: '500',
-                  border: '1px solid rgba(192, 128, 128, 0.3)',
-                  backdropFilter: 'blur(10px)'
+                  fontWeight: '600',
+                  border: '1px solid #e2e8f0',
                 }}
               >
                 <option value="" style={{ background: '#FFFFFF', color: '#1F1F1F' }}>-- General / Common Area --</option>
@@ -226,7 +238,7 @@ export default function CreateTicketPage() {
                 left: '14px', 
                 top: '50%', 
                 transform: 'translateY(-50%)', 
-                color: '#C08080' 
+                color: '#64748b' 
               }} />
             </div>
             {!isLinked && (
@@ -281,10 +293,10 @@ export default function CreateTicketPage() {
               onChange={handleChange}
               placeholder="e.g., Block B, 3rd Floor, Room 304"
               style={{ 
-                background: 'rgba(245, 230, 230, 0.6)',
-                color: '#1F1F1F',
-                fontWeight: '500',
-                border: '1px solid rgba(192, 128, 128, 0.2)'
+                background: '#fff',
+                color: '#1e293b',
+                fontWeight: '600',
+                border: '1px solid #e2e8f0'
               }}
             />
           </div>
@@ -312,9 +324,23 @@ export default function CreateTicketPage() {
             <ImageUpload onFilesSelected={setSelectedFiles} />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
-            <button disabled={loading} type="submit" className="btn-primary">
-              {loading ? 'Submitting...' : 'Submit Request'}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '40px' }}>
+            <button 
+              disabled={loading} 
+              type="submit" 
+              className="btn-primary"
+              style={{
+                background: 'linear-gradient(135deg, #8C0000 0%, #5A0000 100%)',
+                padding: '16px 40px',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                fontWeight: '800',
+                boxShadow: '0 10px 25px rgba(140, 0, 0, 0.2)',
+                border: 'none',
+                color: '#fff'
+              }}
+            >
+              {loading ? 'Authenticating Request...' : 'Submit Maintenance Request'}
               <Send size={18} />
             </button>
           </div>

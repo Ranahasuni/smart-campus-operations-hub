@@ -1,4 +1,5 @@
-import { QrCode, Smartphone, CheckCircle2, ChevronRight, Loader2, X, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { QrCode, Smartphone, CheckCircle2, ChevronRight, Loader2, X, AlertTriangle, Download } from 'lucide-react';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -35,9 +36,9 @@ export default function ArrivalAction({ booking, onCheckIn }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Link for the QR code (pointing to the Check-In page)
-  const checkInUrl = `${window.location.origin}/check-in/booking/${booking.id}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(checkInUrl)}&color=0f172a&bgcolor=ffffff`;
+  // Digital ID QR contains the simplified Booking Code for high-speed scanning
+  const qrData = booking.bookingCode;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrData)}&color=000000&bgcolor=ffffff&qzone=2`;
 
   const handleManualCheckIn = async () => {
     setLoading(true);
@@ -48,6 +49,23 @@ export default function ArrivalAction({ booking, onCheckIn }) {
       setError(err.message || "Manual check-in failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadQR = async () => {
+    try {
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `booking-qr-${booking.id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed', err);
     }
   };
 
@@ -91,15 +109,26 @@ export default function ArrivalAction({ booking, onCheckIn }) {
               {/* Option 1: QR CODE SCANNABLE ON DEVICE */}
               <div className="option-card qr-option">
                 <div className="option-info">
-                  <h4>Scan Physical/Digital QR</h4>
-                  <p>Scan the door sign or this code with your mobile</p>
+                  <h4>Staff Verification Pass</h4>
+                  <p>Present this code to a staff member for arrival verification</p>
                 </div>
                 <div className="qr-container-pro">
                   <img src={qrUrl} alt="Check-in QR" />
-                  <div className="qr-center-logo">
-                    <QrCode size={24} color={THEME.colors.primary} />
-                  </div>
                 </div>
+                <button 
+                  onClick={handleDownloadQR}
+                  className="download-qr-btn"
+                  style={{
+                    marginTop: '16px', width: '100%', padding: '10px',
+                    borderRadius: '8px', border: '1px solid #e2e8f0',
+                    background: '#fff', color: '#475569', fontSize: '0.8rem',
+                    fontWeight: '700', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', gap: '8px', cursor: 'pointer',
+                    transition: '0.2s'
+                  }}
+                >
+                  <Download size={14} /> Download QR Code
+                </button>
               </div>
 
               {/* Option 2: DIRECT BUTTON */}

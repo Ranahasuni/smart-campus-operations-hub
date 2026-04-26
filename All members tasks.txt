@@ -1,0 +1,394 @@
+
+# 👤 MEMBER 1 — Facilities & Assets (🔥 UPGRADED, NOT EASY)
+
+## 🎯 Responsibility
+
+👉 Manage **resources + availability + intelligence**
+
+---
+
+## 📄 Frontend Pages
+
+```text
+ResourceList.jsx
+ResourceDetails.jsx
+CreateResource.jsx (Admin)
+EditResource.jsx (Admin)
+ResourceAvailability.jsx ⭐
+ResourceAnalytics.jsx ⭐
+```
+
+---
+
+## 🔧 Backend APIs
+
+```text
+GET    /resources
+GET    /resources/{id}
+POST   /resources
+PUT    /resources/{id}
+DELETE /resources/{id}
+
+GET    /resources/{id}/availability ⭐
+PUT    /resources/{id}/availability ⭐
+PUT    /resources/{id}/status ⭐
+GET    /resources/analytics ⭐
+```
+
+---
+
+## ⚙️ Core Logic
+
+```text
+✔ Resource CRUD
+✔ Capacity validation
+✔ Status:
+   ACTIVE / OUT_OF_SERVICE / UNDER_MAINTENANCE
+
+✔ Availability rules:
+   - Available days
+   - Time ranges
+   - Blocked dates
+
+✔ Smart filtering
+✔ Resource usage tracking
+```
+
+---
+
+## 🔗 Connections
+
+* 👉 Booking (Member 2) uses:
+
+  * resourceId
+  * availability
+  * status
+
+* 👉 Tickets (Member 3):
+
+  * update resource status
+
+* 👉 Auth (Member 4):
+
+  * admin controls access
+
+---
+
+## ⭐ Why now strong
+
+👉 Not CRUD anymore
+👉 Has **availability system + analytics**
+
+
+
+# 👤 MEMBER 2 — BOOKING MANAGEMENT 
+
+## 🎯 Responsibility
+
+👉 Handle **booking workflow + conflict + intelligence**
+
+---
+
+## 📄 Frontend Pages
+
+```text
+CreateBooking.jsx
+MyBookings.jsx
+BookingDetails.jsx
+ManageBookings.jsx (Admin)
+BookingReview.jsx ✅
+BookingCalendar.jsx ⭐
+```
+
+---
+
+## 🔧 Backend APIs
+
+```text
+POST   /bookings
+GET    /bookings
+GET    /bookings/user
+GET    /bookings/{id}
+
+PUT    /bookings/{id}/approve
+PUT    /bookings/{id}/reject
+DELETE /bookings/{id}
+
+GET    /bookings/suggestions ⭐
+```
+
+---
+
+## ⚙️ Core Logic (MOST IMPORTANT)
+
+```text
+✔ Workflow:
+   PENDING → APPROVED / REJECTED → CANCELLED
+
+✔ Conflict detection:
+   (newStart < existingEnd && newEnd > existingStart)
+
+✔ Validation:
+   start < end
+   no past date
+```
+
+---
+
+## 🔥 Advanced Features (TOP GRADE)
+
+```text
+✔ Smart time suggestions
+✔ QR code verification
+✔ Booking priority system
+✔ Auto cancel unused bookings
+✔ Booking rules (limit per user)
+```
+
+---
+
+## 🔗 Connections
+
+* 👉 Member 1 → resources + availability
+* 👉 Member 4 → auth + notifications
+* 👉 Member 3 → blocks booking if resource broken
+
+---
+
+## 💀 Reality
+
+👉 Booking = center of system
+👉 Everything depends on this module
+
+
+
+# 👤 MEMBER 3 — MAINTENANCE & TICKETS (🔴 HARDEST)
+
+## 🎯 Responsibility
+
+👉 Handle **issues + system reliability**
+
+---
+
+## 📄 Frontend Pages
+
+```text
+CreateTicket.jsx
+TicketList.jsx
+TicketDetails.jsx
+TechnicianDashboard.jsx
+CommentSection.jsx
+```
+
+---
+
+## 🔧 Backend APIs
+
+```text
+POST   /tickets
+GET    /tickets
+GET    /tickets/{id}
+
+PUT    /tickets/{id}/assign
+PUT    /tickets/{id}/status
+
+POST   /tickets/{id}/comments
+DELETE /tickets/{id}
+```
+
+---
+
+## ⚙️ Core Logic
+
+```text
+✔ Workflow:
+   OPEN → IN_PROGRESS → RESOLVED → CLOSED
+
+✔ Image upload
+✔ Comments system
+✔ Technician assignment
+```
+
+---
+
+## 🔥 Advanced Features
+
+```text
+✔ Auto priority detection
+✔ SLA timer
+✔ Ticket impact on booking
+```
+
+---
+
+## 🔗 Connections
+
+* 👉 Member 1 → linked resource
+* 👉 Member 2 → block booking
+* 👉 Member 4 → notifications
+
+
+
+
+# 👤 MEMBER 4 — AUTH + NOTIFICATIONS + SYSTEM (🔐🔥)
+
+## 🎯 Responsibility
+
+👉 Handle **security + communication + control**
+
+---
+
+## 📄 Frontend Pages
+
+```text
+Login.jsx
+UserManagement.jsx
+NotificationPanel.jsx
+AdminDashboard.jsx
+ActivityLogs.jsx ⭐
+```
+
+---
+
+## 🔧 Backend APIs
+
+### 🔐 Auth
+
+```text
+POST /auth/login
+```
+
+### 👤 Users
+
+```text
+GET    /users
+POST   /users
+PUT    /users/{id}/role
+DELETE /users/{id}
+```
+
+### 🔔 Notifications
+
+```text
+GET    /notifications
+PUT    /notifications/{id}/read
+DELETE /notifications/{id}
+POST   /notifications ⭐
+```
+
+### 📊 System
+
+```text
+GET /dashboard/stats
+GET /logs
+```
+
+---
+
+## ⚙️ Core Logic
+
+```text
+✔ OAuth login
+✔ Role-based access:
+   USER / ADMIN / TECHNICIAN
+
+✔ Secure APIs
+✔ Notification system
+```
+
+---
+
+## 🔥 Advanced Features
+
+```text
+✔ Real-time notifications
+✔ Analytics dashboard
+✔ Activity logs
+✔ Notification preferences
+```
+
+---
+
+## 🔗 Connections
+
+* 👉 Booking → notify approval/rejection
+* 👉 Tickets → notify updates
+* 👉 Resources → admin control
+
+---
+
+# 🔥 MASTER CONNECTION (VERY IMPORTANT)
+
+```text
+             👤 Member 4
+        (Auth + Notifications)
+              ↑      ↑
+              │      │
+     ┌────────┘      └────────┐
+     │                        │
+👤 Member 1             👤 Member 3
+(Resources)            (Tickets)
+     │                        │
+     └────────→ 👤 Member 2 ←─┘
+               (Bookings)
+```
+
+---
+
+# 🔁 FULL SYSTEM FLOW (EXAM ANSWER)
+
+## 🟢 Booking Flow
+
+```text
+Login → Member 4
+
+↓
+Select resource → Member 1
+
+↓
+Create booking → Member 2
+
+↓
+Conflict detection → Member 2
+
+↓
+Admin approval → Member 2
+
+↓
+Notification → Member 4
+```
+
+---
+
+## 🔴 Issue Flow
+
+```text
+Create ticket → Member 3
+
+↓
+Update resource status → Member 1
+
+↓
+Booking blocked → Member 2
+
+↓
+Notification → Member 4
+```
+
+---
+
+# 🏆 FINAL (WHY THIS IS TOP GRADE)
+
+✔ Every member has **strong responsibility**
+✔ No overlap
+✔ Fully connected system
+✔ Real-world features
+✔ Innovation included
+
+---
+
+# 🧠 FINAL VIVA LINE (USE THIS 🔥)
+
+> “Each module is independently developed but tightly integrated. The booking module acts as the core, interacting with resource availability, authentication, and maintenance to create a dynamic and realistic system.”
+
+

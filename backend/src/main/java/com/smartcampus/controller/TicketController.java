@@ -60,6 +60,12 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTechnicianStats(techId));
     }
 
+    @GetMapping("/stats/global")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER', 'TECHNICIAN')")
+    public ResponseEntity<java.util.Map<String, Long>> getGlobalStats() {
+        return ResponseEntity.ok(ticketService.getGlobalStats());
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Ticket> getTicketById(@PathVariable String id) {

@@ -32,4 +32,7 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     // ⚡ ELITE CHECK: Verify if any active bookings exist for a resource before deletion
     boolean existsByResourceIdsInAndStatusIn(java.util.Collection<String> resourceIds, java.util.Collection<BookingStatus> statuses);
+
+    // ⚡ ANALYTICS ENGINE: Fetch only recent bookings for intelligence processing
+    List<Booking> findByDateGreaterThanEqual(LocalDate date);
 }

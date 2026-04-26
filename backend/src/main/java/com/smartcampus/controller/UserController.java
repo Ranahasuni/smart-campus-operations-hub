@@ -62,6 +62,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    /** Get user statistics — ADMIN only */
+    @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
+    public ResponseEntity<java.util.Map<String, Long>> getUserStats() {
+        return ResponseEntity.ok(userService.getUserStats());
+    }
+
     /** List users by role — ADMIN only */
     @GetMapping("/role/{role}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")

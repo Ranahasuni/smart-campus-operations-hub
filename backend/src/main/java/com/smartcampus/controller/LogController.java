@@ -23,17 +23,17 @@ public class LogController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
-    public ResponseEntity<List<AuditLog>> getAllLogs(@RequestParam(required = false) Integer limit) {
+    public ResponseEntity<List<AuditLog>> getAllLogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(required = false) Integer limit) {
         try {
             List<AuditLog> logs;
             if (limit != null) {
-                System.out.println("DEBUG: LogController.getAllLogs() called with limit=" + limit);
                 logs = auditService.getRecentLogs(limit);
             } else {
-                System.out.println("DEBUG: LogController.getAllLogs() called without limit");
-                logs = auditService.getAllLogs();
+                logs = auditService.getAllLogs(page, size);
             }
-            System.out.println("DEBUG: Returning " + logs.size() + " audit logs");
             return ResponseEntity.ok(logs);
         } catch (Exception e) {
             System.err.println("ERROR in LogController.getAllLogs(): " + e.getMessage());

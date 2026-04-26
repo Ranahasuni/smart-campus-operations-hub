@@ -148,22 +148,22 @@
 
 .btn-primary {
   width: 100%;
-  background: linear-gradient(135deg, #C08080 0%, #A86A6A 100%);
+  background: var(--btn-pink-gradient);
   color: white;
   padding: 1rem;
   border: none;
   border-radius: 12px;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 10px 15px -3px rgba(192, 128, 128, 0.3);
+  transition: all 0.4s var(--ease-out);
+  box-shadow: var(--btn-pink-shadow);
   margin-top: 1rem;
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 25px -5px rgba(192, 128, 128, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 35px -5px rgba(192, 128, 128, 0.5);
   filter: brightness(1.1);
 }
 
@@ -282,4 +282,3 @@ select option {
   position: relative;
   z-index: 1;
 }
-

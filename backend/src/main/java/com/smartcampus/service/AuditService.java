@@ -73,8 +73,10 @@ public class AuditService {
         }
     }
 
-    public List<AuditLog> getAllLogs() {
-        return auditLogRepository.findAll();
+    public List<AuditLog> getAllLogs(int page, int size) {
+        return auditLogRepository.findAll(
+            org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "timestamp"))
+        ).getContent();
     }
 
     public List<AuditLog> getLogsByUser(String userId) {

@@ -96,12 +96,12 @@ public class ResourceService {
     public List<ResourceResponseDTO> getResources(
             String building, Integer floor,
             ResourceType type, ResourceStatus status,
-            Integer capacity, String name) {
+            Integer capacity, String name,
+            int page, int size) {
 
         Query query = new Query();
         // ⚡ PERFORMANCE FIX: Only fetch necessary fields for the table
-        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "imageUrls");
-
+        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "imageUrls", "assignedStaffIds");
         if (building != null && !building.trim().isEmpty()) {
             query.addCriteria(Criteria.where("building").is(building));
         }
@@ -121,6 +121,9 @@ public class ResourceService {
             // Regex for case-insensitive start-with search
             query.addCriteria(Criteria.where("name").regex("^" + java.util.regex.Pattern.quote(name.trim()), "i"));
         }
+
+        // Apply Pagination
+        query.with(org.springframework.data.domain.PageRequest.of(page, size));
 
         List<Resource> results = mongoTemplate.find(query, Resource.class);
 
@@ -180,20 +183,28 @@ public class ResourceService {
         summary.put("outOfServiceResources", outOfService);
 
         // ── 1. Distribution by Building (Pie Chart) ──────────────────
-        List<Resource> allResources = resourceRepository.findAll();
-        Map<String, Long> buildingDistribution = allResources.stream()
-                .filter(r -> r.getBuilding() != null && !r.getBuilding().isBlank())
-                .collect(Collectors.groupingBy(Resource::getBuilding, Collectors.counting()));
+        // ── 1. Distribution by Building (Pie Chart) ──────────────────
+        // ⚡ PERFORMANCE OPTIMIZATION: Use MongoDB Aggregation instead of fetching all resources
+        org.springframework.data.mongodb.core.aggregation.Aggregation agg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("building").ne(null).ne("")),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.group("building").count().as("count"),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.project("count").and("_id").as("building")
+        );
+        
+        List<org.bson.Document> aggResults = mongoTemplate.aggregate(agg, "resources", org.bson.Document.class).getMappedResults();
+        Map<String, Long> buildingDistribution = aggResults.stream()
+            .collect(Collectors.toMap(d -> d.getString("building"), d -> d.getInteger("count").longValue()));
         summary.put("distributionByBuilding", buildingDistribution);
 
         // ── 2. Peak Booking Hours (Area Chart) ───────────────────────
         // Analyze bookings from the last 90 days for meaningful data
         LocalDate cutoff = LocalDate.now().minusDays(90);
-        List<Booking> recentBookings = bookingRepository.findAll().stream()
-                .filter(b -> b.getDate() != null && !b.getDate().isBefore(cutoff))
-                .filter(b -> b.getStartTime() != null)
-                .filter(b -> b.getStatus() != null && b.getStatus() != com.smartcampus.model.BookingStatus.CANCELLED)
-                .collect(Collectors.toList());
+        // ⚡ PERFORMANCE OPTIMIZATION: Query only last 90 days and only necessary fields
+        Query bookingQuery = new Query(Criteria.where("date").gte(cutoff)
+                .and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED));
+        bookingQuery.fields().include("resourceIds", "date", "startTime");
+        
+        List<Booking> recentBookings = mongoTemplate.find(bookingQuery, Booking.class);
 
         // Count bookings by start hour (e.g., "08:00" -> 12, "09:00" -> 18)
         Map<String, Long> peakHours = recentBookings.stream()

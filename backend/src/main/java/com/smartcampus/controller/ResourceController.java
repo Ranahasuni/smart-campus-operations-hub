@@ -29,6 +29,8 @@ public class ResourceController {
         // GET /api/resources?name=lab&status=ACTIVE
         @GetMapping
         public ResponseEntity<List<ResourceResponseDTO>> getResources(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size,
                         @RequestParam(required = false) String building,
                         @RequestParam(required = false) Integer floor,
                         @RequestParam(required = false) ResourceType type,
@@ -39,7 +41,8 @@ public class ResourceController {
                 return ResponseEntity.ok(
                                 resourceService.getResources(
                                                 building, floor, type,
-                                                status, capacity, name));
+                                                status, capacity, name,
+                                                page, size));
         }
 
         // GET /api/resources/{id}

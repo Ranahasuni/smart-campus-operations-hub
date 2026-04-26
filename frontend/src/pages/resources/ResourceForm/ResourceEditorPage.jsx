@@ -383,7 +383,7 @@ export default function ResourceEditorPage() {
   return (
     <div className="resource-form-page-wrapper" style={{ 
       minHeight: '100vh', 
-      background: 'var(--bg-primary)', 
+      background: '#f8fafc', 
       backgroundAttachment: 'fixed',
       backgroundImage: 'radial-gradient(circle at 50% -20%, rgba(140, 0, 0, 0.05), transparent 80%)',
       padding: '40px 20px' 
@@ -393,10 +393,10 @@ export default function ResourceEditorPage() {
       {/* ADVANCED BACK BUTTON */}
       <Link to="/admin/resources" style={{
         display: 'inline-flex', alignItems: 'center', gap: '8px',
-        color: '#6B7281', textDecoration: 'none', fontWeight: '600',
+        color: '#64748b', textDecoration: 'none', fontWeight: '600',
         fontSize: '0.9rem', marginBottom: '24px', padding: '8px 0',
         transition: 'color 0.2s'
-      }} onMouseOver={e => e.currentTarget.style.color = '#C08080'}
+      }} onMouseOver={e => e.currentTarget.style.color = '#6366f1'}
         onMouseOut={e => e.currentTarget.style.color = '#64748b'}>
         <ArrowLeft size={16} /> Back to Management
       </Link>
@@ -428,70 +428,63 @@ export default function ResourceEditorPage() {
         <FormButtons isEdit={isEdit} loading={loading} />
       </form>
 
-      {/* ═══ PREMIUM SUCCESS MODAL ═══ */}
+      {/* ═══ MINIMAL SUCCESS MODAL (MATCHING USER REQUEST) ═══ */}
       {showSuccess && (
         <div style={{ 
           position: 'fixed', inset: 0, 
-          background: 'rgba(255, 255, 255, 0.4)', 
-          backdropFilter: 'blur(16px)', 
+          background: 'rgba(0, 0, 0, 0.2)', 
+          backdropFilter: 'blur(8px)', 
           display: 'flex', alignItems: 'center', justifyContent: 'center', 
           zIndex: 2000, 
-          animation: 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)' 
+          animation: 'fadeIn 0.3s ease-out' 
         }}>
           <div style={{ 
-            background: 'var(--bg-secondary)', 
-            padding: '48px', 
-            borderRadius: '32px', 
-            width: '90%', maxWidth: '480px', 
+            background: '#FFFFFF', 
+            padding: '48px 40px', 
+            borderRadius: '40px', 
+            width: '90%', maxWidth: '420px', 
             textAlign: 'center', 
-            boxShadow: 'var(--shadow-xl)', 
-            border: '1px solid var(--glass-border)',
-            position: 'relative',
-            overflow: 'hidden'
+            boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+            position: 'relative'
           }}>
-            {/* Background Accent Glow */}
-            <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', background: 'radial-gradient(circle at 50% 50%, rgba(140, 0, 0, 0.03), transparent 50%)', pointerEvents: 'none' }}></div>
-
+            {/* Green Success Icon */}
             <div style={{ 
-              width: '90px', height: '90px', 
+              width: '80px', height: '80px', 
               borderRadius: '24px', 
-              background: 'rgba(140, 0, 0, 0.05)', 
-              color: 'var(--accent-primary)', 
+              background: '#ecfdf5', 
+              color: '#10b981', 
               display: 'flex', alignItems: 'center', justifyContent: 'center', 
-              margin: '0 auto 32px', 
-              boxShadow: '0 0 40px rgba(140, 0, 0, 0.05)',
-              border: '1px solid var(--glass-border)'
+              margin: '0 auto 32px'
             }}>
-              <ShieldCheck size={48} strokeWidth={1.5} />
+              <CheckCircle2 size={40} strokeWidth={2.5} />
             </div>
 
-            <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text-primary)', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
-              {isEdit ? 'Operation Successful' : 'Asset Synchronized'}
+            <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#111827', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>
+              {isEdit ? 'Update Successful' : 'Creation Successful'}
             </h2>
             
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: '500', marginBottom: '40px', lineHeight: '1.6' }}>
+            <p style={{ color: '#6B7281', fontSize: '1.05rem', fontWeight: '500', marginBottom: '40px', lineHeight: '1.5' }}>
               {isEdit 
-                ? 'The facility metadata has been updated across the campus network. All changes are now live.' 
-                : 'A new facility has been successfully registered in the Smart Campus Operations Hub.'}
+                ? 'The resource details have been successfully updated in the system.' 
+                : 'The new resource has been successfully registered and is now live.'}
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button
-                onClick={() => navigate('/admin/resources')}
-                className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', padding: '18px' }}
-              >
-                Return to Dashboard <ChevronRight size={20} />
-              </button>
-              
-              <button
-                onClick={() => setShowSuccess(false)}
-                className="btn-secondary"
-                style={{ width: '100%', padding: '16px' }}
-              >
-                Continue Editing
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/admin/resources')}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: '#111827', 
+                fontSize: '1.1rem', 
+                fontWeight: '800', 
+                cursor: 'pointer',
+                padding: '10px 20px'
+              }}
+              onMouseOver={e => e.currentTarget.style.opacity = '0.7'}
+              onMouseOut={e => e.currentTarget.style.opacity = '1'}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

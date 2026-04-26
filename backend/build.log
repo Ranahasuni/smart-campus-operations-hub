@@ -1,0 +1,67 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------< com.smartcampus:smart-campus-operations-hub >-------------
+[INFO] Building smart-campus-operations-hub 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ smart-campus-operations-hub ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ smart-campus-operations-hub ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 63 source files with javac [debug parameters release 17] to target\classes
+.\mvnw.cmd : WARNING: A 
+terminally deprecated method in 
+sun.misc.Unsafe has been called
+At line:1 char:1
++ .\mvnw.cmd compile 2>&1 | 
+Out-File -FilePath build.log 
+-Encoding asci ...
++ ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : N 
+   otSpecified: (WARNING: A te  
+  rm...has been called:String   
+ ) [], RemoteException
+    + FullyQualifiedErrorId : N 
+   ativeCommandError
+ 
+WARNING: sun.misc.Unsafe::object
+FieldOffset has been called by 
+lombok.permit.Permit
+WARNING: Please consider 
+reporting this to the 
+maintainers of class 
+lombok.permit.Permit
+WARNING: sun.misc.Unsafe::object
+FieldOffset will be removed in 
+a future release
+[INFO] /C:/Users/isuri/Desktop/PAF_assignment/smart-campus-operations-hub/backend/src/main/java/com/smartcampus/config/ApplicationConfig.java: C:\Users\isuri\Desktop\PAF_assignment\smart-campus-operations-hub\backend\src\main\java\com\smartcampus\config\ApplicationConfig.java uses or overrides a deprecated API.
+[INFO] /C:/Users/isuri/Desktop/PAF_assignment/smart-campus-operations-hub/backend/src/main/java/com/smartcampus/config/ApplicationConfig.java: Recompile with -Xlint:deprecation for details.
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/isuri/Desktop/PAF_assignment/smart-campus-operations-hub/backend/src/main/java/com/smartcampus/controller/TicketController.java:[97,29] cannot find symbol
+  symbol:   method getCommentsByTicketId(java.lang.String)
+  location: variable ticketService of type com.smartcampus.service.TicketService
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.609 s
+[INFO] Finished at: 2026-04-09T01:35:22+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project smart-campus-operations-hub: Compilation failure
+[ERROR] /C:/Users/isuri/Desktop/PAF_assignment/smart-campus-operations-hub/backend/src/main/java/com/smartcampus/controller/TicketController.java:[97,29] cannot find symbol
+[ERROR]   symbol:   method getCommentsByTicketId(java.lang.String)
+[ERROR]   location: variable ticketService of type com.smartcampus.service.TicketService
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

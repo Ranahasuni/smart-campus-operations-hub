@@ -134,4 +134,12 @@ public class UserService {
         userRepository.deleteById(id);
         auditService.log(adminId, "USER_DELETE", "Deleted user: " + user.getCampusId());
     }
+
+    public java.util.Map<String, Long> getUserStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("total", userRepository.count());
+        stats.put("active", userRepository.countByStatus(UserStatus.ACTIVE));
+        stats.put("locked", userRepository.countByStatus(UserStatus.LOCKED));
+        return stats;
+    }
 }

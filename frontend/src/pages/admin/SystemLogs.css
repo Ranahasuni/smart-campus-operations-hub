@@ -6,29 +6,29 @@
 
 /* ─── Root Variables ─────────────────────────────────────────── */
 :root {
-  --audit-bg: #0c0e14;
-  --audit-surface: rgba(17, 20, 30, 0.85);
-  --audit-surface-hover: rgba(25, 30, 45, 0.95);
-  --audit-glass: rgba(255, 255, 255, 0.03);
-  --audit-border: rgba(255, 255, 255, 0.06);
-  --audit-border-hover: rgba(192, 128, 128, 0.2);
-  --audit-text-primary: #e8eaed;
-  --audit-text-secondary: #8b8fa3;
-  --audit-text-muted: #5a5e72;
-  --audit-accent: #c08080;
-  --audit-accent-glow: rgba(192, 128, 128, 0.15);
-  --audit-green: #34d399;
-  --audit-green-bg: rgba(52, 211, 153, 0.08);
-  --audit-red: #f87171;
-  --audit-red-bg: rgba(248, 113, 113, 0.08);
-  --audit-amber: #fbbf24;
-  --audit-amber-bg: rgba(251, 191, 36, 0.08);
-  --audit-blue: #60a5fa;
-  --audit-blue-bg: rgba(96, 165, 250, 0.08);
-  --audit-purple: #a78bfa;
-  --audit-purple-bg: rgba(167, 139, 250, 0.08);
-  --audit-radius: 16px;
-  --audit-radius-sm: 10px;
+  --audit-bg: #F7F7F7;
+  --audit-surface: rgba(255, 255, 255, 0.7);
+  --audit-surface-hover: rgba(255, 255, 255, 0.9);
+  --audit-glass: rgba(140, 0, 0, 0.03);
+  --audit-border: rgba(185, 122, 122, 0.15);
+  --audit-border-hover: rgba(140, 0, 0, 0.2);
+  --audit-text-primary: #1F1F1F;
+  --audit-text-secondary: #4B5563;
+  --audit-text-muted: #6B7281;
+  --audit-accent: #8C0000;
+  --audit-accent-glow: rgba(140, 0, 0, 0.1);
+  --audit-green: #166534;
+  --audit-green-bg: rgba(22, 101, 52, 0.08);
+  --audit-red: #9f1239;
+  --audit-red-bg: rgba(159, 18, 57, 0.08);
+  --audit-amber: #9a3412;
+  --audit-amber-bg: rgba(154, 52, 18, 0.08);
+  --audit-blue: #1e40af;
+  --audit-blue-bg: rgba(30, 64, 175, 0.08);
+  --audit-purple: #6b21a8;
+  --audit-purple-bg: rgba(107, 33, 168, 0.08);
+  --audit-radius: 24px;
+  --audit-radius-sm: 12px;
   --audit-radius-pill: 100px;
 }
 
@@ -37,8 +37,9 @@
   min-height: 100vh;
   background: var(--audit-bg);
   background-image: 
-    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(192, 128, 128, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(96, 165, 250, 0.04), transparent);
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(230, 214, 214, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(185, 122, 122, 0.1) 0%, transparent 50%);
+  background-attachment: fixed;
   padding: 40px 32px 60px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--audit-text-primary);
@@ -262,8 +263,8 @@
   border-radius: var(--audit-radius);
   overflow: hidden;
   box-shadow: 
-    0 4px 24px rgba(0, 0, 0, 0.3),
-    0 0 60px rgba(192, 128, 128, 0.03);
+    0 8px 32px rgba(140, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .audit-table {
@@ -288,7 +289,7 @@
   white-space: nowrap;
   position: sticky;
   top: 0;
-  background: rgba(17, 20, 30, 0.98);
+  background: rgba(255, 255, 255, 0.95);
   z-index: 10;
 }
 

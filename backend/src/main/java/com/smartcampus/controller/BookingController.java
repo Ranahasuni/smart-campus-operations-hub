@@ -108,8 +108,10 @@ public class BookingController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
-    public ResponseEntity<List<BookingResponseDTO>> getAllBookingsAdmin() {
-        return ResponseEntity.ok(bookingService.getAllBookings());
+    public ResponseEntity<List<BookingResponseDTO>> getAllBookingsAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(bookingService.getAllBookings(page, size));
     }
 
     @GetMapping("/staff/today")

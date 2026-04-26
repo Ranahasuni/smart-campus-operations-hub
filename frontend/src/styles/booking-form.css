@@ -237,29 +237,30 @@
 .btn-primary {
   width: 100%;
   padding: 18px;
-  background: var(--gradient-primary, linear-gradient(135deg, #C08080, #A06060));
+  background: var(--btn-pink-gradient);
   border: none;
   border-radius: 14px;
   color: white;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(192, 128, 128, 0.3);
+  transition: all 0.4s var(--ease-out);
+  box-shadow: var(--btn-pink-shadow);
+  letter-spacing: 0.02em;
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(192, 128, 128, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px rgba(192, 128, 128, 0.5);
+  filter: brightness(1.1);
 }
 
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.btn-primary:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.98);
 }
 
 .breadcrumb {

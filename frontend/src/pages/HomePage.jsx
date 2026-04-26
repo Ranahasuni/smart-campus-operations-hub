@@ -2,27 +2,32 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useRef } from 'react';
 import '../styles/homepage.css';
+import { 
+  Building2, CalendarDays, Wrench, Bell, 
+  ShieldCheck, Users, FileText, AlertCircle, 
+  ArrowRight, Activity, Lock, QrCode, PieChart
+} from 'lucide-react';
 
 // ── Role-Specific Module Lists ────────────────────────────
 const USER_FEATURES = [
-  { icon: '🏛️', title: 'Facilities & Assets',   desc: 'Browse and manage university lecture halls, labs, and catalogues across Campus.',             link: '/resources' },
-  { icon: '📅', title: 'Smart Reservations',     desc: 'Reserve space for lectures, workshops, or study groups with real-time availability.',        link: '/bookings' },
-  { icon: '🎫', title: 'Support Tickets',        desc: 'Report facility issues or request technical support for campus infrastructure.',              link: '/tickets' },
-  { icon: '🔔', title: 'Live Notifications',     desc: 'Receive real-time updates on booking approvals, reminders, and campus alerts.',               link: '/notifications' }
+  { icon: <Building2 size={24} />, title: 'Facilities & Assets',   desc: 'Browse and manage university lecture halls, labs, and catalogues across Campus.',             link: '/resources' },
+  { icon: <CalendarDays size={24} />, title: 'Smart Reservations',     desc: 'Reserve space for lectures, workshops, or study groups with real-time availability.',        link: '/bookings' },
+  { icon: <Wrench size={24} />, title: 'Support Tickets',        desc: 'Report facility issues or request technical support for campus infrastructure.',              link: '/tickets' },
+  { icon: <Bell size={24} />, title: 'Live Notifications',     desc: 'Receive real-time updates on booking approvals, reminders, and campus alerts.',               link: '/notifications' }
 ];
 
 const ADMIN_FEATURES = [
-  { icon: '🛡️', title: 'Admin Dashboard',       desc: 'System-wide monitoring, performance metrics, and overall campus health reports.',              link: '/admin' },
-  { icon: '👥', title: 'Account Management',     desc: 'Manage users, assign roles, unlock accounts, and control system permissions.',               link: '/admin/users' },
-  { icon: '📜', title: 'Audit Trails',           desc: 'View chronological security logs of all system modifications and admin events.',              link: '/admin/logs' },
-  { icon: '🔔', title: 'System Alerts',          desc: 'Monitor login attempts, security events, and high-priority system notifications.',           link: '/notifications' }
+  { icon: <ShieldCheck size={24} />, title: 'Admin Dashboard',       desc: 'System-wide monitoring, performance metrics, and overall campus health reports.',              link: '/admin' },
+  { icon: <Users size={24} />, title: 'Account Management',     desc: 'Manage users, assign roles, unlock accounts, and control system permissions.',               link: '/admin/users' },
+  { icon: <FileText size={24} />, title: 'Audit Trails',           desc: 'View chronological security logs of all system modifications and admin events.',              link: '/admin/logs' },
+  { icon: <AlertCircle size={24} />, title: 'System Alerts',          desc: 'Monitor login attempts, security events, and high-priority system notifications.',           link: '/notifications' }
 ];
 
 const LECTURER_FEATURES = [
-  { icon: '🏛️', title: 'Facilities & Assets',   desc: 'Browse and manage university lecture halls, labs, and catalogues across Campus.',             link: '/resources' },
-  { icon: '📅', title: 'Smart Reservations',     desc: 'Reserve space for lectures, workshops, or study groups with real-time availability.',        link: '/bookings' },
-  { icon: '🎫', title: 'Support Tickets',        desc: 'Report facility issues or request technical support for campus infrastructure.',              link: '/tickets' },
-  { icon: '🔔', title: 'Live Notifications',     desc: 'Receive real-time updates on booking approvals, reminders, and campus alerts.',               link: '/notifications' }
+  { icon: <Building2 size={24} />, title: 'Facilities & Assets',   desc: 'Browse and manage university lecture halls, labs, and catalogues across Campus.',             link: '/resources' },
+  { icon: <CalendarDays size={24} />, title: 'Smart Reservations',     desc: 'Reserve space for lectures, workshops, or study groups with real-time availability.',        link: '/bookings' },
+  { icon: <Wrench size={24} />, title: 'Support Tickets',        desc: 'Report facility issues or request technical support for campus infrastructure.',              link: '/tickets' },
+  { icon: <Bell size={24} />, title: 'Live Notifications',     desc: 'Receive real-time updates on booking approvals, reminders, and campus alerts.',               link: '/notifications' }
 ];
 
 
@@ -198,9 +203,9 @@ export default function HomePage() {
       <section className="hp-section">
         <Reveal>
           {user?.role === 'ADMIN' && (
-            <div className="hp-admin-banner">
-              <span>🛡️</span>
-              <span>Security Protocol Active — You are logged in with <strong>Full Administrative Privileges</strong>. All actions are logged in the audit trail.</span>
+            <div className="hp-admin-banner" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <ShieldCheck size={20} color="#8C0000" />
+              <span>Security Protocol Active — You are logged in with <strong>Full Administrative Privileges</strong>.</span>
             </div>
           )}
           <div className="hp-section-label">
