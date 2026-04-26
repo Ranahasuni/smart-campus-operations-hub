@@ -83,25 +83,38 @@ export default function Dashboard() {
       if (loadedCount >= 2) setLoading(false); // Show UI as soon as first 2 vital cards are ready
     };
 
-    // Kick off all requests in parallel but update state individually
-    fetchData(`${API}/api/users/stats`, (d) => {
+    // Progressive Loading: Fetch each segment independently so the UI feels fast
+    const loadMetric = async (url, updater) => {
+      try {
+        const res = await authFetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          updater(data);
+        }
+      } catch (err) {
+        console.warn(`Dashboard metric failed: ${url}`, err);
+      }
+    };
+
+    // Kick off all requests in parallel
+    loadMetric(`${API}/api/users/stats`, (d) => {
       setStats(prev => ({ ...prev, totalUsers: d?.total || 0, activeUsers: d?.active || 0, lockedUsers: d?.locked || 0 }));
-      checkInit();
-    }, { total: 0, active: 0, locked: 0 });
+    });
 
-    fetchData(`${API}/api/tickets/stats/global`, (d) => {
+    loadMetric(`${API}/api/tickets/stats/global`, (d) => {
       setStats(prev => ({ ...prev, openTickets: d?.open || 0, allTickets: d?.total || 0 }));
-      checkInit();
-    }, { open: 0, total: 0 });
+    });
 
-    fetchData(`${API}/api/logs?limit=6`, (d) => {
-      setStats(prev => ({ ...prev, recentLogs: Array.isArray(d) ? d : [] }));
-    }, []);
-
-    fetchData(`${API}/api/resources/analytics/summary`, (d) => {
+    loadMetric(`${API}/api/resources/analytics/summary`, (d) => {
       setStats(prev => ({ ...prev, resourceStats: d }));
-      setLoading(false); // Final assurance
-    }, null);
+    });
+
+    loadMetric(`${API}/api/logs?limit=6`, (d) => {
+      setStats(prev => ({ ...prev, recentLogs: Array.isArray(d) ? d : [] }));
+    });
+
+    // Ensure the loading screen clears quickly
+    setTimeout(() => setLoading(false), 800);
   };
 
   if (loading) {
@@ -138,7 +151,7 @@ export default function Dashboard() {
         }}>
           <div>
             <h1 style={{ fontSize: '2.2rem', fontWeight: '950', color: '#1F1F1F', margin: 0, letterSpacing: '-1.5px' }}>
-              Command <span style={{ color: 'var(--accent-primary)' }}>Overview</span>
+              Command <span style={{ color: '#10b981' }}>Overview</span>
             </h1>
             <p style={{ color: '#6B7281', marginTop: '4px', fontWeight: '500' }}>
               High-level system health and security metrics
@@ -157,10 +170,10 @@ export default function Dashboard() {
               style={{
                 padding: '10px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '10px',
-                background: activeTab === 'OVERVIEW' ? 'var(--accent-primary)' : 'transparent',
+                background: activeTab === 'OVERVIEW' ? '#10b981' : 'transparent',
                 color: activeTab === 'OVERVIEW' ? '#fff' : '#64748b',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeTab === 'OVERVIEW' ? '0 10px 20px -5px rgba(140, 0, 0, 0.2)' : 'none'
+                boxShadow: activeTab === 'OVERVIEW' ? '0 10px 20px -5px rgba(16, 185, 129, 0.2)' : 'none'
               }}
             >
               <LayoutDashboard size={18} /> Overview
@@ -221,7 +234,16 @@ export default function Dashboard() {
                         <div style={{ color: '#4B5563', fontWeight: '500', fontSize: '0.875rem' }}>{log.action}</div>
                         <div style={{ color: '#6B7281', fontSize: '0.75rem' }}>{log.details}</div>
                       </div>
-                      <div style={{ color: '#475569', fontSize: '0.75rem' }}>{new Date(log.timestamp).toLocaleTimeString()}</div>
+                      <div style={{ color: '#475569', fontSize: '0.75rem' }}>
+                        {(() => {
+                          const ts = log.timestamp;
+                          if (!ts) return 'Unknown';
+                          const date = Array.isArray(ts) 
+                            ? new Date(ts[0], ts[1]-1, ts[2], ts[3] || 0, ts[4] || 0, ts[5] || 0)
+                            : new Date(ts);
+                          return isNaN(date.getTime()) ? 'Invalid' : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        })()}
+                      </div>
                     </div>
                   ))}
                 </div>

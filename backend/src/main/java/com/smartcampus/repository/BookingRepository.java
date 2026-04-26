@@ -36,4 +36,6 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     // ⚡ ANALYTICS ENGINE: Fetch only recent bookings for intelligence processing
     List<Booking> findByDateGreaterThanEqual(LocalDate date);
+
+    long deleteByResourceIdsContaining(String resourceId);
 }
