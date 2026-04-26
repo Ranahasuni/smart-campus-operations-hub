@@ -82,13 +82,23 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
         </div>
 
         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-          <label htmlFor="assignedStaffId">Assigned Caretaker (Staff)</label>
+          <label htmlFor="assignedStaffIds" style={{ color: errors.assignedStaffIds ? '#ef4444' : 'inherit' }}>Assigned Caretaker (Staff)</label>
           <select
-            id="assignedStaffId"
-            name="assignedStaffId"
-            className="form-select"
-            value={formData.assignedStaffId || ''}
-            onChange={handleChange}
+            id="assignedStaffIds"
+            name="assignedStaffIds"
+            className={`form-select ${errors.assignedStaffIds ? 'input-error' : ''}`}
+            value={formData.assignedStaffIds?.[0] || ''}
+            onBlur={handleBlur}
+            style={getErrorStyle('assignedStaffIds')}
+            onChange={(e) => {
+              const val = e.target.value;
+              handleChange({
+                target: {
+                  name: 'assignedStaffIds',
+                  value: val ? [val] : []
+                }
+              });
+            }}
           >
             <option value="">Unassigned</option>
             {staffOptions.map(staff => (
@@ -97,9 +107,13 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
               </option>
             ))}
           </select>
-          <p className="field-hint" style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
-            The staff member responsible for check-ins at this facility.
-          </p>
+          {errors.assignedStaffIds ? (
+            <p className="field-error-msg" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' }}>{errors.assignedStaffIds}</p>
+          ) : (
+            <p className="field-hint" style={{ fontSize: '0.75rem', color: '#6B7281', marginTop: '4px' }}>
+              The staff member responsible for check-ins at this facility.
+            </p>
+          )}
         </div>
       </div>
     </div>

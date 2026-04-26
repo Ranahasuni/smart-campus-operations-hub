@@ -1,4 +1,23 @@
 import { useState, useEffect, useMemo } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -93,7 +112,7 @@ export default function BookingResourceDetailsPage() {
 
   if (loading) return (
     <div className="booking-details-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <Loader2 className="animate-spin" size={48} style={{ color: '#6366f1' }} />
+      <Loader2 className="animate-spin" size={48} style={{ color: '#C08080' }} />
     </div>
   );
 
@@ -113,7 +132,7 @@ export default function BookingResourceDetailsPage() {
   return (
     <div className="booking-details-container animate-fade-in">
       <div className="breadcrumb" style={{ marginBottom: '32px' }}>
-        <Link to={`/bookings/resources/${resource.type}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', textDecoration: 'none' }}>
+        <Link to={`/bookings/resources/${resource.type}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7281', textDecoration: 'none' }}>
           <ChevronLeft size={16} /> Back to List
         </Link>
       </div>
@@ -161,7 +180,7 @@ export default function BookingResourceDetailsPage() {
               <div className="info-item">
                 <span className="info-label">Location</span>
                 <span className="info-value"><MapPin size={18} /> {resource.building}</span>
-                <span style={{ fontSize: '0.85rem', color: '#64748b', marginLeft: '26px' }}>Floor {resource.floor}, Room {resource.roomNumber}</span>
+                <span style={{ fontSize: '0.85rem', color: '#6B7281', marginLeft: '26px' }}>Floor {resource.floor}, Room {resource.roomNumber}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Capacity</span>
@@ -200,7 +219,7 @@ export default function BookingResourceDetailsPage() {
             <h2>Availability</h2>
             
             <div className="date-picker-wrapper">
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '8px', display: 'block' }}>Select Booking Date</label>
+              <label style={{ fontSize: '0.8rem', color: '#6B7281', marginBottom: '8px', display: 'block' }}>Select Booking Date</label>
               <input 
                 type="date" 
                 className="date-input"

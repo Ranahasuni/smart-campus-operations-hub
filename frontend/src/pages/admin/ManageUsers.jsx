@@ -1,10 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { User, Shield, Search, Trash2, Edit2, Lock, Unlock, Loader2, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { User, Shield, Search, Trash2, Edit2, Lock, Unlock, Loader2, AlertCircle, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+// ── Shared Animation Hooks ─────────────────────────────────
+function useScrollReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal ${className}`}>{children}</div>;
+}
 
 export default function ManageUsers() {
   const { user: currentUser, authFetch, API } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -115,232 +134,185 @@ export default function ManageUsers() {
   );
 
   if (loading) return (
-    <div style={{ padding: '80px', textAlign: 'center', color: '#64748b' }}>
-      <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 1rem' }} />
-      <p>Loading users...</p>
+    <div style={{ padding: '100px', textAlign: 'center', color: '#6B7281' }}>
+      <Loader2 className="animate-spin" size={48} style={{ margin: '0 auto 20px', color: '#C08080' }} />
+      <p style={{ letterSpacing: '2px', fontWeight: 'bold' }}>SYNCHRONIZING IDENTITY DATABASE...</p>
     </div>
   );
 
   return (
-    <div style={{ padding: '40px 24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff', marginBottom: '0.5rem' }}>Account Management</h1>
-          <p style={{ color: '#94a3b8' }}>Manage user access, roles, and security status ({users.length} total users)</p>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <div style={{ position: 'relative' }}>
-            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '12px',
-                padding: '10px 12px 10px 40px',
-                color: '#fff',
-                width: '240px',
-                outline: 'none'
-              }}
-            />
+    <div style={{ padding: '40px 24px', maxWidth: '1400px', margin: '0 auto' }}>
+      <Reveal>
+        <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: '950', color: '#1F1F1F', margin: 0, letterSpacing: '-1.5px' }}>
+              Account <span style={{ color: '#C08080' }}>Security</span>
+            </h1>
+            <p style={{ color: '#6B7281', marginTop: '8px', fontWeight: '500' }}>Administrative oversight of campus identities, access privileges, and security status.</p>
           </div>
           
           <button 
             onClick={() => setShowModal(true)}
             style={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-              color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 20px',
-              fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-              boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
+              background: 'var(--accent-primary)',
+              color: '#fff', border: 'none', borderRadius: '14px', padding: '14px 28px',
+              fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+              boxShadow: '0 8px 20px rgba(140, 0, 0, 0.2)', transition: 'all 0.3s'
             }}
           >
-            <User size={18} /> Add User
+            <Plus size={20} /> Create New Account
           </button>
+        </header>
+      </Reveal>
+
+      {/* Filters */}
+      <Reveal>
+        <div style={{ display: 'flex', gap: '20px', marginBottom: '32px' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
+            <input 
+              placeholder="Search by Identity, Email or ID..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{ width: '100%', padding: '16px 16px 16px 52px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(192, 128, 128, 0.1)', color: '#1F1F1F', outline: 'none', fontWeight: '500' }}
+            />
+          </div>
         </div>
-      </header>
+      </Reveal>
 
-      {/* Add User Modal */}
-      {showModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          backdropFilter: 'blur(8px)'
-        }}>
-          <form onSubmit={handleAddUser} autoComplete="off" style={{
-            background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px',
-            padding: '32px', width: '450px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
-          }}>
-            <h2 style={{ color: '#fff', marginBottom: '24px', fontSize: '1.5rem' }}>Create New Account</h2>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <input 
-                placeholder="Full Name" required autoComplete="off"
-                value={formData.fullName}
-                onChange={e => setFormData({...formData, fullName: e.target.value})}
-                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              />
-              <input 
-                placeholder="Campus ID (e.g. STU123)" required autoComplete="off"
-                value={formData.campusId}
-                onChange={e => setFormData({...formData, campusId: e.target.value})}
-                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              />
-              <input 
-                placeholder="Campus Email" required type="email" autoComplete="off"
-                value={formData.campusEmail}
-                onChange={e => setFormData({...formData, campusEmail: e.target.value})}
-                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              />
-              <input 
-                placeholder="Initial Password" required type="password" autoComplete="new-password"
-                value={formData.password}
-                onChange={e => setFormData({...formData, password: e.target.value})}
-                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              />
-              <select 
-                value={formData.role}
-                onChange={e => setFormData({...formData, role: e.target.value})}
-                style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              >
-                <option value="STUDENT">STUDENT</option>
-                <option value="LECTURER">LECTURER</option>
-                <option value="TECHNICIAN">TECHNICIAN</option>
-              </select>
-            </div>
+      {error && <div style={{ color: '#ef4444', marginBottom: '20px', padding: '16px', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.1)' }}>{error}</div>}
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowModal(false)}
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit"
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#6366f1', border: 'none', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                Create Account
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {error && (
-        <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', color: '#f87171', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <AlertCircle size={20} /> {error}
-        </div>
-      )}
-
-      <div style={{ 
-        background: 'rgba(15, 23, 42, 0.5)', 
-        borderRadius: '20px', 
-        border: '1px solid rgba(255,255,255,0.1)',
-        overflow: 'hidden'
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>User / Campus ID</th>
-              <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>Role</th>
-              <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>Status / Security</th>
-              <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600' }}>Last Login</th>
-              <th style={{ padding: '16px 24px', color: '#cbd5e1', fontWeight: '600', textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map(user => (
-              <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}>
-                <td style={{ padding: '16px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '600' }}>
-                      {user.fullName?.charAt(0).toUpperCase() || '?'}
+      <Reveal>
+        <div style={{ background: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(30px)', borderRadius: '32px', border: '1px solid rgba(192, 128, 128, 0.1)', overflow: 'hidden', boxShadow: '0 4px 40px rgba(140, 0, 0, 0.05)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: 'rgba(192, 128, 128, 0.06)', borderBottom: '1px solid rgba(192, 128, 128, 0.08)' }}>
+                <th style={{ padding: '24px', textAlign: 'left', color: '#6B7281', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '900' }}>User Information</th>
+                <th style={{ padding: '24px', textAlign: 'left', color: '#6B7281', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '900' }}>System Role</th>
+                <th style={{ padding: '24px', textAlign: 'left', color: '#6B7281', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '900' }}>Security Status</th>
+                <th style={{ padding: '24px', textAlign: 'left', color: '#6B7281', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '900' }}>Last Login</th>
+                <th style={{ padding: '24px', textAlign: 'right', color: '#6B7281', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '900' }}>Control Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map(user => (
+                <tr key={user.id} style={{ borderBottom: '1px solid rgba(192, 128, 128, 0.04)', transition: 'background 0.2s' }}>
+                  <td style={{ padding: '20px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ 
+                        width: '48px', height: '48px', borderRadius: '16px', 
+                        background: 'linear-gradient(135deg, #8C0000 0%, #C08080 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', 
+                        fontWeight: '900', fontSize: '1.2rem', boxShadow: '0 4px 12px rgba(140, 0, 0, 0.15)'
+                      }}>
+                        {user.fullName?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <div style={{ color: '#1F1F1F', fontWeight: '800', fontSize: '1.05rem' }}>{user.fullName}</div>
+                        <div style={{ color: '#6B7281', fontSize: '0.85rem', fontWeight: '500' }}>{user.campusEmail} • <span style={{ color: '#C08080', fontWeight: '700' }}>{user.campusId}</span></div>
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ color: '#f8fafc', fontWeight: '500' }}>{user.fullName}</div>
-                      <div style={{ color: '#64748b', fontSize: '0.875rem' }}>{user.campusEmail} • <span style={{ color: '#818cf8' }}>{user.campusId}</span></div>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: '16px 24px' }}>
-                  <select 
-                    value={user.role}
-                    onChange={(e) => changeRole(user.id, e.target.value)}
-                    disabled={user.id === currentUser?.id}
-                    title={user.id === currentUser?.id ? "You cannot change your own role" : ""}
-                    style={{ 
-                      padding: '4px 10px', 
-                      borderRadius: '8px', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 'bold',
-                      background: user.role === 'ADMIN' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-                      color: user.role === 'ADMIN' ? '#fbbf24' : '#818cf8',
-                      border: user.role === 'ADMIN' ? '1px solid rgba(234, 179, 8, 0.2)' : '1px solid rgba(99, 102, 241, 0.2)',
-                      outline: 'none',
-                      cursor: user.id === currentUser?.id ? 'not-allowed' : 'pointer',
-                      opacity: user.id === currentUser?.id ? 0.5 : 1
-                    }}
-                  >
-                    <option value="STUDENT">STUDENT</option>
-                    <option value="LECTURER">LECTURER</option>
-                    <option value="TECHNICIAN">TECHNICIAN</option>
-                  </select>
-                </td>
-                <td style={{ padding: '16px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ 
-                      width: '8px', height: '8px', borderRadius: '50%',
-                      background: user.status === 'ACTIVE' ? '#22c55e' : (user.status === 'LOCKED' ? '#ef4444' : '#64748b')
-                    }} />
-                    <span style={{ fontSize: '0.875rem', color: '#cbd5e1' }}>{user.status}</span>
-                  </div>
-                  {user.failedAttempts > 0 && user.status !== 'ACTIVE' && (
-                    <div style={{ fontSize: '0.7rem', color: '#f87171', marginTop: '4px' }}>
-                       ⚠️ {user.failedAttempts} failed attempts
-                    </div>
-                  )}
-                </td>
-                <td style={{ padding: '16px 24px', color: '#64748b', fontSize: '0.875rem' }}>
-                  {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
-                </td>
-                <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                  {user.id !== currentUser?.id ? (
+                  </td>
+                  <td style={{ padding: '20px 24px' }}>
+                    <select 
+                      value={user.role}
+                      onChange={(e) => changeRole(user.id, e.target.value)}
+                      disabled={user.id === currentUser?.id}
+                      style={{ 
+                        padding: '8px 12px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: '900',
+                        background: 'rgba(192, 128, 128, 0.05)', color: '#1F1F1F',
+                        border: '1px solid rgba(192, 128, 128, 0.15)', outline: 'none', cursor: 'pointer'
+                      }}
+                    >
+                      <option value="STUDENT">STUDENT</option>
+                      <option value="LECTURER">LECTURER</option>
+                      <option value="STAFF">STAFF</option>
+                      <option value="TECHNICIAN">TECHNICIAN</option>
+                      <option value="ADMIN">ADMIN</option>
+                    </select>
+                  </td>
+                  <td style={{ padding: '20px 24px' }}>
+                    <span style={{ 
+                      display: 'inline-flex', alignItems: 'center', gap: '8px',
+                      padding: '6px 14px', borderRadius: '99px', fontSize: '0.7rem', fontWeight: '900',
+                      background: user.status === 'ACTIVE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                      color: user.status === 'ACTIVE' ? '#22c55e' : '#ef4444'
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
+                      {user.status || 'ACTIVE'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '20px 24px', color: '#6B7281', fontSize: '0.9rem', fontWeight: '500' }}>
+                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
+                  </td>
+                  <td style={{ padding: '20px 24px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                       <button 
                         onClick={() => toggleStatus(user.id, user.status)}
-                        style={{ 
-                          padding: '6px 12px', borderRadius: '8px', border: user.status === 'LOCKED' ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)',
-                          background: user.status === 'LOCKED' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(255,255,255,0.05)', 
-                          color: user.status === 'LOCKED' ? '#fbbf24' : '#fff', cursor: 'pointer', fontSize: '0.75rem',
-                          fontWeight: user.status === 'LOCKED' ? 'bold' : 'normal'
-                        }}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(192, 128, 128, 0.06)', border: '1px solid rgba(192, 128, 128, 0.1)', color: '#4B5563', cursor: 'pointer' }}
+                        title="Toggle Security Lock"
                       >
-                        {user.status === 'LOCKED' ? 'Unlock Account' : (user.status === 'ACTIVE' ? 'Deactivate' : 'Activate')}
+                        {user.status === 'LOCKED' ? <Unlock size={18} /> : <Lock size={18} />}
                       </button>
                       <button 
-                        onClick={() => deleteUser(user.id, user.fullName)}
-                        style={{ 
-                          padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)',
-                          background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem'
-                        }}
+                         onClick={() => deleteUser(user.id, user.fullName)}
+                         style={{ padding: '10px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', color: '#ef4444', cursor: 'pointer' }}
+                         title="Purge Account"
                       >
-                        Delete
+                         <Trash2 size={18} />
                       </button>
                     </div>
-                  ) : (
-                    <span style={{ fontSize: '0.75rem', color: '#475569', fontStyle: 'italic' }}>Current Session</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Reveal>
+
+      {/* Modal - Advanced Glass Version */}
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(140, 0, 0, 0.2)', backdropFilter: 'blur(12px)' }}>
+          <Reveal className="modal-reveal">
+            <form onSubmit={handleAddUser} style={{ background: '#fff', padding: '48px', borderRadius: '40px', width: '500px', boxShadow: '0 40px 100px rgba(0,0,0,0.2)', border: '1px solid rgba(192, 128, 128, 0.1)' }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: '950', color: '#1F1F1F', marginBottom: '8px' }}>Provision Account</h2>
+              <p style={{ color: '#6B7281', marginBottom: '32px', fontWeight: '500' }}>Initialize a new identity within the campus operational grid.</p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <FormInput placeholder="Identity Name" value={formData.fullName} onChange={v => setFormData({...formData, fullName: v})} />
+                <FormInput placeholder="Campus ID (e.g. SL202P01)" value={formData.campusId} onChange={v => setFormData({...formData, campusId: v})} />
+                <FormInput placeholder="University Email" type="email" value={formData.campusEmail} onChange={v => setFormData({...formData, campusEmail: v})} />
+                <FormInput placeholder="System Password" type="password" value={formData.password} onChange={v => setFormData({...formData, password: v})} />
+                <select 
+                   value={formData.role} 
+                   onChange={e => setFormData({...formData, role: e.target.value})}
+                   style={{ padding: '14px', borderRadius: '14px', background: 'rgba(192, 128, 128, 0.04)', border: '1px solid rgba(192, 128, 128, 0.1)', outline: 'none', color: '#1F1F1F', fontWeight: '600' }}
+                >
+                  <option value="STUDENT">STUDENT</option>
+                  <option value="LECTURER">FACULTY / LECTURER</option>
+                  <option value="STAFF">UNIVERSITY STAFF</option>
+                  <option value="TECHNICIAN">FACILITY TECHNICIAN</option>
+                  <option value="ADMIN">ADMINISTRATOR</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px', marginTop: '40px' }}>
+                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '16px', borderRadius: '16px', background: 'transparent', border: '2px solid rgba(192, 128, 128, 0.1)', color: '#4B5563', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '16px', borderRadius: '16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', fontWeight: '800', cursor: 'pointer', boxShadow: '0 8px 20px rgba(140, 0, 0, 0.2)' }}>Authorize Account</button>
+              </div>
+            </form>
+          </Reveal>
+        </div>
+      )}
     </div>
+  );
+}
+
+function FormInput({ placeholder, type = 'text', value, onChange }) {
+  return (
+    <input 
+      type={type} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)}
+      style={{ padding: '14px 20px', borderRadius: '14px', background: 'rgba(192, 128, 128, 0.04)', border: '1px solid rgba(192, 128, 128, 0.1)', outline: 'none', color: '#1F1F1F', fontWeight: '600', fontSize: '1rem' }}
+    />
   );
 }

@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSkeleton from '../../components/common/LoadingSkeleton';
@@ -75,20 +94,37 @@ export default function MyBookingsPage() {
     }
   };
 
-  const handleReportMissingQR = async (id) => {
-    if (!window.confirm("Can't find the physical QR code? We can check you in manually and alert the maintenance team to replace it immediately. Proceed?")) return;
-
+  const handleConfirmArrival = async (id) => {
+    // Basic confirmation for "I'm Here"
     try {
-      const res = await authFetch(`${API}/api/check-in/${id}/report-missing-qr`, { method: 'POST' });
+      const res = await authFetch(`${API}/api/check-in/${id}`, { method: 'POST' });
       if (res.ok) {
-        showToast('Check-in complete. Help is on the way!', 'success');
+        showToast('Check-in complete! Facility is ready for use.', 'success');
         fetchBookings();
       } else {
         const data = await res.json();
-        showToast(data.error || 'Verification failed. Please ensure you are at the correct location.', 'error');
+        showToast(data.error || 'Check-in failed. Please ensure you are at the correct location.', 'error');
       }
     } catch (err) {
       showToast('Connection error. Please try again.', 'error');
+    }
+  };
+
+  const handleReportMissingQR = async (id) => {
+    if (!window.confirm('No QR Code found? This will notify technical staff and try to verify your arrival manually. Proceed?')) return;
+    
+    try {
+      const res = await authFetch(`${API}/api/check-in/${id}/report-missing-qr`, { method: 'POST' });
+      const data = await res.json();
+      
+      if (res.ok) {
+        showToast(data.message || 'Issue reported successfully.');
+        fetchBookings();
+      } else {
+        showToast(data.error || 'Failed to report issue.', 'error');
+      }
+    } catch (err) {
+      showToast('Connection error.', 'error');
     }
   };
 
@@ -144,7 +180,7 @@ export default function MyBookingsPage() {
       <header className="bookings-dashboard-header">
         <div>
           <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Active Bookings</h1>
-          <p style={{ color: '#94a3b8' }}>Manage and track your upcoming campus reservations.</p>
+          <p style={{ color: '#6B7281' }}>Manage and track your upcoming campus reservations.</p>
         </div>
 
         <div className="bookings-tabs">
@@ -171,7 +207,9 @@ export default function MyBookingsPage() {
               onUpdate={(id) => navigate(`/bookings/edit/${id}`)}
               onCancelAction={handleCancelAction}
               onReportMissingQR={handleReportMissingQR}
+              onConfirmArrival={handleConfirmArrival}
               onShowQR={(b) => setActiveQRBooking(b)}
+
               isBookingActive={isBookingActive}
             />
           ))

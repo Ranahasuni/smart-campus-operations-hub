@@ -1,5 +1,24 @@
 import { Plus, Trash2 } from 'lucide-react';
 
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
+
 export default function AvailabilitySection({ formData, setFormValue, errors = {} }) {
   const availability = (formData.availability && formData.availability.length > 0) ? formData.availability : [
     { day: 'Mon', isAvailable: false, slots: [{ startTime: '08:00', endTime: '18:00' }] },
@@ -50,7 +69,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
         <span style={{
           fontSize: '0.85rem',
           color: errors.availability ? '#ef4444' : '#64748b',
-          background: errors.availability ? '#fff1f2' : '#f1f5f9',
+          background: errors.availability ? '#fff1f2' : '#1F1F1F',
           padding: '4px 12px',
           borderRadius: '20px',
           fontWeight: '500'
@@ -69,14 +88,14 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
               flexDirection: 'column',
               gap: '12px',
               padding: '20px',
-              background: item.isAvailable ? '#f8fafc' : '#fff',
-              border: item.isAvailable ? '1px solid #6366f1' : (errors.availability ? '1px solid #fca5a5' : '1px dashed #e2e8f0'),
+              background: item.isAvailable ? '#1F1F1F' : '#fff',
+              border: item.isAvailable ? '1px solid #C08080' : (errors.availability ? '1px solid #fca5a5' : '1px dashed #6B7281'),
               borderRadius: '20px',
               transition: 'all 0.2s ease'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div style={{ width: '60px', fontWeight: '800', color: item.isAvailable ? '#0f172a' : (errors.availability ? '#fca5a5' : '#94a3b8'), fontSize: '1.1rem' }}>
+              <div style={{ width: '60px', fontWeight: '800', color: item.isAvailable ? '#FFFFFF' : (errors.availability ? '#fca5a5' : '#94a3b8'), fontSize: '1.1rem' }}>
                 {item.day}
               </div>
 
@@ -89,17 +108,17 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                 />
                 <span className="slider round" style={{
                   position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                  backgroundColor: item.isAvailable ? '#6366f1' : '#cbd5e1',
+                  backgroundColor: item.isAvailable ? '#C08080' : '#4B5563',
                   transition: '.4s', borderRadius: '34px'
                 }}>
                   <span style={{
                     position: 'absolute', content: '""', height: '18px', width: '18px', left: item.isAvailable ? '26px' : '4px', bottom: '3px',
-                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
+                    backgroundcolor: '#1F1F1F', transition: '.4s', borderRadius: '50%'
                   }}></span>
                 </span>
               </label>
 
-              <span style={{ fontSize: '0.9rem', color: item.isAvailable ? '#6366f1' : '#64748b', fontWeight: '700' }}>
+              <span style={{ fontSize: '0.9rem', color: item.isAvailable ? '#C08080' : '#64748b', fontWeight: '700' }}>
                 {item.isAvailable ? 'Available for Bookings' : 'Operational Offline'}
               </span>
 
@@ -107,7 +126,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                 <button
                   type="button"
                   onClick={() => handleAddTimeSlot(dayIndex)}
-                  style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', border: '1px solid #6366f1', background: 'transparent', color: '#6366f1', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
+                  style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', border: '1px solid #C08080', background: 'transparent', color: '#C08080', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
                 >
                   <Plus size={14} /> Add Slot
                 </button>
@@ -126,7 +145,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                       background: '#fff',
                       padding: '12px',
                       borderRadius: '12px',
-                      border: isTimeInvalid ? '1px solid #ef4444' : '1px solid #e2e8f0'
+                      border: isTimeInvalid ? '1px solid #ef4444' : '1px solid #6B7281'
                     }}>
                       <div className="time-picker-mini" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: '600', color: isTimeInvalid ? '#ef4444' : '#64748b' }}>Start</span>
@@ -134,7 +153,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                           type="time"
                           value={slot.startTime}
                           onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'startTime', e.target.value)}
-                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#f1f5f9', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}
+                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#1F1F1F', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#FFFFFF' }}
                         />
                       </div>
                       <span style={{ color: isTimeInvalid ? '#ef4444' : '#94a3b8', fontWeight: '900' }}>→</span>
@@ -144,7 +163,7 @@ export default function AvailabilitySection({ formData, setFormValue, errors = {
                           type="time"
                           value={slot.endTime}
                           onChange={(e) => handleTimeChange(dayIndex, slotIndex, 'endTime', e.target.value)}
-                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#f1f5f9', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}
+                          style={{ border: 'none', background: isTimeInvalid ? '#fff1f2' : '#1F1F1F', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '700', color: '#FFFFFF' }}
                         />
                       </div>
                       {item.slots.length > 1 && (

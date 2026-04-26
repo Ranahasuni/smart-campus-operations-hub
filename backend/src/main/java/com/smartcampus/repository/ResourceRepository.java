@@ -45,5 +45,8 @@ public interface ResourceRepository
 
     long countByStatus(ResourceStatus status);
 
-    List<Resource> findByAssignedStaffId(String staffId);
+    List<Resource> findByAssignedStaffIdsContaining(String staffId);
+
+    // ⚡ ELITE CHECK: Find if a room already exists in this exact physical spot
+    java.util.Optional<Resource> findByBuildingAndFloorAndRoomNumber(String building, Integer floor, String roomNumber);
 }

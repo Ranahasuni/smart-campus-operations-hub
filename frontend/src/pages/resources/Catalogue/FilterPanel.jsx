@@ -1,15 +1,41 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../../api/axiosInstance';
 import { Building2, Map, Layout, Users, RotateCcw, ChevronDown } from 'lucide-react';
 import './Catalogue.css';
 
-const RESOURCE_TYPES = [
-  'LAB', 'LECTURE_HALL', 'MEETING_ROOM', 'AUDITORIUM', 'SPORTS_FACILITY', 'EQUIPMENT'
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
+import { useAuth } from '../../../context/AuthContext';
+
+const RESOURCE_TYPES_CONFIG = [
+  { id: 'LAB', name: 'LABS & SPECIALIST FACILITIES', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  { id: 'MEETING_ROOM', name: 'MEETING ROOMS', roles: ['ADMIN', 'STUDENT', 'LECTURER'] },
+  { id: 'VIDEO_CONFERENCE_ROOM', name: 'VIDEO CONFERENCE ROOMS', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  { id: 'AUDITORIUM', name: 'AUDITORIUMS', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
+  { id: 'SPORTS_FACILITY', name: 'SPORTS FACILITIES', roles: ['ADMIN', 'STUDENT'] },
+  { id: 'LECTURE_HALL', name: 'LECTURE HALLS', roles: ['ADMIN', 'LECTURER'] },
 ];
 
 const FEATURES = ['Projector', 'Whiteboard', 'Core i7 PCs', 'Central AC'];
 
 export default function FilterPanel({ searchParams, updateParams, clearFilters }) {
+  const { user } = useAuth();
   const [buildings, setBuildings] = useState([]);
   const [floors, setFloors] = useState([]);
 
@@ -116,11 +142,11 @@ export default function FilterPanel({ searchParams, updateParams, clearFilters }
               onChange={handleChange}
             >
               <option value="">All Categories</option>
-              {RESOURCE_TYPES.map(t => {
-                let displayName = t.replace(/_/g, ' ').toUpperCase();
-                if (t === 'LECTURE_HALL') displayName = 'LECTURE HALL';
-                return <option key={t} value={t}>{displayName}</option>;
-              })}
+              {RESOURCE_TYPES_CONFIG
+                .filter(cat => cat.roles.includes(user?.role))
+                .map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
             </select>
             <ChevronDown className="dropdown-icon-right" size={14} color="#94a3b8" />
           </div>

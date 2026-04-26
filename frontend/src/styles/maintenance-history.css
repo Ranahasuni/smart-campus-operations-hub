@@ -140,10 +140,10 @@
 .maintenance-empty-state-pro {
   padding: 60px;
   text-align: center;
-  background: #f1f5f9;
+  background: #1F1F1F;
   border-radius: 32px;
   border: 2px dashed #cbd5e1;
-  color: #64748b;
+  color: #6B7281;
 }
 
 .maintenance-empty-state-pro p {

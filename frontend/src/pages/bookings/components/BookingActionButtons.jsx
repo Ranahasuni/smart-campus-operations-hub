@@ -1,4 +1,23 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { Pencil, Trash2, XCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 /**
@@ -46,9 +65,9 @@ const BookingActionButtons = ({
             className="action-btn btn-show-qr"
             onClick={() => onShowQR(booking)}
             style={{ 
-              background: 'rgba(99, 102, 241, 0.15)', 
-              color: '#818cf8', 
-              border: '1px solid rgba(99, 102, 241, 0.3)',
+              background: 'rgba(192, 128, 128, 0.15)', 
+              color: '#C08080', 
+              border: '1px solid rgba(192, 128, 128, 0.3)',
               fontWeight: '800'
             }}
           >
@@ -57,34 +76,15 @@ const BookingActionButtons = ({
         </div>
       )}
 
-      {booking.status === 'APPROVED' && active && (
-        <button 
-          className="action-btn btn-confirm-arrival"
-          title="I am physically here. Confirm arrival."
-          onClick={() => onReportMissingQR(booking.id)}
-          style={{ 
-            background: 'rgba(34, 197, 94, 0.1)', 
-            color: '#22c55e', 
-            border: '1px solid rgba(34, 197, 94, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 16px'
-          }}
-        >
-          <CheckCircle2 size={14} /> I'm Here
-        </button>
-      )}
-
       {booking.status === 'APPROVED' && !booking.isCheckedIn && (
         <button 
           className="action-btn btn-report-issue"
           title="Report physical QR signage missing or scanner broken"
           onClick={() => onReportMissingQR(booking.id)}
           style={{ 
-            background: 'rgba(99, 102, 241, 0.05)', 
-            color: '#94a3b8', 
-            border: '1px solid rgba(255, 255, 255, 0.05)',
+            background: 'rgba(192, 128, 128, 0.05)', 
+            color: '#6B7281', 
+            border: '1px solid rgba(192, 128, 128, 0.06)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
@@ -93,12 +93,6 @@ const BookingActionButtons = ({
         >
           <AlertTriangle size={14} /> Signage Issue?
         </button>
-      )}
-
-      {booking.isCheckedIn && (
-        <div className="check-in-verified-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', fontWeight: '800', fontSize: '0.8rem', padding: '6px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '10px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-           <CheckCircle2 size={14} /> Arrived
-        </div>
       )}
     </div>
   );

@@ -1,4 +1,23 @@
 import React, { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useAuth } from '../../context/AuthContext';
 import { 
   Calendar as CalendarIcon, ChevronLeft, ChevronRight, 
@@ -43,7 +62,7 @@ export default function BookingCalendar() {
     switch (status) {
       case 'APPROVED':  return { color: '#22c55e', label: 'Authorized', bg: 'rgba(34, 197, 94, 0.1)' };
       case 'REJECTED':  return { color: '#ef4444', label: 'Declined', bg: 'rgba(239, 68, 68, 0.1)' };
-      case 'CANCELLED': return { color: '#94a3b8', label: 'Withdrawn', bg: 'rgba(148, 163, 184, 0.1)' };
+      case 'CANCELLED': return { color: '#6B7281', label: 'Withdrawn', bg: 'rgba(148, 163, 184, 0.1)' };
       default:          return { color: '#f59e0b', label: 'Pending', bg: 'rgba(245, 158, 11, 0.1)' };
     }
   };
@@ -69,8 +88,8 @@ export default function BookingCalendar() {
   const nowPos = isToday ? getSlotPosition(`${currentTime.getHours()}:${currentTime.getMinutes()}`) : null;
 
   if (loading) return (
-    <div style={{ padding: '100px', textAlign: 'center', color: '#64748b' }}>
-      <Loader2 className="animate-spin" size={48} style={{ margin: '0 auto', color: '#6366f1' }} />
+    <div style={{ padding: '100px', textAlign: 'center', color: '#6B7281' }}>
+      <Loader2 className="animate-spin" size={48} style={{ margin: '0 auto', color: '#C08080' }} />
       <p style={{ marginTop: '20px', letterSpacing: '4px', fontWeight: 'bold' }}>SYNCHRONIZING TIMELINE...</p>
     </div>
   );
@@ -79,21 +98,21 @@ export default function BookingCalendar() {
     <div style={{ padding: '40px 24px', maxWidth: '1450px', margin: '0 auto' }}>
       <header style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-           <Link to="/admin/bookings" style={{ color: '#6366f1', fontSize: '0.8rem', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', letterSpacing: '1px' }}>
+           <Link to="/admin/bookings" style={{ color: '#C08080', fontSize: '0.8rem', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', letterSpacing: '1px' }}>
               <ChevronLeft size={16} /> RETURN TO LEDGER
            </Link>
-           <h1 style={{ fontSize: '2.75rem', fontWeight: '900', color: '#fff', margin: 0, letterSpacing: '-1.5px' }}>
-             Visual <span style={{ color: '#6366f1' }}>Schedule Hub</span>
+           <h1 style={{ fontSize: '2.75rem', fontWeight: '900', color: '#1F1F1F', margin: 0, letterSpacing: '-1.5px' }}>
+             Visual <span style={{ color: '#C08080' }}>Schedule Hub</span>
            </h1>
-           <p style={{ color: '#64748b', marginTop: '4px', fontWeight: '500' }}>Master timeline of campus facility occupancy and resource utilization.</p>
+           <p style={{ color: '#6B7281', marginTop: '4px', fontWeight: '500' }}>Master timeline of campus facility occupancy and resource utilization.</p>
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
            <button 
              onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
              style={{
-               background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)',
-               color: '#818cf8', padding: '12px 18px', borderRadius: '14px', cursor: 'pointer',
+               background: 'rgba(192, 128, 128, 0.1)', border: '1px solid rgba(192, 128, 128, 0.2)',
+               color: '#C08080', padding: '12px 18px', borderRadius: '14px', cursor: 'pointer',
                display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '0.85rem'
              }}
            >
@@ -101,15 +120,15 @@ export default function BookingCalendar() {
            </button>
            <div style={{ 
              display: 'flex', alignItems: 'center', gap: '16px', 
-             background: 'rgba(15, 23, 42, 0.6)', padding: '12px 20px', 
-             borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' 
+             background: 'rgba(245, 230, 230, 0.6)', padding: '12px 20px', 
+             borderRadius: '16px', border: '1px solid rgba(185, 122, 122, 0.15)' 
            }}>
-              <CalendarIcon size={20} color="#6366f1" />
+              <CalendarIcon size={20} color="#C08080" />
               <input 
                 type="date" 
                 value={selectedDate}
                 onChange={e => setSelectedDate(e.target.value)}
-                style={{ background: 'none', border: 'none', color: '#fff', fontSize: '1rem', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: '#1F1F1F', fontSize: '1rem', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}
               />
            </div>
         </div>
@@ -117,19 +136,19 @@ export default function BookingCalendar() {
 
       {/* Main Timeline Grid */}
       <div style={{ 
-        background: 'rgba(15, 23, 42, 0.4)', 
+        background: 'rgba(245, 230, 230, 0.4)', 
         borderRadius: '32px', 
-        border: '1px solid rgba(255,255,255,0.05)', 
+        border: '1px solid rgba(192, 128, 128, 0.06)', 
         overflow: 'hidden',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
       }}>
         <div style={{ minWidth: '1200px' }}>
           {/* Time Header */}
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-            <div style={{ width: '280px', padding: '24px', color: '#64748b', fontWeight: '900', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Campus Facilities</div>
+          <div style={{ display: 'flex', background: 'rgba(192, 128, 128, 0.06)', borderBottom: '1px solid rgba(185, 122, 122, 0.1)' }}>
+            <div style={{ width: '280px', padding: '24px', color: '#6B7281', fontWeight: '900', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Campus Facilities</div>
             <div style={{ flex: 1, display: 'flex' }}>
               {hours.map(h => (
-                <div key={h} style={{ flex: 1, padding: '24px 0', borderLeft: '1px solid rgba(255,255,255,0.03)', color: '#475569', fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'center' }}>
+                <div key={h} style={{ flex: 1, padding: '24px 0', borderLeft: '1px solid rgba(192, 128, 128, 0.06)', color: '#475569', fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'center' }}>
                   {h === 12 ? '12 PM' : (h > 12 ? `${h-12} PM` : `${h} AM`)}
                 </div>
               ))}
@@ -141,12 +160,12 @@ export default function BookingCalendar() {
             {resources.map(res => {
               const dailyBookings = bookings.filter(b => b.resourceId === res.id && b.date === selectedDate);
               return (
-                <div key={res.id} style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.03)', height: '110px', position: 'relative' }}>
-                   <div style={{ width: '280px', padding: '24px', background: 'rgba(255,255,255,0.01)', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ color: '#fff', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Building2 size={16} color="#6366f1" /> {res.name}
+                <div key={res.id} style={{ display: 'flex', borderBottom: '1px solid rgba(192, 128, 128, 0.06)', height: '110px', position: 'relative' }}>
+                   <div style={{ width: '280px', padding: '24px', background: 'rgba(192, 128, 128, 0.06)', borderRight: '1px solid rgba(192, 128, 128, 0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <div style={{ color: '#1F1F1F', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Building2 size={16} color="#C08080" /> {res.name}
                       </div>
-                      <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '6px', fontWeight: '500' }}>
+                      <div style={{ color: '#6B7281', fontSize: '0.75rem', marginTop: '6px', fontWeight: '500' }}>
                         {res.building} • Floor {res.floor}
                       </div>
                    </div>
@@ -154,7 +173,7 @@ export default function BookingCalendar() {
                    <div style={{ flex: 1, position: 'relative', background: 'rgba(255,255,255,0.005)' }}>
                       {/* Grid Background Horizontal Markers */}
                       <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, display: 'flex' }}>
-                         {hours.map(h => <div key={h} style={{ flex: 1, borderLeft: '1px solid rgba(255,255,255,0.02)' }} />)}
+                         {hours.map(h => <div key={h} style={{ flex: 1, borderLeft: '1px solid rgba(192, 128, 128, 0.06)' }} />)}
                       </div>
 
                       {/* LIVE TIME INDICATOR */}
@@ -200,7 +219,7 @@ export default function BookingCalendar() {
                             }}
                           >
                             <div style={{ color: style.color, fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>{style.label}</div>
-                            <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ color: '#1F1F1F', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <Clock size={12} /> {b.startTime?.slice(0,5)}
                             </div>
                           </Link>
@@ -218,9 +237,9 @@ export default function BookingCalendar() {
       <footer style={{ 
         marginTop: '40px', 
         padding: '30px', 
-        background: 'rgba(15, 23, 42, 0.4)', 
+        background: 'rgba(245, 230, 230, 0.4)', 
         borderRadius: '24px', 
-        border: '1px solid rgba(255,255,255,0.05)',
+        border: '1px solid rgba(192, 128, 128, 0.06)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center'
@@ -244,8 +263,8 @@ function LegendItem({ color, label, desc }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
       <div style={{ width: '16px', height: '16px', background: color, borderRadius: '6px', boxShadow: `0 0 10px ${color}40` }} />
       <div>
-        <div style={{ color: '#fff', fontSize: '0.75rem', fontWeight: '900', letterSpacing: '1px' }}>{label}</div>
-        <div style={{ color: '#64748b', fontSize: '0.65rem', fontWeight: '500' }}>{desc}</div>
+        <div style={{ color: '#1F1F1F', fontSize: '0.75rem', fontWeight: '900', letterSpacing: '1px' }}>{label}</div>
+        <div style={{ color: '#6B7281', fontSize: '0.65rem', fontWeight: '500' }}>{desc}</div>
       </div>
     </div>
   );

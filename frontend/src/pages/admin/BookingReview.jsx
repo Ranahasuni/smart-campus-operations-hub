@@ -1,4 +1,23 @@
 import React, { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -74,25 +93,25 @@ export default function BookingReview() {
   };
 
   if (loading) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#94a3b8' }}>
-      <Loader2 className="animate-spin" size={48} style={{ marginBottom: '16px', color: '#6366f1' }} />
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#6B7281' }}>
+      <Loader2 className="animate-spin" size={48} style={{ marginBottom: '16px', color: '#C08080' }} />
       <p style={{ fontSize: '1.2rem', letterSpacing: '2px' }}>AUDITING RESERVATION PARAMETERS...</p>
     </div>
   );
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: '1000px', margin: '0 auto' }}>
-      <Link to="/admin/bookings" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', textDecoration: 'none', marginBottom: '32px', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#fff'} onMouseOut={e => e.currentTarget.style.color = '#64748b'}>
+      <Link to="/admin/bookings" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7281', textDecoration: 'none', marginBottom: '32px', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#fff'} onMouseOut={e => e.currentTarget.style.color = '#64748b'}>
         <ArrowLeft size={18} /> BACK TO LISTING
       </Link>
 
-      <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-        <header style={{ padding: '32px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ background: 'rgba(245, 230, 230, 0.6)', border: '1px solid rgba(192, 128, 128, 0.06)', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+        <header style={{ padding: '32px', background: 'rgba(192, 128, 128, 0.06)', borderBottom: '1px solid rgba(192, 128, 128, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#fff', margin: 0 }}>Review Reservation #{booking.id?.slice(-8)}</h1>
-            <p style={{ color: '#64748b' }}>Technical audit and final moderation for facility access request</p>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#1F1F1F', margin: 0 }}>Review Reservation #{booking.id?.slice(-8)}</h1>
+            <p style={{ color: '#6B7281' }}>Technical audit and final moderation for facility access request</p>
           </div>
-          <div style={{ padding: '8px 16px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.1)', color: '#818cf8', fontWeight: 'bold', fontSize: '0.85rem' }}>
+          <div style={{ padding: '8px 16px', borderRadius: '12px', background: 'rgba(192, 128, 128, 0.1)', color: '#C08080', fontWeight: 'bold', fontSize: '0.85rem' }}>
             {booking.status}
           </div>
         </header>
@@ -101,25 +120,25 @@ export default function BookingReview() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '40px', marginBottom: '48px' }}>
             {/* Requester Info */}
             <section>
-              <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><Users size={18} color="#6366f1" /> Requester Profile</h3>
-              <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Authorized Requester:</div>
-                <div style={{ color: '#fff', fontWeight: '600', marginBottom: '12px' }}>{booking.requesterName}</div>
-                <div style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>Authorized via Campus Protocol.</div>
+              <h3 style={{ color: '#1F1F1F', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><Users size={18} color="#C08080" /> Requester Profile</h3>
+              <div style={{ background: 'rgba(245, 230, 230, 0.5)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(192, 128, 128, 0.06)' }}>
+                <div style={{ color: '#6B7281', fontSize: '0.85rem' }}>Authorized Requester:</div>
+                <div style={{ color: '#1F1F1F', fontWeight: '600', marginBottom: '12px' }}>{booking.requesterName}</div>
+                <div style={{ fontSize: '0.9rem', color: '#4B5563' }}>Authorized via Campus Protocol.</div>
               </div>
             </section>
 
             {/* Resource Info */}
             <section>
-              <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={18} color="#6366f1" /> Facility Allocation</h3>
-              <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Target Resources:</div>
-                <div style={{ color: '#fff', fontWeight: '600', marginBottom: '12px' }}>{(booking.resourceNames || [booking.resourceName]).join(', ')}</div>
-                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '8px' }}>Asset ID(s): {(booking.resourceIds || [booking.resourceId]).join(', ')}</div>
-                <div style={{ color: '#64748b', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h3 style={{ color: '#1F1F1F', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={18} color="#C08080" /> Facility Allocation</h3>
+              <div style={{ background: 'rgba(245, 230, 230, 0.5)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(192, 128, 128, 0.06)' }}>
+                <div style={{ color: '#6B7281', fontSize: '0.85rem' }}>Target Resources:</div>
+                <div style={{ color: '#1F1F1F', fontWeight: '600', marginBottom: '12px' }}>{(booking.resourceNames || [booking.resourceName]).join(', ')}</div>
+                <div style={{ color: '#6B7281', fontSize: '0.75rem', marginBottom: '8px' }}>Asset ID(s): {(booking.resourceIds || [booking.resourceId]).join(', ')}</div>
+                <div style={{ color: '#6B7281', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Calendar size={14} /> {booking.date}
                 </div>
-                <div style={{ color: '#64748b', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                <div style={{ color: '#6B7281', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
                   <Clock size={14} /> {booking.startTime?.slice(0,5)} - {booking.endTime?.slice(0,5)}
                 </div>
               </div>
@@ -127,10 +146,10 @@ export default function BookingReview() {
           </div>
 
           <section style={{ marginBottom: '48px' }}>
-             <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><BadgeHelp size={18} color="#6366f1" /> Justification & Attendance</h3>
-             <div style={{ background: 'rgba(15, 23, 42, 0.3)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
-               <p style={{ color: '#cbd5e1', fontSize: '1rem', fontStyle: 'italic', margin: 0 }}>"{booking.purpose || 'No formal purpose provided for this reservation.'}"</p>
-               <div style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#6366f1', fontSize: '0.85rem', background: 'rgba(99, 102, 241, 0.1)', padding: '6px 12px', borderRadius: '80px' }}>
+             <h3 style={{ color: '#1F1F1F', fontSize: '1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><BadgeHelp size={18} color="#C08080" /> Justification & Attendance</h3>
+             <div style={{ background: 'rgba(245, 230, 230, 0.3)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(192, 128, 128, 0.06)' }}>
+               <p style={{ color: '#4B5563', fontSize: '1rem', fontStyle: 'italic', margin: 0 }}>"{booking.purpose || 'No formal purpose provided for this reservation.'}"</p>
+               <div style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#C08080', fontSize: '0.85rem', background: 'rgba(192, 128, 128, 0.1)', padding: '6px 12px', borderRadius: '80px' }}>
                  <Users size={14} /> Expected Occupancy: {booking.expectedAttendees || 'N/A'}
                </div>
              </div>
@@ -148,14 +167,14 @@ export default function BookingReview() {
 
           {/* Decision Controls */}
           {booking.status === 'PENDING' && (
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '40px' }}>
+            <div style={{ borderTop: '1px solid rgba(192, 128, 128, 0.06)', paddingTop: '40px' }}>
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginBottom: '8px' }}>Formal Decision Commentary (Required for refusal)</label>
+                <label style={{ display: 'block', color: '#6B7281', fontSize: '0.85rem', marginBottom: '8px' }}>Formal Decision Commentary (Required for refusal)</label>
                 <textarea 
                   placeholder="Official moderation notes or reason for decline..." 
                   value={reason}
                   onChange={e => setReason(e.target.value)}
-                  style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', minHeight: '100px', outline: 'none' }}
+                  style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'rgba(192, 128, 128, 0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#1F1F1F', minHeight: '100px', outline: 'none' }}
                 />
               </div>
 
@@ -163,7 +182,7 @@ export default function BookingReview() {
                 <button 
                   onClick={() => handleModeration('APPROVED')}
                   disabled={processing}
-                  style={{ flex: 1, padding: '16px', borderRadius: '16px', background: '#22c55e', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  style={{ flex: 1, padding: '16px', borderRadius: '16px', background: '#22c55e', color: '#1F1F1F', border: 'none', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                   <CheckCircle size={20} /> APPROVE RESERVATION
                 </button>

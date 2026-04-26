@@ -6,7 +6,7 @@
     background: #ffffff;
     border-radius: 24px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    color: #1e293b;
+    color: #1F1F1F;
     font-family: 'Inter', 'Roboto', sans-serif;
     animation: fadeIn 0.5s ease-out forwards;
 }
@@ -27,7 +27,7 @@
     font-size: 2.2rem;
     font-weight: 800;
     margin-bottom: 30px;
-    color: #0f172a;
+    color: #1F1F1F;
     text-align: center;
     letter-spacing: -0.5px;
 }
@@ -37,7 +37,7 @@
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
-    border: 1px solid #bfdbfe;
+    border: 1px solid rgba(185, 122, 122, 0.2);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
     transition: all 0.3s ease;
 }
@@ -82,12 +82,12 @@
 .form-textarea {
     width: 100%;
     padding: 14px 16px;
-    background-color: #f1f5f9 !important;
+    background-color: #F5E6E6 !important;
     /* Distinct light gray */
-    border: 2px solid #94a3b8 !important;
+    border: 2px solid rgba(185, 122, 122, 0.2) !important;
     /* Thick sturdy border */
     border-radius: 12px;
-    color: #0f172a !important;
+    color: #1F1F1F !important;
     font-size: 1rem;
     font-weight: 500;
     outline: none;
@@ -98,8 +98,8 @@
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+    border-color: #C08080 !important;
+    box-shadow: 0 0 0 4px rgba(192, 128, 128, 0.12) !important;
     background-color: #ffffff !important;
 }
 
@@ -110,7 +110,7 @@
 
 .form-select option {
     background-color: #ffffff;
-    color: #0f172a;
+    color: #1F1F1F;
 }
 
 /* Tag Input Section */
@@ -175,7 +175,7 @@
     flex: 1;
     background: transparent;
     border: none;
-    color: #1e293b;
+    color: #1F1F1F;
     outline: none;
     font-size: 1rem;
     min-width: 140px;
@@ -203,7 +203,7 @@
 }
 
 .advanced-checkbox:hover {
-    color: #1e293b;
+    color: #1F1F1F;
 }
 
 /* Hide the browser's default checkbox */
@@ -234,8 +234,8 @@
 
 /* When the checkbox is checked, add a blue background */
 .advanced-checkbox input:checked~.checkmark {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
+    background-color: #C08080;
+    border-color: #C08080;
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
@@ -263,7 +263,7 @@
 
 /* Focus state for accessibility */
 .advanced-checkbox input:focus-visible~.checkmark {
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 4px rgba(192, 128, 128, 0.15);
 }
 
 /* Image Gallery Grid (PAF Assignment Premium) */
@@ -294,8 +294,8 @@
 }
 
 .image-slot-paf:hover {
-    border-color: #3b82f6;
-    background: #f0f7ff;
+    border-color: #C08080;
+    background: #FAEAEA;
     transform: translateY(-2px);
 }
 
@@ -392,7 +392,7 @@
 }
 
 .btn-primary {
-    background: #2563eb;
+    background: linear-gradient(135deg, #C08080, #A86A6A);
     color: white;
     border: none;
     padding: 12px 30px;
@@ -401,13 +401,13 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 4px 12px rgba(192, 128, 128, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #1d4ed8;
+    background: #A86A6A;
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 6px 16px rgba(192, 128, 128, 0.3);
 }
 
 .btn-primary:disabled {
@@ -429,7 +429,7 @@
 
 .btn-secondary:hover {
     background: #f8fafc;
-    color: #0f172a;
+    color: #1F1F1F;
     border-color: #94a3b8;
 }
 

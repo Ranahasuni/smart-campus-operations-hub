@@ -1,4 +1,23 @@
 import React, { useState } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -140,8 +159,8 @@ export default function Login() {
           </svg>
           Continue with Google
         </button>
-        <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.75rem', marginTop: '0.5rem' }}>
-          Use your <strong style={{ color: '#94a3b8' }}>@my.sliit.lk</strong> account
+        <p style={{ textAlign: 'center', color: '#6B7281', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+          Use your <strong style={{ color: '#6B7281' }}>@my.sliit.lk</strong> account
         </p>
 
         <div className="auth-footer">

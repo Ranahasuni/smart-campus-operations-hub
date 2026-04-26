@@ -66,7 +66,7 @@ public class ResourceService {
                 .imageUrls(resource.getImageUrls())
                 .availability(resource.getAvailability())
 
-                .assignedStaffId(resource.getAssignedStaffId())
+                .assignedStaffIds(resource.getAssignedStaffIds())
                 .createdAt(resource.getCreatedAt())
                 .updatedAt(resource.getUpdatedAt())
                 .build();
@@ -89,6 +89,8 @@ public class ResourceService {
             Integer capacity, String name) {
 
         Query query = new Query();
+        // ⚡ PERFORMANCE FIX: Only fetch necessary fields for the table
+        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "imageUrls");
 
         if (building != null && !building.trim().isEmpty()) {
             query.addCriteria(Criteria.where("building").is(building));
@@ -188,6 +190,18 @@ public class ResourceService {
 
         validateBuildingLimits(dto.getBuilding(), dto.getFloor());
 
+        // ⚡ ELITE CHECK: Duplicate Room Check
+        // Prevent registering two different resources in the same physical location
+        Optional<Resource> existingAtLocation = resourceRepository.findByBuildingAndFloorAndRoomNumber(
+            dto.getBuilding(), dto.getFloor(), dto.getRoomNumber()
+        );
+        if (existingAtLocation.isPresent()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.CONFLICT, 
+                "Location Conflict: " + dto.getBuilding() + " Floor " + dto.getFloor() + " Room " + dto.getRoomNumber() + " is already occupied by " + existingAtLocation.get().getName()
+            );
+        }
+
         Resource resource = Resource.builder()
                 .name(sanitize(dto.getName()))
                 .description(sanitize(dto.getDescription()))
@@ -201,7 +215,7 @@ public class ResourceService {
                 .equipment(dto.getEquipment())
                 .imageUrls(dto.getImageUrls())
                 .availability(dto.getAvailability())
-                .assignedStaffId(dto.getAssignedStaffId())
+                .assignedStaffIds(dto.getAssignedStaffIds())
                 .build();
 
         Resource finalSaved = resourceRepository.save(resource);
@@ -221,6 +235,17 @@ public class ResourceService {
     // ── UPDATE ──────────────────────────────────────────
     public ResourceResponseDTO updateResource(String id, ResourceRequestDTO dto) {
         validateBuildingLimits(dto.getBuilding(), dto.getFloor());
+
+        // ⚡ ELITE CHECK: Duplicate Room Check
+        Optional<Resource> existingAtLocation = resourceRepository.findByBuildingAndFloorAndRoomNumber(
+            dto.getBuilding(), dto.getFloor(), dto.getRoomNumber()
+        );
+        if (existingAtLocation.isPresent() && !existingAtLocation.get().getId().equals(id)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.CONFLICT, 
+                "Location Conflict: This physical room is already assigned to " + existingAtLocation.get().getName()
+            );
+        }
 
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
@@ -243,7 +268,7 @@ public class ResourceService {
         resource.setEquipment(dto.getEquipment());
         resource.setImageUrls(dto.getImageUrls());
         resource.setAvailability(dto.getAvailability());
-        resource.setAssignedStaffId(dto.getAssignedStaffId());
+        resource.setAssignedStaffIds(dto.getAssignedStaffIds());
 
         resource.setUpdatedAt(LocalDateTime.now());
 
@@ -286,6 +311,21 @@ public class ResourceService {
     public void deleteResource(String id) {
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
+        
+        // ⚡ ELITE CHECK: Booking Protection
+        // Prevent deletion if there are any APPROVED or PENDING bookings for this resource
+        boolean hasActiveBookings = bookingRepository.existsByResourceIdsInAndStatusIn(
+            Collections.singletonList(id),
+            Arrays.asList(com.smartcampus.model.BookingStatus.APPROVED, com.smartcampus.model.BookingStatus.PENDING)
+        );
+
+        if (hasActiveBookings) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.PRECONDITION_FAILED, 
+                "Cannot delete: This facility has active/pending bookings. Please cancel bookings first."
+            );
+        }
+
         resourceRepository.delete(resource);
     }
 

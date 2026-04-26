@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ticketApi from '../../api/ticketApi';
@@ -99,7 +118,7 @@ export default function TicketsPage() {
       ) : tickets.length > 0 ? (
         <div className="glass-card animate-fade-in" style={{ padding: '0', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid var(--glass-border)' }}>
+            <thead style={{ background: 'rgba(192, 128, 128, 0.06)', borderBottom: '1px solid var(--glass-border)' }}>
               <tr>
                 <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>TICKET ID / TITLE</th>
                 <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>LOCATION</th>
@@ -112,7 +131,7 @@ export default function TicketsPage() {
               {tickets.map((ticket) => (
                 <tr key={ticket.id} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }} className="hover:bg-white/5">
                   <td style={{ padding: '24px' }}>
-                    <div style={{ fontWeight: '600', color: 'white', marginBottom: '2px' }}>{ticket.title}</div>
+                    <div style={{ fontWeight: '600', color: '#1F1F1F', marginBottom: '2px' }}>{ticket.title}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginBottom: '4px' }}>
                       {ticket.userFullName || 'Anonymous'} ({ticket.userCampusId || 'N/A'})
                     </div>

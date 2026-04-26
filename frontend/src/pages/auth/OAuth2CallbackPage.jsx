@@ -1,4 +1,23 @@
 import { useEffect, useState } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -76,9 +95,9 @@ export default function OAuth2CallbackPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'radial-gradient(circle at top left, #1e1b4b, #0f172a)',
+      background: 'linear-gradient(135deg, #F7F7F7, #F5E6E6)',
       fontFamily: "'Outfit', sans-serif",
-      color: '#f8fafc',
+      color: '#1F1F1F',
       gap: '1.5rem',
     }}>
       {error ? (
@@ -90,7 +109,7 @@ export default function OAuth2CallbackPage() {
           <h2 style={{ fontSize: '1.5rem', color: '#f87171', textAlign: 'center', maxWidth: '400px' }}>
             {error}
           </h2>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Redirecting to login…</p>
+          <p style={{ color: '#6B7281', fontSize: '0.9rem' }}>Redirecting to login…</p>
         </>
       ) : (
         <>
@@ -99,14 +118,14 @@ export default function OAuth2CallbackPage() {
             width: '60px',
             height: '60px',
             borderRadius: '50%',
-            border: '3px solid rgba(99, 102, 241, 0.2)',
-            borderTopColor: '#6366f1',
+            border: '3px solid rgba(192, 128, 128, 0.2)',
+            borderTopColor: '#C08080',
             animation: 'spin 0.8s linear infinite',
           }} />
           <h2 style={{ fontSize: '1.4rem', fontWeight: '600' }}>
             Completing sign-in…
           </h2>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+          <p style={{ color: '#6B7281', fontSize: '0.9rem' }}>
             Setting up your campus session
           </p>
         </>

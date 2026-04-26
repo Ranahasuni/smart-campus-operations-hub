@@ -130,6 +130,7 @@ public class NotificationService {
     }
 
     /** Broadcast alert to all Administrators (Honors preferences) */
+    @org.springframework.scheduling.annotation.Async
     public void notifyAdmins(String title, String message, NotificationType type, NotificationPriority priority) {
         List<User> admins = userRepository.findByRole(com.smartcampus.model.Role.ADMIN);
         for (User admin : admins) {

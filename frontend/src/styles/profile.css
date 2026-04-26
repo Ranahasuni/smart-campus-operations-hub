@@ -16,10 +16,10 @@
   content: '';
   position: absolute;
   width: 300px; height: 300px;
-  background: var(--accent-primary);
+  background: var(--brand-red);
   border-radius: 50%;
   filter: blur(120px);
-  opacity: 0.15;
+  opacity: 0.1;
   top: 20%;
   left: 50%;
   transform: translateX(-50%);
@@ -27,9 +27,8 @@
 }
 
 .profile-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(32px) saturate(1.4);
-  -webkit-backdrop-filter: blur(32px) saturate(1.4);
+  background: #FFFFFF;
+  backdrop-filter: none;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   padding: 48px 40px;
@@ -47,7 +46,7 @@
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+  background: linear-gradient(135deg, var(--brand-red), var(--muted-rose));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,7 +54,7 @@
   font-weight: 800;
   color: #fff;
   margin: 0 auto 20px;
-  box-shadow: 0 8px 24px var(--accent-glow);
+  box-shadow: 0 8px 24px rgba(140, 0, 0, 0.2);
 }
 
 .profile-name {
@@ -89,7 +88,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255,255,255,0.03);
+  background: #F5E6E6;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 14px 18px;

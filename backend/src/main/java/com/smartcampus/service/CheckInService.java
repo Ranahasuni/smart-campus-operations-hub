@@ -1,6 +1,7 @@
 package com.smartcampus.service;
 
 import com.smartcampus.model.*;
+import java.util.Optional;
 import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.UserRepository;
@@ -101,6 +102,50 @@ public class CheckInService {
         ));
     }
 
+    public Map<String, Object> getCheckInStatus(String bookingId) {
+        Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
+        if (bookingOpt.isEmpty()) return Map.of("eligible", false, "reason", "Booking not found");
+        
+        Booking booking = bookingOpt.get();
+        if (booking.isCheckedIn() || booking.getStatus() == BookingStatus.CHECKED_IN) {
+            return Map.of("eligible", false, "reason", "ALREADY_CHECKED_IN", "time", booking.getCheckInTime());
+        }
+        
+        // Use a more inclusive check if needed, but standard is APPROVED
+        if (booking.getStatus() != BookingStatus.APPROVED) {
+            return Map.of("eligible", false, "reason", "NOT_APPROVED", "status", booking.getStatus());
+        }
+        
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        
+        if (!booking.getDate().equals(today)) {
+            return Map.of("eligible", false, "reason", "WRONG_DATE", "bookingDate", booking.getDate());
+        }
+        
+        boolean tooEarly = now.isBefore(booking.getStartTime().minusMinutes(checkInProperties.getScanBufferMinutes()));
+        boolean tooLate = now.isAfter(booking.getEndTime());
+        
+        if (tooEarly) return Map.of("eligible", false, "reason", "TOO_EARLY", "startTime", booking.getStartTime());
+        if (tooLate) return Map.of("eligible", false, "reason", "TOO_LATE", "endTime", booking.getEndTime());
+        
+        return Map.of("eligible", true, "message", "Ready for check-in");
+    }
+
+    private void validateBookingForCheckIn(Booking booking) {
+        Map<String, Object> status = getCheckInStatus(booking.getId());
+        if (!(Boolean) status.get("eligible")) {
+            String reason = (String) status.get("reason");
+            String message = reason;
+            if ("ALREADY_CHECKED_IN".equals(reason)) message = "User is already checked in.";
+            if ("TOO_EARLY".equals(reason)) message = "Arrival verification only possible within " + checkInProperties.getScanBufferMinutes() + " minutes of start time.";
+            if ("TOO_LATE".equals(reason)) message = "Check-in failed. This booking time has already ended.";
+            if ("WRONG_DATE".equals(reason)) message = "Check-in failed. This booking is for " + status.get("bookingDate");
+            
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
+    }
+
     public ResponseEntity<?> verifyQR(String bookingCode, String staffUserId) {
         Booking booking = bookingRepository.findByBookingCode(bookingCode)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid QR Code: Booking not found."));
@@ -110,23 +155,13 @@ public class CheckInService {
 
         validateBookingForCheckIn(booking);
 
-        // Check if QR is presented within early-arrival window (e.g. 15 mins before)
-        LocalTime now = LocalTime.now();
-        LocalTime startTime = booking.getStartTime();
-        if (now.isBefore(startTime.minusMinutes(checkInProperties.getScanBufferMinutes()))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                "error", "Too Early",
-                "message", "Arrival verification only possible within " + checkInProperties.getScanBufferMinutes() + " minutes of start time."
-            ));
-        }
-
         // Verify Staff Assignment for the specific resource
         boolean isAuthorized = staff.getRole() == Role.ADMIN;
         if (!isAuthorized) {
             String primaryResourceId = booking.getResourceIds().get(0);
             Resource resource = resourceRepository.findById(primaryResourceId).orElse(null);
-            if (resource != null && resource.getAssignedStaffId() != null) {
-                isAuthorized = staffUserId.equals(resource.getAssignedStaffId());
+            if (resource != null && resource.getAssignedStaffIds() != null) {
+                isAuthorized = resource.getAssignedStaffIds().contains(staffUserId);
             }
         }
 
@@ -138,26 +173,6 @@ public class CheckInService {
         }
 
         return performCheckIn(booking);
-    }
-
-    private void validateBookingForCheckIn(Booking booking) {
-        if (booking.getStatus() != BookingStatus.APPROVED && booking.getStatus() != BookingStatus.PENDING) {
-             // For Griffith, even PENDING might need check-in if staff approves on spot? 
-             // But usually only APPROVED.
-             if (booking.getStatus() == BookingStatus.CHECKED_IN) {
-                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is already checked in.");
-             }
-             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot check in: Booking status is " + booking.getStatus());
-        }
-
-        if (!booking.getDate().equals(LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in failed. This booking is for " + booking.getDate());
-        }
-
-        LocalTime now = LocalTime.now();
-        if (now.isAfter(booking.getEndTime())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in failed. This booking time has already ended.");
-        }
     }
 
     private ResponseEntity<?> performCheckIn(Booking booking) {

@@ -1,7 +1,26 @@
 import React from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#C08080', '#10b981', '#f59e0b', '#ef4444', '#A86A6A', '#ec4899'];
 
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, name }) => {
   const RADIAN = Math.PI / 180;
@@ -44,20 +63,20 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
 
   return (
     <div style={{ 
-      background: 'rgba(255, 255, 255, 0.02)', 
+      background: 'rgba(192, 128, 128, 0.06)', 
       padding: '30px', 
       borderRadius: '32px', 
-      border: '1px solid rgba(255, 255, 255, 0.05)', 
+      border: '1px solid rgba(192, 128, 128, 0.06)', 
       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', 
       height: '400px',
       backdropFilter: 'blur(10px)',
       position: 'relative'
     }}>
       <div style={{ marginBottom: '15px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#fff', margin: 0, letterSpacing: '-0.5px' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#1F1F1F', margin: 0, letterSpacing: '-0.5px' }}>
           Building-Wide Asset Distribution
         </h3>
-        <p style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600, marginTop: '4px' }}>
+        <p style={{ fontSize: '0.85rem', color: '#6B7281', fontWeight: 600, marginTop: '4px' }}>
           Spatial analysis of campus resource allocation
         </p>
       </div>
@@ -72,7 +91,7 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
             outerRadius={80}
             paddingAngle={2}
             dataKey="value"
-            stroke="#0f172a"
+            stroke="#FFFFFF"
             strokeWidth={3}
             label={(props) => renderCustomizedLabel({ ...props, isDark: true })}
             labelLine={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1.5 }}
@@ -86,11 +105,11 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
               borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', 
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
               fontWeight: 900,
-              background: '#0f172a',
-              color: '#fff',
+              background: '#FFFFFF',
+              color: '#1F1F1F',
               fontSize: '0.8rem'
             }} 
-            itemStyle={{ color: '#fff' }}
+            itemStyle={{ color: '#1F1F1F' }}
           />
         </PieChart>
       </ResponsiveContainer>

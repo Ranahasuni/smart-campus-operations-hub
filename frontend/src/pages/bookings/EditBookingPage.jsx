@@ -1,4 +1,23 @@
 import { useState, useEffect, useMemo } from 'react';
+
+// -- Shared Animation Hooks ---------------------------------
+function useScrollReveal() {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+function Reveal({ children, className = '' }) {
+  const ref = useScrollReveal();
+  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
+}
+
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -219,7 +238,7 @@ export default function EditBookingPage() {
 
   if (loading) return (
     <div className="booking-form-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <Loader2 className="animate-spin" size={48} style={{ color: '#6366f1' }} />
+      <Loader2 className="animate-spin" size={48} style={{ color: '#C08080' }} />
     </div>
   );
 
@@ -243,10 +262,10 @@ export default function EditBookingPage() {
           <CheckCircle2 size={48} />
         </div>
         <h1 className="gradient-text">Reservation Updated!</h1>
-        <p style={{ color: '#94a3b8', fontSize: '1.2rem', marginTop: '16px' }}>
+        <p style={{ color: '#6B7281', fontSize: '1.2rem', marginTop: '16px' }}>
           Your changes for <strong>{resource?.name}</strong> have been saved.
         </p>
-        <p style={{ color: '#64748b', marginTop: '8px' }}>Redirecting to dashboard...</p>
+        <p style={{ color: '#6B7281', marginTop: '8px' }}>Redirecting to dashboard...</p>
       </div>
     </div>
   );
@@ -254,7 +273,7 @@ export default function EditBookingPage() {
   return (
     <div className="booking-form-container animate-fade-in">
       <div className="breadcrumb" style={{ marginBottom: '32px' }}>
-        <Link to="/my-bookings" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', textDecoration: 'none' }}>
+        <Link to="/my-bookings" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7281', textDecoration: 'none' }}>
           <ChevronLeft size={16} /> Cancel Editing
         </Link>
       </div>
@@ -262,7 +281,7 @@ export default function EditBookingPage() {
       <div className="glass-card booking-form-card">
         <header className="form-header">
           <h1 className="gradient-text">Modify Reservation</h1>
-          <p style={{ color: '#94a3b8' }}>Update your booking details while it's still pending.</p>
+          <p style={{ color: '#6B7281' }}>Update your booking details while it's still pending.</p>
           
           {resource && (
             <div className="resource-summary-box">
@@ -321,20 +340,20 @@ export default function EditBookingPage() {
           <div className="availability-display-section" style={{ 
             marginBottom: '32px', 
             padding: '24px', 
-            background: 'rgba(15, 23, 42, 0.4)', 
+            background: 'rgba(245, 230, 230, 0.4)', 
             borderRadius: '20px', 
-            border: '1px solid rgba(99, 102, 241, 0.2)',
+            border: '1px solid rgba(192, 128, 128, 0.2)',
             backdropFilter: 'blur(10px)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#818cf8', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#C08080', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 <Clock size={16} /> Real-Time Availability for {new Date(formData.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
               </div>
               <button 
                 type="button" 
                 onClick={fetchAvailability}
                 className="check-availability-mini-btn"
-                style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                style={{ background: 'rgba(192, 128, 128, 0.1)', border: '1px solid rgba(192, 128, 128, 0.3)', color: '#C08080', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 {checkingAvailability ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />} Refresh
               </button>
@@ -342,7 +361,7 @@ export default function EditBookingPage() {
             
             <div className="availability-segments-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               {checkingAvailability || !resource ? (
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8' }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6B7281' }}>
                     <Loader2 size={16} className="animate-spin" /> Fetching latest availability...
                  </div>
               ) : (() => {
@@ -393,7 +412,7 @@ export default function EditBookingPage() {
                           gap: '4px'
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '1rem', fontWeight: '950', color: 'white' }}>{slot.startTime} — {slot.endTime}</span>
+                            <span style={{ fontSize: '1rem', fontWeight: '950', color: '#1F1F1F' }}>{slot.startTime} — {slot.endTime}</span>
                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80' }}></div>
                           </div>
                           <span style={{ fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', color: '#22c55e', letterSpacing: '0.1em' }}>
@@ -406,7 +425,7 @@ export default function EditBookingPage() {
                 );
               })()}
             </div>
-            <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '12px', fontStyle: 'italic' }}>
+            <p style={{ fontSize: '0.65rem', color: '#6B7281', marginTop: '12px', fontStyle: 'italic' }}>
               * Note: Your existing time slot is excluded from conflicts for easier modification.
             </p>
           </div>
@@ -475,7 +494,7 @@ export default function EditBookingPage() {
           style={{
             position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
             padding: '12px 24px', borderRadius: '12px', background: toast.type === 'success' ? '#22c55e' : '#ef4444',
-            color: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', zIndex: 1000,
+            color: '#1F1F1F', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', zIndex: 1000,
             display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600'
           }}
         >

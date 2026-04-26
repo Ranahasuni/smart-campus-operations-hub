@@ -73,7 +73,7 @@
 .search-input:focus {
   border-color: var(--accent-primary) !important;
   background: rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(192, 128, 128, 0.1) !important;
 }
 
 .search-icon {
@@ -255,8 +255,8 @@
 
 .resource-card-final:hover {
   transform: translateY(-8px);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: var(--shadow-xl), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  border-color: rgba(192, 128, 128, 0.3);
+  box-shadow: var(--shadow-xl), 0 0 0 1px rgba(192, 128, 128, 0.15);
 }
 
 /* ── Card Image ── */
@@ -289,7 +289,7 @@
   justify-content: center;
   gap: 8px;
   color: var(--text-dim);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 139, 250, 0.05));
+  background: linear-gradient(135deg, rgba(192, 128, 128, 0.05), rgba(230, 214, 214, 0.05));
 }
 
 /* ── Status Badge ── */
@@ -434,14 +434,14 @@
 }
 
 .results-found-tag {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(192, 128, 128, 0.1);
   color: var(--accent-primary);
   padding: 6px 16px;
   border-radius: 99px;
   font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(192, 128, 128, 0.2);
 }
 
 .search-term-tag {
