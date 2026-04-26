@@ -43,7 +43,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     private final JwtUtil jwtUtil;
     private final AuditService auditService;
 
-    @org.springframework.beans.factory.annotation.Value("${app.frontend-url}")
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
 
     private String getFrontendCallback() {
