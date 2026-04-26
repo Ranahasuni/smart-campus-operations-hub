@@ -19,10 +19,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:9a4f2c8d3e1f5b6a7c0e9d8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b}")
     private String secret;
-
-    @Value("${jwt.expiration-ms}")
+    
+    @Value("${jwt.expiration-ms:1800000}")
     private long expirationMs;
 
     // ── token generation ────────────────────────────────────────────────────

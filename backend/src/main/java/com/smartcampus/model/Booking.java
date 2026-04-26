@@ -25,7 +25,8 @@ public class Booking {
     private String userId;
     
     @org.springframework.data.mongodb.core.index.Indexed
-    private java.util.List<String> resourceIds;
+    @Builder.Default
+    private java.util.List<String> resourceIds = new java.util.ArrayList<>();
 
     @org.springframework.data.mongodb.core.index.Indexed
     private LocalDate date;
@@ -51,7 +52,8 @@ public class Booking {
     private String riskAssessment;
 
     private boolean cateringRequired;
-    private java.util.List<String> selectedEquipment;
+    @Builder.Default
+    private java.util.List<String> selectedEquipment = new java.util.ArrayList<>();
 
     // Financials
     private Double totalFee;

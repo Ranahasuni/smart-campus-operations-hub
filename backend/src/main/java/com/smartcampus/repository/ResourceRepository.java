@@ -4,6 +4,9 @@ import com.smartcampus.model.Resource;
 import com.smartcampus.model.ResourceStatus;
 import com.smartcampus.model.ResourceType;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -46,4 +49,16 @@ public interface ResourceRepository
     long countByStatus(ResourceStatus status);
 
     List<Resource> findByAssignedStaffIdsContaining(String staffId);
+    // ── Paginated Queries for Large Result Sets ────────────────
+    @Query("{ 'building': ?0 }")
+    Page<Resource> findByBuildingPaginated(String building, PageRequest pageRequest);
+    
+    @Query("{ 'type': ?0 }")
+    Page<Resource> findByTypePaginated(ResourceType type, PageRequest pageRequest);
+    
+    @Query("{ 'status': ?0 }")
+    Page<Resource> findByStatusPaginated(ResourceStatus status, PageRequest pageRequest);
+
+    // ⚡ ELITE CHECK: Find if a room already exists in this exact physical spot
+    java.util.Optional<Resource> findByBuildingAndFloorAndRoomNumber(String building, Integer floor, String roomNumber);
 }
