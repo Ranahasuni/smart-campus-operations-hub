@@ -151,7 +151,7 @@ export default function Dashboard() {
         }}>
           <div>
             <h1 style={{ fontSize: '2.2rem', fontWeight: '950', color: '#1F1F1F', margin: 0, letterSpacing: '-1.5px' }}>
-              Command <span style={{ color: '#10b981' }}>Overview</span>
+              Command <span style={{ color: '#8b0000' }}>Overview</span>
             </h1>
             <p style={{ color: '#6B7281', marginTop: '4px', fontWeight: '500' }}>
               High-level system health and security metrics
@@ -170,10 +170,10 @@ export default function Dashboard() {
               style={{
                 padding: '10px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '10px',
-                background: activeTab === 'OVERVIEW' ? '#10b981' : 'transparent',
+                background: activeTab === 'OVERVIEW' ? '#8b0000' : 'transparent',
                 color: activeTab === 'OVERVIEW' ? '#fff' : '#64748b',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeTab === 'OVERVIEW' ? '0 10px 20px -5px rgba(16, 185, 129, 0.2)' : 'none'
+                boxShadow: activeTab === 'OVERVIEW' ? '0 10px 20px -5px rgba(139, 0, 0, 0.2)' : 'none'
               }}
             >
               <LayoutDashboard size={18} /> Overview
