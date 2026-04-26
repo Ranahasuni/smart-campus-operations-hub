@@ -168,13 +168,60 @@ public class ResourceService {
         summary.put("activeResources", active);
         summary.put("maintenanceResources", maintenance);
         summary.put("outOfServiceResources", outOfService);
-        
-        // Distribution (Simplified for performance - would normally use Mongo Aggregation)
-        // For now, these are still relatively safe if not called 1000x a second
-        summary.put("distributionByBuilding", new HashMap<>()); 
-        summary.put("peakBookingHours", new HashMap<>());
-        summary.put("mostBooked", new ArrayList<>());
-        
+
+        // ── 1. Distribution by Building (Pie Chart) ──────────────────
+        List<Resource> allResources = resourceRepository.findAll();
+        Map<String, Long> buildingDistribution = allResources.stream()
+                .filter(r -> r.getBuilding() != null && !r.getBuilding().isBlank())
+                .collect(Collectors.groupingBy(Resource::getBuilding, Collectors.counting()));
+        summary.put("distributionByBuilding", buildingDistribution);
+
+        // ── 2. Peak Booking Hours (Area Chart) ───────────────────────
+        // Analyze bookings from the last 90 days for meaningful data
+        LocalDate cutoff = LocalDate.now().minusDays(90);
+        List<Booking> recentBookings = bookingRepository.findAll().stream()
+                .filter(b -> b.getDate() != null && !b.getDate().isBefore(cutoff))
+                .filter(b -> b.getStartTime() != null)
+                .filter(b -> b.getStatus() != null && b.getStatus() != com.smartcampus.model.BookingStatus.CANCELLED)
+                .collect(Collectors.toList());
+
+        // Count bookings by start hour (e.g., "08:00" -> 12, "09:00" -> 18)
+        Map<String, Long> peakHours = recentBookings.stream()
+                .collect(Collectors.groupingBy(
+                        b -> String.format("%02d:00", b.getStartTime().getHour()),
+                        Collectors.counting()
+                ));
+        // Sort by hour to ensure chronological order on the chart
+        Map<String, Long> sortedPeakHours = new java.util.TreeMap<>(peakHours);
+        summary.put("peakBookingHours", sortedPeakHours);
+
+        // ── 3. Most Booked Resources (Leaderboard Table) ─────────────
+        // Flatten resourceIds from bookings and count occurrences
+        Map<String, Long> resourceBookingCounts = recentBookings.stream()
+                .filter(b -> b.getResourceIds() != null)
+                .flatMap(b -> b.getResourceIds().stream())
+                .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
+
+        // Get top 10, enrich with resource details
+        Map<String, Resource> resourceMap = allResources.stream()
+                .collect(Collectors.toMap(Resource::getId, r -> r, (a, b) -> a));
+
+        List<Map<String, Object>> mostBooked = resourceBookingCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(10)
+                .map(entry -> {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    Resource r = resourceMap.get(entry.getKey());
+                    item.put("resourceId", entry.getKey());
+                    item.put("name", r != null ? r.getName() : "Unknown Facility");
+                    item.put("type", r != null && r.getType() != null ? r.getType().name() : "N/A");
+                    item.put("building", r != null ? r.getBuilding() : "N/A");
+                    item.put("count", entry.getValue());
+                    return item;
+                })
+                .collect(Collectors.toList());
+        summary.put("mostBooked", mostBooked);
+
         return summary;
     }
 

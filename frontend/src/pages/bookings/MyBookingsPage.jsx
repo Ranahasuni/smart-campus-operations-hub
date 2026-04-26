@@ -1,4 +1,18 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import LoadingSkeleton from '../../components/common/LoadingSkeleton';
+import EmptyState from '../../components/common/EmptyState';
+import ErrorBanner from '../../components/common/ErrorBanner';
+import BookingCard from './components/BookingCard';
+import BookingQRModal from './components/BookingQRModal';
+import Toast from '../../components/common/Toast';
+import { 
+  History,
+  Loader2, ArrowRight
+} from 'lucide-react';
+import '../../styles/my-bookings.css';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -13,25 +27,6 @@ function useScrollReveal() {
   return ref;
 }
 
-function Reveal({ children, className = '' }) {
-  const ref = useScrollReveal();
-  return <div ref={ref} className={`hp-reveal `}>{children}</div>;
-}
-
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import LoadingSkeleton from '../../components/common/LoadingSkeleton';
-import EmptyState from '../../components/common/EmptyState';
-import ErrorBanner from '../../components/common/ErrorBanner';
-import BookingCard from './components/BookingCard';
-import BookingQRModal from './components/BookingQRModal';
-import Toast from '../../components/common/Toast';
-import { 
-  History,
-  Loader2, ArrowRight
-} from 'lucide-react';
-import '../../styles/my-bookings.css';
-
 export default function MyBookingsPage() {
   const navigate = useNavigate();
   const { authFetch, API } = useAuth();
@@ -45,7 +40,6 @@ export default function MyBookingsPage() {
 
   useEffect(() => {
     fetchBookings();
-    // Update current time every minute to keep UI buttons in sync
     const timer = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -72,8 +66,6 @@ export default function MyBookingsPage() {
 
   const handleCancelAction = async (id, status) => {
     const actionLabel = status === 'PENDING' ? 'delete/withdraw' : 'cancel';
-    
-    // Explicitly check for confirm
     if (!window.confirm(`Are you sure you want to ${actionLabel} this reservation?`)) return;
 
     try {
@@ -83,19 +75,17 @@ export default function MyBookingsPage() {
       const res = await authFetch(endpoint, { method });
       if (res.ok) {
         showToast(`Booking ${status === 'PENDING' ? 'withdrawn' : 'cancelled'} successfully!`);
-        if (status === 'PENDING') setActiveTab('CANCELLED');
         fetchBookings();
       } else {
-        showToast('Action failed. Please try again.', 'error');
+        const data = await res.json();
+        showToast(data.message || 'Action failed. Please try again.', 'error');
       }
     } catch (err) {
-      console.error(err);
       showToast('An error occurred.', 'error');
     }
   };
 
   const handleConfirmArrival = async (id) => {
-    // Basic confirmation for "I'm Here"
     try {
       const res = await authFetch(`${API}/api/check-in/${id}`, { method: 'POST' });
       if (res.ok) {
@@ -103,20 +93,18 @@ export default function MyBookingsPage() {
         fetchBookings();
       } else {
         const data = await res.json();
-        showToast(data.error || 'Check-in failed. Please ensure you are at the correct location.', 'error');
+        showToast(data.error || 'Check-in failed.', 'error');
       }
     } catch (err) {
-      showToast('Connection error. Please try again.', 'error');
+      showToast('Connection error.', 'error');
     }
   };
 
   const handleReportMissingQR = async (id) => {
     if (!window.confirm('No QR Code found? This will notify technical staff and try to verify your arrival manually. Proceed?')) return;
-    
     try {
       const res = await authFetch(`${API}/api/check-in/${id}/report-missing-qr`, { method: 'POST' });
       const data = await res.json();
-      
       if (res.ok) {
         showToast(data.message || 'Issue reported successfully.');
         fetchBookings();
@@ -128,36 +116,36 @@ export default function MyBookingsPage() {
     }
   };
 
-  const filteredBookings = bookings.filter(b => {
-    const today = new Date().toISOString().split('T')[0];
-    const isHistory = b.status === 'REJECTED' || b.status === 'CANCELLED' || (b.status === 'APPROVED' && b.date < today);
-    if (isHistory) return false;
-    
-    return activeTab === 'ALL' ? true : b.status === activeTab;
-  });
-
   const isBookingActive = (booking) => {
     if (booking.status !== 'APPROVED' || booking.isCheckedIn) return false;
-    
-    // 1. Check Date
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     if (booking.date !== today) return false;
-
-    // 2. Check Time Window (Starting 10 mins before)
     try {
       const nowTime = now.getHours() * 60 + now.getMinutes();
       const [startH, startM] = booking.startTime.split(':').map(Number);
       const [endH, endM] = booking.endTime.split(':').map(Number);
-
       const startTime = startH * 60 + startM;
       const endTime = endH * 60 + endM;
-
-      // Active from (start - 10) until end
       return nowTime >= (startTime - 10) && nowTime <= endTime;
     } catch (e) {
       return false;
     }
   };
+
+  const filteredBookings = bookings.filter(b => {
+    const today = getLocalDateString();
+    
+    // Statuses that are considered "History" (Not counting towards active quota)
+    const isHistory = b.status === 'REJECTED' || b.status === 'CANCELLED' || 
+                      b.status === 'CHECKED_OUT' || b.status === 'NO_SHOW' || 
+                     (b.status === 'APPROVED' && b.date < today);
+    
+    if (isHistory) return false;
+
+    if (activeTab === 'ALL') return true;
+    if (activeTab === 'APPROVED') return (b.status === 'APPROVED' || b.status === 'CHECKED_IN');
+    return b.status === activeTab;
+  });
 
   if (loading) return (
     <div className="my-bookings-container animate-fade-in">
@@ -209,7 +197,6 @@ export default function MyBookingsPage() {
               onReportMissingQR={handleReportMissingQR}
               onConfirmArrival={handleConfirmArrival}
               onShowQR={(b) => setActiveQRBooking(b)}
-
               isBookingActive={isBookingActive}
             />
           ))

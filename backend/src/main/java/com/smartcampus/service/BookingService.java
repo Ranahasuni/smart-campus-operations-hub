@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.Locale;
 import java.util.Optional;
@@ -75,14 +76,26 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
         if (requester.getRole() == com.smartcampus.model.Role.STUDENT) {
-            long activeBookings = bookingRepository.findByUserId(userId).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.APPROVED)
-                    .count();
+            LocalDate today = LocalDate.now();
+            List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.APPROVED, BookingStatus.CHECKED_IN);
             
-            if (activeBookings >= 3) {
-                log.warn("Booking Quota Exceeded for user {}. Active count: {}", userId, activeBookings);
+            // ⚡ FAST PATH: Use DB count instead of fetching all history
+            long activeCount = bookingRepository.countByUserIdAndStatusInAndDateGreaterThanEqual(userId, activeStatuses, today);
+            
+            if (activeCount >= 3) {
+                // Only if quota full, fetch details to show in error (Rare path)
+                List<Booking> activeList = bookingRepository.findByUserId(userId).stream()
+                    .filter(b -> activeStatuses.contains(b.getStatus()) && !b.getDate().isBefore(today))
+                    .toList();
+
+                String bookingList = activeList.stream()
+                    .map(b -> (b.getBookingCode() != null ? b.getBookingCode() : "RSV-NEW") + " (" + b.getDate() + ")")
+                    .collect(Collectors.joining(", "));
+                
+                log.warn("Quota block for {}: {}", userId, bookingList);
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, 
-                    "Booking Quota Exceeded: Students are limited to 3 active reservations at a time to ensure fair access for all members.");
+                    "Quota Limit Reached (3/3). Active reservations: " + bookingList + 
+                    ". Please cancel or complete them to book more.");
             }
         }
 
@@ -112,14 +125,17 @@ public class BookingService {
             }
 
             if (dto.getExpectedAttendees() > resource.getCapacity()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Capacity exceeded for " + resource.getName());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    String.format("Capacity Exceeded: %s only supports a maximum of %d seats. Please reduce your attendee count.", 
+                        resource.getName(), resource.getCapacity()));
             }
 
             validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
         }
 
         // 3. Conflict Detection
-        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), null);
+        // 3. Conflict Detection with Role Priority
+        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), null, requester.getRole());
 
         // 4. Build Simplified Booking
         Booking booking = Booking.builder()
@@ -171,7 +187,10 @@ public class BookingService {
             }
             validateAvailability(resource, dto.getDate(), dto.getStartTime(), dto.getEndTime());
         }
-        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id);
+        com.smartcampus.model.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        checkForConflicts(dto.getResourceIds(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), id, user.getRole());
 
 
         booking.setDate(dto.getDate());
@@ -184,16 +203,43 @@ public class BookingService {
         return mapToResponseDTO(bookingRepository.save(booking));
     }
 
-    private void checkForConflicts(List<String> resourceIds, LocalDate date, java.time.LocalTime start, java.time.LocalTime end, String excludeId) {
-        List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.APPROVED);
-        List<Booking> activeBookings = bookingRepository.findByResourceIdsInAndDateAndStatusIn(resourceIds, date, activeStatuses);
+    private void checkForConflicts(List<String> resourceIds, LocalDate date, java.time.LocalTime start, java.time.LocalTime end, String excludeId, com.smartcampus.model.Role requesterRole) {
+        List<BookingStatus> watchStatuses = List.of(BookingStatus.PENDING, BookingStatus.APPROVED);
+        List<Booking> activeBookings = bookingRepository.findByResourceIdsInAndDateAndStatusIn(resourceIds, date, watchStatuses);
 
-        boolean hasConflict = activeBookings.stream()
-                .filter(b -> excludeId == null || !b.getId().equals(excludeId))
-                .anyMatch(existing -> existing.getStartTime().isBefore(end) && existing.getEndTime().isAfter(start));
+        if (activeBookings.isEmpty()) return;
 
-        if (hasConflict) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "One or more selected rooms are occupied during this time.");
+        // Fetch user roles for all active bookings to check priority
+        Set<String> userIds = activeBookings.stream().map(Booking::getUserId).collect(Collectors.toSet());
+        Map<String, com.smartcampus.model.Role> userRoles = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(com.smartcampus.model.User::getId, com.smartcampus.model.User::getRole, (a, b) -> a));
+
+        for (Booking existing : activeBookings) {
+            if (excludeId != null && existing.getId().equals(excludeId)) continue;
+
+            // Overlap Detection: start < existing.end && end > existing.start
+            boolean overlaps = existing.getStartTime().isBefore(end) && existing.getEndTime().isAfter(start);
+            if (!overlaps) continue;
+
+            // Rule 1: APPROVED always blocks
+            if (existing.getStatus() == BookingStatus.APPROVED) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "The facility is already reserved for this time slot.");
+            }
+
+            // Rule 2: Lecturer PENDING blocks everyone (Equal Priority Rule)
+            com.smartcampus.model.Role existingRole = userRoles.get(existing.getUserId());
+            boolean existingIsPriority = existingRole == com.smartcampus.model.Role.LECTURER || existingRole == com.smartcampus.model.Role.ADMIN;
+            
+            if (existingIsPriority) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "A faculty member has already requested this slot. Please choose another time.");
+            }
+
+            // Rule 3: Student PENDING blocks other Students
+            if (requesterRole == com.smartcampus.model.Role.STUDENT) {
+                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Another student has a pending request for this slot.");
+            }
+            
+            // Case 4: Requester is LECTURER and existing is STUDENT PENDING -> Allowed (Priority Request)
         }
     }
 
@@ -276,23 +322,54 @@ public class BookingService {
 
     public void cancelBooking(String bookingId, String userId) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
-        if (!booking.getUserId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        com.smartcampus.model.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User context lost"));
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized cancellation attempt.");
+        }
+
+        // Rule: Only PENDING bookings can be cancelled by non-admins. 
+        boolean isAdminOrLecturer = user.getRole() == com.smartcampus.model.Role.ADMIN || user.getRole() == com.smartcampus.model.Role.LECTURER;
         
-        log.info("Cancelling booking {} by user {}", bookingId, userId);
+        if (booking.getStatus() == BookingStatus.APPROVED && !isAdminOrLecturer) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Approved reservations can only be managed by Administrators or Faculty.");
+        }
+
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+        log.info("User {} cancelled booking {}", userId, bookingId);
         auditService.log(userId, "BOOKING_CANCEL", "Cancelled booking " + bookingId);
     }
 
     public void deleteBooking(String bookingId, String userId) {
-        cancelBooking(bookingId, userId);
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized deletion attempt.");
+        }
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawal Error: Only PENDING requests can be deleted by users.");
+        }
+
+        bookingRepository.delete(booking);
+        log.info("User {} withdrew pending request {}", userId, bookingId);
     }
 
     // ── Admin Operations (Core Models) ────────────────────────────────────────
 
     public List<BookingResponseDTO> getAllBookings() {
-        List<Booking> bookings = bookingRepository.findAll();
+        // 🚀 HIGH PERFORMANCE: Only fetch the top 200 most recent records
+        // Loading thousands of records at once is what was causing the 6s+ delay.
+        org.springframework.data.domain.Pageable limit = org.springframework.data.domain.PageRequest.of(
+            0, 200, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+        );
+        
+        List<Booking> bookings = bookingRepository.findAll(limit).getContent();
         if (bookings.isEmpty()) return List.of();
 
         // 1. Bulk Fetch Resources
@@ -302,7 +379,7 @@ public class BookingService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
-                .collect(Collectors.toMap(Resource::getId, r -> r));
+                .collect(Collectors.toMap(Resource::getId, r -> r, (a, b) -> a));
 
         // 2. Bulk Fetch Users
         Set<String> userIds = bookings.stream()
@@ -310,7 +387,7 @@ public class BookingService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<String, com.smartcampus.model.User> userMap = userRepository.findAllById(userIds).stream()
-                .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u));
+                .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u, (a, b) -> a));
 
         return bookings.stream()
                 .map(b -> mapToResponseDTOWithData(b, userMap.get(b.getUserId()), resourceMap))
@@ -378,6 +455,11 @@ public class BookingService {
         booking.setStatus(status);
         Booking saved = bookingRepository.save(booking);
 
+        // Auto-Resolution: Reject overlapping pending requests if this one was approved
+        if (status == BookingStatus.APPROVED) {
+            rejectOverlappingPendingBookings(booking, adminId);
+        }
+
         log.info("Admin {} updated booking {} status to {}", adminId, id, status);
         
         auditService.log(adminId, "BOOKING_MODERATION", 
@@ -393,11 +475,32 @@ public class BookingService {
         return saved;
     }
 
+    private void rejectOverlappingPendingBookings(Booking approvedBooking, String adminId) {
+        List<Booking> pendingOverlaps = bookingRepository.findByResourceIdsInAndDateAndStatusIn(
+            approvedBooking.getResourceIds(), 
+            approvedBooking.getDate(), 
+            List.of(BookingStatus.PENDING)
+        );
+
+        pendingOverlaps.stream()
+            .filter(b -> !b.getId().equals(approvedBooking.getId()))
+            .filter(b -> b.getStartTime().isBefore(approvedBooking.getEndTime()) && b.getEndTime().isAfter(approvedBooking.getStartTime()))
+            .forEach(b -> {
+                b.setStatus(BookingStatus.REJECTED);
+                b.setRejectionReason("Another reservation for " + b.getStartTime() + " was authorized for this facility. Your request has been automatically declined.");
+                bookingRepository.save(b);
+                
+                // Notify the displaced user
+                String resId = b.getResourceIds().isEmpty() ? "unknown" : b.getResourceIds().get(0);
+                notificationService.notifyBookingRejected(b.getUserId(), b.getId(), resId, b.getRejectionReason());
+                
+                log.info("Auto-rejected overlapping booking {} due to approval of {}", b.getId(), approvedBooking.getId());
+            });
+    }
+
     public List<Booking> findConflicts(Booking request) {
-        return bookingRepository.findByResourceIdIn(request.getResourceIds()).stream()
+        return bookingRepository.findByResourceIdsInAndDateAndStatusIn(request.getResourceIds(), request.getDate(), List.of(BookingStatus.APPROVED)).stream()
                 .filter(b -> !b.getId().equals(request.getId()))
-                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
-                .filter(b -> b.getDate().equals(request.getDate()))
                 .filter(b -> request.getStartTime().isBefore(b.getEndTime()) && request.getEndTime().isAfter(b.getStartTime()))
                 .collect(Collectors.toList());
     }
@@ -448,6 +551,7 @@ public class BookingService {
                 .expectedAttendees(booking.getExpectedAttendees())
                 .rejectionReason(booking.getRejectionReason())
                 .bookingCode(booking.getBookingCode())
+                .requesterRole(user != null ? user.getRole() : null)
                 .createdAt(booking.getCreatedAt())
                 .build();
     }

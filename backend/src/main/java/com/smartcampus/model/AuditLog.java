@@ -27,6 +27,12 @@ public class AuditLog {
     @Indexed
     private String userId;
 
+    /** Human-readable identity — the campusId (e.g. lec01, stu05, admin01) */
+    private String principalId;
+
+    /** Role at the time of the event (ADMIN, LECTURER, STUDENT, STAFF) */
+    private String principalRole;
+
     private String action; // e.g. LOGIN, LOGOUT, BOOKING_CREATE, PROFILE_UPDATE, ACCOUNT_LOCKED
 
     @Builder.Default

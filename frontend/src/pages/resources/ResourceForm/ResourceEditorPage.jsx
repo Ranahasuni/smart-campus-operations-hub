@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -19,7 +19,7 @@ function Reveal({ children, className = '' }) {
 }
 
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ShieldCheck, Zap, Home, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../api/axiosInstance';
 import './ResourceForm.css';
@@ -381,7 +381,14 @@ export default function ResourceEditorPage() {
   }
 
   return (
-    <div className="resource-form-container" style={{ position: 'relative' }}>
+    <div className="resource-form-page-wrapper" style={{ 
+      minHeight: '100vh', 
+      background: 'var(--bg-primary)', 
+      backgroundAttachment: 'fixed',
+      backgroundImage: 'radial-gradient(circle at 50% -20%, rgba(140, 0, 0, 0.05), transparent 80%)',
+      padding: '40px 20px' 
+    }}>
+      <div className="resource-form-container" style={{ position: 'relative' }}>
 
       {/* ADVANCED BACK BUTTON */}
       <Link to="/admin/resources" style={{
@@ -421,25 +428,75 @@ export default function ResourceEditorPage() {
         <FormButtons isEdit={isEdit} loading={loading} />
       </form>
 
-      {/* PAF ADVANCED SUCCESS MODAL (ZERO BLUR STYLE) */}
+      {/* ═══ PREMIUM SUCCESS MODAL ═══ */}
       {showSuccess && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.25)', backdropFilter: 'none !important', WebkitBackdropFilter: 'none !important', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, animation: 'fadeIn 0.3s' }}>
-          <div style={{ background: '#fff', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '420px', textAlign: 'center', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)', color: '#1F1F1F', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}>
-              <ShieldCheck size={40} />
+        <div style={{ 
+          position: 'fixed', inset: 0, 
+          background: 'rgba(255, 255, 255, 0.4)', 
+          backdropFilter: 'blur(16px)', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+          zIndex: 2000, 
+          animation: 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)' 
+        }}>
+          <div style={{ 
+            background: 'var(--bg-secondary)', 
+            padding: '48px', 
+            borderRadius: '32px', 
+            width: '90%', maxWidth: '480px', 
+            textAlign: 'center', 
+            boxShadow: 'var(--shadow-xl)', 
+            border: '1px solid var(--glass-border)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Background Accent Glow */}
+            <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', background: 'radial-gradient(circle at 50% 50%, rgba(140, 0, 0, 0.03), transparent 50%)', pointerEvents: 'none' }}></div>
+
+            <div style={{ 
+              width: '90px', height: '90px', 
+              borderRadius: '24px', 
+              background: 'rgba(140, 0, 0, 0.05)', 
+              color: 'var(--accent-primary)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              margin: '0 auto 32px', 
+              boxShadow: '0 0 40px rgba(140, 0, 0, 0.05)',
+              border: '1px solid var(--glass-border)'
+            }}>
+              <ShieldCheck size={48} strokeWidth={1.5} />
             </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#FFFFFF', margin: '0 0 32px 0' }}>
-              {isEdit ? 'Resource Updated Successfully' : 'New Asset Registered'}
+
+            <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text-primary)', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
+              {isEdit ? 'Operation Successful' : 'Asset Synchronized'}
             </h2>
-            <button
-              onClick={() => navigate('/admin/resources')}
-              style={{ width: '100%', marginTop: '12px', padding: '16px', borderRadius: '14px', border: 'none', background: '#FFFFFF', color: '#1F1F1F', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 20px rgba(245, 230, 230, 0.2)' }}
-            >
-              Return to Management <Zap size={18} fill="#fff" />
-            </button>
+            
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: '500', marginBottom: '40px', lineHeight: '1.6' }}>
+              {isEdit 
+                ? 'The facility metadata has been updated across the campus network. All changes are now live.' 
+                : 'A new facility has been successfully registered in the Smart Campus Operations Hub.'}
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                onClick={() => navigate('/admin/resources')}
+                className="btn-primary"
+                style={{ width: '100%', justifyContent: 'center', padding: '18px' }}
+              >
+                Return to Dashboard <ChevronRight size={20} />
+              </button>
+              
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="btn-secondary"
+                style={{ width: '100%', padding: '16px' }}
+              >
+                Continue Editing
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
+    </div>
   );
 }
+

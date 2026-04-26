@@ -27,6 +27,9 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     List<Booking> findByUserIdAndDateAndStatusIn(String userId, LocalDate date, List<BookingStatus> statuses);
 
+    // ⚡ HIGH-SPEED QUOTA ENGINE: Count active future bookings without fetching full history
+    long countByUserIdAndStatusInAndDateGreaterThanEqual(String userId, List<BookingStatus> statuses, LocalDate date);
+
     // ⚡ ELITE CHECK: Verify if any active bookings exist for a resource before deletion
     boolean existsByResourceIdsInAndStatusIn(java.util.Collection<String> resourceIds, java.util.Collection<BookingStatus> statuses);
 }
