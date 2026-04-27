@@ -104,7 +104,7 @@ public class ResourceService {
 
         Query query = new Query();
         // ⚡ PERFORMANCE FIX: Only fetch necessary fields for the table (EXCLUDING IMAGES TO PREVENT OOM/TIMEOUTS)
-        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "assignedStaffIds");
+        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "assignedStaffIds", "description", "equipment", "location", "availability");
         if (building != null && !building.trim().isEmpty()) {
             query.addCriteria(Criteria.where("building").is(building));
         }
@@ -144,6 +144,15 @@ public class ResourceService {
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
         return toDTO(resource);
+    }
+
+    // ── GET SINGLE RESOURCE SUMMARY (NO IMAGES) ─────────────────
+    public ResourceResponseDTO getResourceSummaryById(String id) {
+        Query query = new Query(Criteria.where("id").is(id));
+        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "description", "equipment", "location", "availability");
+        Resource resource = mongoTemplate.findOne(query, Resource.class);
+        if (resource == null) throw new ResourceNotFoundException(id);
+        return toSummaryDTO(resource);
     }
 
     // ── GET SINGLE RESOURCE IMAGE ─────────────────────────────
@@ -200,60 +209,54 @@ public class ResourceService {
     }
 
     // ── ANALYTICS SUMMARY (CORE ENGINE) ─────────────────
-    // ⚡ PERFORMANCE FIX: Parallelized all aggregations + 5-min cache
     @Cacheable(value = "analytics", unless = "#result == null")
     public Map<String, Object> getAnalyticsSummary() {
         try {
-            // Run all 4 aggregations in parallel
-            CompletableFuture<Map<String, Object>> statusFuture = CompletableFuture.supplyAsync(this::getStatusCounts, executorService);
-            CompletableFuture<Map<String, Long>> buildingFuture = CompletableFuture.supplyAsync(this::getDistributionByBuilding, executorService);
-            CompletableFuture<Map<String, Long>> peakFuture = CompletableFuture.supplyAsync(this::getPeakBookingHours, executorService);
-            CompletableFuture<List<Map<String, Object>>> leaderboardFuture = CompletableFuture.supplyAsync(this::getMostBookedResources, executorService);
+            log.info("Starting sequential analytics synchronization...");
+            long start = System.currentTimeMillis();
 
-            // Wait for all to complete with a 5-second timeout
-            CompletableFuture.allOf(statusFuture, buildingFuture, peakFuture, leaderboardFuture)
-                .get(5, TimeUnit.SECONDS);
-
-            // Combine results
             Map<String, Object> summary = new LinkedHashMap<>();
-            summary.putAll(statusFuture.join());
-            summary.put("distributionByBuilding", buildingFuture.join());
-            summary.put("peakBookingHours", peakFuture.join());
-            summary.put("mostBooked", leaderboardFuture.join());
+            
+            // 1. Status Counts
+            Map<String, Object> statusCounts = getStatusCounts();
+            summary.putAll(statusCounts);
+            log.info("Analytics: Status counts fetched ({})", statusCounts.get("totalResources"));
 
+            // 2. Building Distribution
+            Map<String, Long> buildingDist = getDistributionByBuilding();
+            summary.put("distributionByBuilding", buildingDist);
+            log.info("Analytics: Building distribution fetched ({} buildings)", buildingDist.size());
+
+            // 3. Peak Hours
+            Map<String, Long> peakHours = getPeakBookingHours();
+            summary.put("peakBookingHours", peakHours);
+            log.info("Analytics: Peak hours fetched ({} data points)", peakHours.size());
+
+            // 4. Most Booked
+            List<Map<String, Object>> mostBooked = getMostBookedResources();
+            summary.put("mostBooked", mostBooked);
+            log.info("Analytics: Most booked leaderboard fetched ({} items)", mostBooked.size());
+
+            // 5. Total Sync
+            long repoCount = resourceRepository.count();
+            if ((long)statusCounts.getOrDefault("totalResources", 0L) < repoCount) {
+                summary.put("totalResources", repoCount);
+            }
+
+            log.info("Analytics synchronization complete in {}ms", System.currentTimeMillis() - start);
             return summary;
-        } catch (TimeoutException e) {
-            log.warn("Analytics query timeout - returning partial results");
-            return getFallbackAnalytics();
         } catch (Exception e) {
-            log.error("Analytics query error", e);
-            return getFallbackAnalytics();
+            log.error("CRITICAL: Analytics engine failed", e);
+            throw new RuntimeException("The analytics engine encountered a database synchronization error: " + e.getMessage());
         }
     }
 
     // Helper method 1: Get status counts
     private Map<String, Object> getStatusCounts() {
-        org.springframework.data.mongodb.core.aggregation.Aggregation statusAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
-            org.springframework.data.mongodb.core.aggregation.Aggregation.group("status").count().as("count")
-        );
-        List<org.bson.Document> statusResults = mongoTemplate.aggregate(statusAgg, "resources", org.bson.Document.class).getMappedResults();
-        
-        long totalResources = 0;
-        long active = 0;
-        long maintenance = 0;
-        long outOfService = 0;
-        
-        for (org.bson.Document doc : statusResults) {
-            Object idObj = doc.get("_id");
-            String status = idObj != null ? idObj.toString() : "UNKNOWN";
-            Number countNum = (Number) doc.get("count");
-            long count = countNum != null ? countNum.longValue() : 0L;
-            
-            totalResources += count;
-            if ("ACTIVE".equalsIgnoreCase(status)) active = count;
-            else if ("MAINTENANCE".equalsIgnoreCase(status)) maintenance = count;
-            else if ("OUT_OF_SERVICE".equalsIgnoreCase(status)) outOfService = count;
-        }
+        long totalResources = resourceRepository.count();
+        long active = resourceRepository.countByStatus(com.smartcampus.model.ResourceStatus.ACTIVE);
+        long maintenance = resourceRepository.countByStatus(com.smartcampus.model.ResourceStatus.MAINTENANCE);
+        long outOfService = resourceRepository.countByStatus(com.smartcampus.model.ResourceStatus.OUT_OF_SERVICE);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("totalResources", totalResources);
@@ -273,7 +276,15 @@ public class ResourceService {
         
         List<org.bson.Document> buildingResults = mongoTemplate.aggregate(buildingAgg, "resources", org.bson.Document.class).getMappedResults();
         return buildingResults.stream()
-            .collect(Collectors.toMap(d -> d.getString("building"), d -> d.getInteger("count").longValue()));
+            .filter(d -> d.getString("building") != null)
+            .collect(Collectors.toMap(
+                d -> d.getString("building"),
+                d -> {
+                    Object count = d.get("count");
+                    return count instanceof Number ? ((Number) count).longValue() : 0L;
+                },
+                (existing, replacement) -> existing
+            ));
     }
 
     // Helper method 3: Get peak booking hours

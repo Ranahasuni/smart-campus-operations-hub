@@ -46,7 +46,9 @@ export default function BasicInfoSection({ formData, handleChange, handleBlur, e
             <option value="" disabled>Select Type</option>
             <option value="LAB">Lab</option>
             <option value="LECTURE_HALL">Lecture Hall</option>
+            <option value="LECTURE_THEATRE">Lecture Theatre</option>
             <option value="MEETING_ROOM">Meeting Room</option>
+            <option value="VIDEO_CONFERENCE_ROOM">Video Conference Room</option>
             <option value="AUDITORIUM">Auditorium</option>
             <option value="SPORTS_FACILITY">Sports Facility</option>
             <option value="EQUIPMENT">Equipment</option>

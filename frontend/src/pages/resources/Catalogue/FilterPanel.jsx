@@ -30,6 +30,7 @@ const RESOURCE_TYPES_CONFIG = [
   { id: 'AUDITORIUM', name: 'AUDITORIUMS', roles: ['ADMIN', 'LECTURER', 'STUDENT'] },
   { id: 'SPORTS_FACILITY', name: 'SPORTS FACILITIES', roles: ['ADMIN', 'STUDENT'] },
   { id: 'LECTURE_HALL', name: 'LECTURE HALLS', roles: ['ADMIN', 'LECTURER'] },
+  { id: 'LECTURE_THEATRE', name: 'LECTURE THEATRES', roles: ['ADMIN', 'LECTURER'] },
 ];
 
 const FEATURES = ['Projector', 'Whiteboard', 'Core i7 PCs', 'Central AC'];

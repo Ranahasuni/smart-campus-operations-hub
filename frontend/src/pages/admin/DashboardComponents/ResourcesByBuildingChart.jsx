@@ -28,13 +28,6 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, val
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  // Professional Label Mapping - Direct Replacement
-  let displayName = name.toUpperCase().trim();
-  
-  if (displayName.includes('- I') || displayName.includes('BUILDING 1') || displayName === 'NEW BUILDING 1') {
-    displayName = 'NEW BUILDING - F BLOCK';
-  }
-
   return (
     <text 
       x={x} 
@@ -44,7 +37,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, val
       dominantBaseline="central"
       style={{ fontSize: '0.65rem', fontWeight: 800, fontFamily: 'Inter, sans-serif' }}
     >
-      {displayName}
+      {name.toUpperCase().trim()}
     </text>
   );
 };
@@ -52,13 +45,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, val
 export default function ResourcesByBuildingChart({ data, isDark }) {
   // Sort and Map Data for Tooltip consistency
   const chartData = Object.entries(data || {})
-    .map(([key, value]) => {
-      let displayName = key.toUpperCase().trim();
-      if (displayName.includes('- I') || displayName.includes('BUILDING 1') || displayName === 'NEW BUILDING 1') {
-        displayName = 'NEW BUILDING - F BLOCK';
-      }
-      return { name: displayName, value: value };
-    })
+    .map(([key, value]) => ({ name: key.toUpperCase().trim(), value: value }))
     .sort((a, b) => b.value - a.value);
 
   return (
