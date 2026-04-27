@@ -57,6 +57,25 @@ export default function BookingResourceListPage() {
 
   const category = CATEGORY_MAP[type] || { name: type, icon: '📍', roles: [] };
 
+  // Resolve relative paths to absolute backend URLs
+  const resolveUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    if (url.startsWith('/api/uploads')) return `${API}${url}`;
+    return url;
+  };
+
+  // Elite Dynamic fallback images based on type
+  const getFallbackImage = (resourceType) => {
+    switch (resourceType) {
+      case 'LECTURE_HALL': return '/images/campus-lecture.png';
+      case 'AUDITORIUM': return '/images/campus-hero.png';
+      case 'MEETING_ROOM': return '/images/campus-library.png';
+      case 'LAB': return '/images/campus-lecture.png';
+      default: return '/images/campus-hero.png';
+    }
+  };
+
   // Role check
   useEffect(() => {
     if (user && !category.roles.includes(user.role)) {
@@ -223,14 +242,14 @@ export default function BookingResourceListPage() {
             const statusInfo = getStatusInfo(res.status);
             return (
               <div key={res.id} className="glass-card resource-item-card animate-fade-in">
-                <div className="card-image-wrapper">
-                  {res.imageUrls && res.imageUrls.length > 0 ? (
-                    <img src={res.imageUrls[0]} alt={res.name} className="resource-card-img" />
-                  ) : (
-                    <div className="card-image-placeholder">
-                      <LayoutGrid size={32} opacity={0.2} />
-                    </div>
-                  )}
+                <div className="card-image-wrapper" style={{ background: '#1F1F1F' }}>
+                  <img 
+                    src={resolveUrl(res.imageUrls?.[0] || getFallbackImage(res.type))} 
+                    alt={res.name} 
+                    className="resource-card-img" 
+                    onError={(e) => { e.target.src = getFallbackImage(res.type); }}
+                    style={{ transition: 'opacity 0.5s ease' }}
+                  />
                   <div className={`status-chip ${statusInfo.class}`}>
                     {statusInfo.icon} {statusInfo.label}
                   </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -54,6 +54,16 @@ export default function TicketDetailsPage() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [images, setImages] = useState([]);
   const [staffAssignedRooms, setStaffAssignedRooms] = useState([]);
+
+  // Resolve relative paths to absolute backend URLs
+  const resolveUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    if (url.startsWith('/api/uploads')) return `${API}${url}`;
+    if (url.startsWith('/uploads')) return `${API}/api${url}`; // Handle cases without /api
+    if (url.startsWith('uploads')) return `${API}/api/${url}`; // Handle cases without /api and leading slash
+    return url;
+  };
 
   useEffect(() => {
     fetchTicketDetails();
@@ -306,10 +316,10 @@ export default function TicketDetailsPage() {
                     <div 
                       key={img.id} 
                       className="group relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl cursor-pointer"
-                      onClick={() => window.open(`${API}${img.imageUrl}`, '_blank')}
+                      onClick={() => window.open(resolveUrl(img.imageUrl), '_blank')}
                     >
                       <img 
-                        src={`${API}${img.imageUrl}`} 
+                        src={resolveUrl(img.imageUrl)} 
                         alt={img.caption || `Maintenance photo ${index + 1}`} 
                         style={{ width: '100%', height: '160px', objectFit: 'cover' }}
                         className="transition-transform duration-500 group-hover:scale-110"

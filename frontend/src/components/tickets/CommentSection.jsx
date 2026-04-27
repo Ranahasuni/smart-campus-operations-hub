@@ -96,10 +96,10 @@ export default function CommentSection({ ticketId }) {
           style={{
             width: '100%',
             padding: '16px 60px 16px 16px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--glass-border)',
             borderRadius: '12px',
-            color: '#fff',
+            color: 'var(--text-primary)',
             fontSize: '1rem',
             resize: 'none',
             minHeight: '100px',
@@ -107,7 +107,7 @@ export default function CommentSection({ ticketId }) {
             transition: 'border-color 0.2s'
           }}
           onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-          onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+          onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
         />
         <button
           type="submit"

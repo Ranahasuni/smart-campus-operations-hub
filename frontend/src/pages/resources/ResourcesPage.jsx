@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -59,7 +59,7 @@ export default function ResourcesPage() {
       const rawData = res.data || [];
 
       // Filter out removed categories globally
-      const data = rawData.filter(r => r.type !== 'TEACHING_VENUE' && r.type !== 'SEMINAR_ROOM');
+      const data = rawData;
 
       sessionCache = data;
       setAllResources(data);

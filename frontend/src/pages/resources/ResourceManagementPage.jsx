@@ -44,8 +44,13 @@ export default function ResourceManagementPage() {
   const fetchAllResources = async () => {
     try {
       const res = await api.get('/resources?size=100');
-      setAllResources(res.data || []);
-      sessionStorage.setItem('admin_registry_cache', JSON.stringify(res.data || []));
+      const data = Array.isArray(res.data) ? res.data : (res.data.content || res.data.value || []);
+      setAllResources(data);
+      try {
+        sessionStorage.setItem('admin_registry_cache', JSON.stringify(data));
+      } catch (e) {
+        console.warn('Sync Cache: Storage quota exceeded, skipping local persistence.');
+      }
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
@@ -58,7 +63,7 @@ export default function ResourceManagementPage() {
   }, []);
 
   useEffect(() => {
-    if (allResources.length >= 0) {
+    if (Array.isArray(allResources) && allResources.length >= 0) {
       let filtered = [...allResources];
       if (filters.name) {
         const q = filters.name.toLowerCase().trim();
@@ -77,13 +82,14 @@ export default function ResourceManagementPage() {
   }, [filters, allResources]);
 
   const handleUpdateStatus = async (id, nextStatus) => {
+    if (!Array.isArray(allResources)) return;
     // ⚡ OPTIMISTIC UPDATE: Change UI instantly
     const originalResources = [...allResources];
     const updated = allResources.map(r => r.id === id ? { ...r, status: nextStatus } : r);
     setAllResources(updated);
 
     try {
-      await api.patch(`/resources/${id}/status?status=${nextStatus}`);
+      await api.patch(`/resources/${id}/status?status=${nextStatus}`, {});
       // Refresh cache with the correct updated data
       sessionStorage.setItem('admin_registry_cache', JSON.stringify(updated));
     } catch (err) {
@@ -94,6 +100,7 @@ export default function ResourceManagementPage() {
   };
 
   const handleDeleteResource = async (id) => {
+    if (!Array.isArray(allResources)) return;
     // ⚡ OPTIMISTIC DELETE: Remove row instantly
     const originalResources = [...allResources];
     const updated = allResources.filter(r => r.id !== id);

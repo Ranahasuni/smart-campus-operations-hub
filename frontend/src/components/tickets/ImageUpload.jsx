@@ -100,7 +100,7 @@ const ImageUpload = ({ onFilesSelected, maxFiles = 3 }) => {
               <img 
                 src={preview.url} 
                 alt="preview" 
-                style={{ width: '100%', height: '100%', objectCover: 'cover' }} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />
               <button
                 type="button"

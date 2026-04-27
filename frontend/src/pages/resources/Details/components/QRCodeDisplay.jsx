@@ -45,7 +45,7 @@ export default function QRCodeDisplay({ resourceId, resourceName }) {
             <div class="badge">SMART CAMPUS OS</div>
             <h1>${resourceName || 'Facility'}</h1>
             <p>Scan to verify booking and check-in</p>
-            <img src="${qrUrl}" alt="QR Code" />
+            <img src={qrUrl} alt="QR Code" />
             <div class="footer">SECURE DIGITAL IDENTITY</div>
           </div>
           <script>setTimeout(() => { window.print(); window.close(); }, 500);</script>
