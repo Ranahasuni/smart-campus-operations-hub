@@ -31,6 +31,7 @@ import SummaryCards from './DashboardComponents/SummaryCards';
 import ResourcesByBuildingChart from './DashboardComponents/ResourcesByBuildingChart';
 import PeakBookingHoursChart from './DashboardComponents/PeakBookingHoursChart';
 import MostBookedTable from './DashboardComponents/MostBookedTable';
+import ResourceAnalyticsPage from './DashboardComponents/ResourceAnalyticsPage';
 
 export default function Dashboard() {
   const { authFetch, user, API } = useAuth();
@@ -131,7 +132,7 @@ export default function Dashboard() {
         }}>
           <div>
             <h1 style={{ fontSize: '2.2rem', fontWeight: '950', color: '#1F1F1F', margin: 0, letterSpacing: '-1.5px' }}>
-              Command <span style={{ color: '#8b0000' }}>Overview</span>
+              System <span style={{ color: '#8b0000' }}>Overview</span>
             </h1>
             <p style={{ color: '#6B7281', marginTop: '4px', fontWeight: '500' }}>
               High-level system health and security metrics
@@ -248,29 +249,7 @@ export default function Dashboard() {
       {/* VIEW 2: RESOURCE ANALYTICS */}
       {activeTab === 'ANALYTICS' && (
         <div className="fade-in anim-dash">
-          <Reveal>
-            <SummaryCards stats={stats.resourceStats || {}} />
-          </Reveal>
-          <Reveal>
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '40px'
-            }}>
-              <PeakBookingHoursChart data={stats.resourceStats?.peakBookingHours} />
-              <ResourcesByBuildingChart data={stats.resourceStats?.distributionByBuilding} />
-            </div>
-          </Reveal>
-
-          <Reveal>
-            <div className="glass-panel" style={{ borderRadius: '32px', padding: '32px' }}>
-              <div style={{ marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '1.25rem', color: '#1F1F1F', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <TrendingUp size={20} color="#10b981" /> High-Utility Facilities
-                </h2>
-                <p style={{ color: '#6B7281', fontSize: '0.85rem', fontWeight: 500 }}>Most booked resources across the campus</p>
-              </div>
-              <MostBookedTable data={stats.resourceStats?.mostBooked} isDark={false} />
-            </div>
-          </Reveal>
+           <ResourceAnalyticsPage embedMode={true} />
         </div>
       )}
 

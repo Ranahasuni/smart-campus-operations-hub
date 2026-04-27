@@ -27,13 +27,23 @@ export default function BookingQRModal({ booking, onClose }) {
   const qrData = booking.bookingCode || booking.id;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrData)}&color=8C0000&bgcolor=ffffff`;
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = qrUrl;
-    link.download = `Booking_QR_${qrData}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Booking_QR_${qrData}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      // Fallback: Open in new tab
+      window.open(qrUrl, '_blank');
+    }
   };
 
   return (
