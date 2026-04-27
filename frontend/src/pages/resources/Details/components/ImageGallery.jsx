@@ -19,12 +19,24 @@ function Reveal({ children, className = '' }) {
 }
 
 
+import { useAuth } from '../../../../context/AuthContext';
+
 export default function ImageGallery({ images, name, status }) {
+  const { API } = useAuth();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const fallbackImage = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80';
+  
+  const resolveUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    if (url.startsWith('/api/uploads')) return `${API}${url}`;
+    return url;
+  };
+
   const hasImages = images && images.length > 0;
-  const mainImage = hasImages ? images[activeImageIndex] : fallbackImage;
+  const rawMainImage = hasImages ? images[activeImageIndex] : fallbackImage;
+  const mainImage = resolveUrl(rawMainImage);
 
   return (
     <div className="gallery-container-paf">
@@ -42,7 +54,7 @@ export default function ImageGallery({ images, name, status }) {
               className={`thumbnail-box ${activeImageIndex === idx ? 'active' : ''}`}
               onClick={() => setActiveImageIndex(idx)}
             >
-              <img src={url} alt={`${name} view ${idx + 1}`} />
+              <img src={resolveUrl(url)} alt={`${name} view ${idx + 1}`} />
             </div>
           ))}
         </div>

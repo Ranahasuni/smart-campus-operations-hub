@@ -27,10 +27,9 @@ export default function ImagesSection({ formData, setFormValue, errors = {} }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check file size (limit to 1MB for Base64 storage safety in demo)
+    // Check file size (limit to 1MB for a balance between quality and performance)
     if (file.size > 1024 * 1024) {
-      // Create a temporary status so the admin knows why it failed
-      setFormValue('images_error', "File too large: Please select a high-quality image under 1MB for optimal system performance.");
+      setFormValue('images_error', "Please select an image under 1MB.");
       return;
     }
 

@@ -103,8 +103,10 @@ public class ResourceService {
             int page, int size) {
 
         Query query = new Query();
-        // ⚡ PERFORMANCE FIX: Only fetch necessary fields for the table (EXCLUDING IMAGES TO PREVENT OOM/TIMEOUTS)
-        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "assignedStaffIds", "description", "equipment", "location", "availability");
+        // ⚡ PERFORMANCE ELITE: Fetch core fields + ONLY the first image URL
+        // Using slice(1) prevents fetching massive Base64 strings for secondary images, which was causing timeouts.
+        query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "assignedStaffIds", "description", "equipment", "location", "availability", "imageUrls")
+                     .slice("imageUrls", 1);
         if (building != null && !building.trim().isEmpty()) {
             query.addCriteria(Criteria.where("building").is(building));
         }
@@ -212,9 +214,17 @@ public class ResourceService {
     @Cacheable(value = "analytics", unless = "#result == null")
     public Map<String, Object> getAnalyticsSummary() {
         try {
-            log.info("Starting sequential analytics synchronization...");
-            long start = System.currentTimeMillis();
+            // ⚡ PERFORMANCE STABILIZATION: Run aggregations in parallel to avoid single-thread blockage
+            CompletableFuture<Map<String, Object>> statusFuture = CompletableFuture.supplyAsync(this::getStatusCounts);
+            CompletableFuture<Map<String, Long>> buildingFuture = CompletableFuture.supplyAsync(this::getDistributionByBuilding);
+            CompletableFuture<Map<String, Long>> peakFuture = CompletableFuture.supplyAsync(this::getPeakBookingHours);
+            CompletableFuture<List<Map<String, Object>>> leaderboardFuture = CompletableFuture.supplyAsync(this::getMostBookedResources);
 
+            // Wait for all to complete with a 15-second timeout
+            CompletableFuture.allOf(statusFuture, buildingFuture, peakFuture, leaderboardFuture)
+                .get(15, TimeUnit.SECONDS);
+
+            // Combine results into a single atomic response view
             Map<String, Object> summary = new LinkedHashMap<>();
             
             // 1. Status Counts
@@ -276,14 +286,13 @@ public class ResourceService {
         
         List<org.bson.Document> buildingResults = mongoTemplate.aggregate(buildingAgg, "resources", org.bson.Document.class).getMappedResults();
         return buildingResults.stream()
-            .filter(d -> d.getString("building") != null)
-            .collect(Collectors.toMap(
-                d -> d.getString("building"),
+            .collect(java.util.stream.Collectors.toMap(
+                d -> d.getString("building") != null ? d.getString("building") : "Unknown", 
                 d -> {
-                    Object count = d.get("count");
-                    return count instanceof Number ? ((Number) count).longValue() : 0L;
+                    Number n = (Number) d.get("count");
+                    return n != null ? n.longValue() : 0L;
                 },
-                (existing, replacement) -> existing
+                (v1, v2) -> v1 + v2
             ));
     }
 
@@ -291,9 +300,8 @@ public class ResourceService {
     private Map<String, Long> getPeakBookingHours() {
         LocalDate peakCutoff = LocalDate.now().minusDays(30);
         org.springframework.data.mongodb.core.aggregation.Aggregation peakAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
-            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("date").gte(peakCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED)),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.project()
-                .andExpression("arrayElemAt(split(startTime, ':'), 0)").as("hour"),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("date").gte(peakCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED).and("startTime").exists(true)),
+            org.springframework.data.mongodb.core.aggregation.Aggregation.project().and("startTime").substring(0, 2).as("hour"),
             org.springframework.data.mongodb.core.aggregation.Aggregation.group("hour").count().as("count"),
             org.springframework.data.mongodb.core.aggregation.Aggregation.sort(org.springframework.data.domain.Sort.Direction.ASC, "_id")
         );
@@ -301,9 +309,10 @@ public class ResourceService {
         List<org.bson.Document> peakResults = mongoTemplate.aggregate(peakAgg, "bookings", org.bson.Document.class).getMappedResults();
         Map<String, Long> peakHours = new java.util.TreeMap<>();
         for (org.bson.Document doc : peakResults) {
-            String hour = doc.getString("_id");
-            if (hour != null) {
-                // Normalize hour to HH format (e.g., "8" -> "08")
+            String hourId = doc.getString("_id");
+            if (hourId != null) {
+                // Handle cases like "8" or "8:"
+                String hour = hourId.split(":")[0]; 
                 String normalizedHour = hour.length() == 1 ? "0" + hour : hour;
                 peakHours.put(normalizedHour + ":00", ((Number) doc.get("count")).longValue());
             }

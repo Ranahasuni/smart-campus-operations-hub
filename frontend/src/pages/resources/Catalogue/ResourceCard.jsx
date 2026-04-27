@@ -21,16 +21,26 @@ function Reveal({ children, className = '' }) {
 import { Link } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Settings, AlertTriangle } from 'lucide-react';
 import api from '../../../api/axiosInstance';
+import { useAuth } from '../../../context/AuthContext';
 import './Catalogue.css';
 
 export default function ResourceCard({ resource }) {
+  const { API } = useAuth();
   const [imgError, setImgError] = useState(false);
   const [lazyImageUrl, setLazyImageUrl] = useState(null);
 
   // Gracefully handle images
-  const initialImageUrl = resource.imageUrls && resource.imageUrls.length > 0
+  let initialImageUrl = resource.imageUrls && resource.imageUrls.length > 0
     ? resource.imageUrls[0]
     : null;
+
+  // Resolve relative paths to absolute backend URLs
+  const resolveUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    if (url.startsWith('/api/uploads')) return `${API}${url}`;
+    return url;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -46,9 +56,21 @@ export default function ResourceCard({ resource }) {
         });
     }
     return () => { mounted = false; };
-  }, [resource.id, initialImageUrl]);
+  }, [resource.id, initialImageUrl, API]);
 
-  const imageUrl = initialImageUrl || lazyImageUrl;
+  // Elite Dynamic fallback images based on type
+  const getFallbackImage = (type) => {
+    switch (type) {
+      case 'LECTURE_HALL': return 'https://images.unsplash.com/photo-1541339907198-e08756ebafe1?auto=format&fit=crop&q=80';
+      case 'AUDITORIUM': return 'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?auto=format&fit=crop&q=80';
+      case 'MEETING_ROOM': return 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&q=80';
+      case 'LAB': return 'https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&q=80';
+      default: return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80';
+    }
+  };
+
+  const rawUrl = initialImageUrl || lazyImageUrl || getFallbackImage(resource.type);
+  const imageUrl = resolveUrl(rawUrl);
 
   const getStatusConfig = (status) => {
     switch (status) {
@@ -69,6 +91,7 @@ export default function ResourceCard({ resource }) {
             src={imageUrl}
             alt={resource.name || 'Resource'}
             className="photo-edge-to-edge"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             loading="lazy"
             onError={() => setImgError(true)}
           />
