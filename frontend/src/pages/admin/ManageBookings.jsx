@@ -46,7 +46,7 @@ export default function ManageBookings() {
 
   const fetchBookings = async () => {
     try {
-      const res = await authFetch(`${API}/api/bookings/all`);
+      const res = await authFetch(`${API}/api/bookings/all?size=100`);
       if (!res.ok) throw new Error('System failed to retrieve reservation records');
       const data = await res.json();
       const sortedData = (Array.isArray(data) ? data : []).sort((a, b) => {

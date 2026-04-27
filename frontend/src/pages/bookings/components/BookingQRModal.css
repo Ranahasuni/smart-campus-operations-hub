@@ -1,0 +1,217 @@
+/* ═══════════════════════════════════════════════════════════════
+   Digital Check-In ID Modal — Premium Boarding Pass Style
+   ═══════════════════════════════════════════════════════════════ */
+
+.qr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+  padding: 20px;
+}
+
+.qr-modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 28px;
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Header Area ── */
+.qr-modal-header {
+  background: linear-gradient(135deg, #8C0000, #5c0000);
+  color: white;
+  padding: 32px 24px 24px;
+  text-align: center;
+  position: relative;
+}
+
+/* Scalloped edge effect to look like a ticket */
+.qr-modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  background-image: radial-gradient(circle at 10px 0, transparent 10px, #F9FAFB 11px);
+  background-size: 20px 20px;
+  background-repeat: repeat-x;
+  z-index: 10;
+}
+
+.qr-modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.qr-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.qr-modal-icon-wrap {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: #fff;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.qr-modal-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.5px;
+}
+
+.qr-modal-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  line-height: 1.4;
+  padding: 0 10px;
+}
+
+/* ── Body Area ── */
+.qr-modal-body {
+  padding: 40px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #F9FAFB;
+}
+
+.qr-code-frame {
+  background: white;
+  padding: 16px;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(140, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 2px dashed rgba(140, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+/* Corner scan lines */
+.qr-code-frame::before,
+.qr-code-frame::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #8C0000;
+  transition: all 0.3s ease;
+}
+
+.qr-code-frame::before { top: -3px; left: -3px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+.qr-code-frame::after { bottom: -3px; right: -3px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+
+.qr-code-frame:hover {
+  transform: translateY(-4px) scale(1.03);
+  border-color: #8C0000;
+  box-shadow: 0 12px 32px rgba(140, 0, 0, 0.15);
+}
+
+.qr-code-img {
+  width: 220px;
+  height: 220px;
+  display: block;
+}
+
+/* ── Footer / Actions ── */
+.qr-modal-secure-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(140, 0, 0, 0.05);
+  color: #8C0000;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  width: 100%;
+  margin-bottom: 16px;
+  border: 1px solid rgba(140, 0, 0, 0.1);
+}
+
+.qr-modal-download-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 16px rgba(17, 24, 39, 0.15);
+}
+
+.qr-modal-download-btn:hover {
+  background: #1f2937;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px rgba(17, 24, 39, 0.25);
+}
+
+.qr-modal-footer-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9CA3AF;
+}
+
+@keyframes slideUpFade {
+  0% { opacity: 0; transform: translateY(40px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

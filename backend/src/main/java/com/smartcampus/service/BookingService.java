@@ -64,7 +64,7 @@ public class BookingService {
                 .flatMap(b -> b.getResourceIds().stream())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
+        Map<String, Resource> resourceMap = resourceRepository.findMinimalByIds(resourceIds).stream()
                 .collect(Collectors.toMap(Resource::getId, r -> r));
 
         // 2. Bulk Fetch Users
@@ -72,7 +72,7 @@ public class BookingService {
                 .map(Booking::getUserId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        Map<String, com.smartcampus.model.User> userMap = userRepository.findAllById(userIds).stream()
+        Map<String, com.smartcampus.model.User> userMap = userRepository.findMinimalByIds(userIds).stream()
                 .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u));
 
         return bookings.stream()
@@ -324,7 +324,7 @@ public class BookingService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
+        Map<String, Resource> resourceMap = resourceRepository.findMinimalByIds(resourceIds).stream()
                 .collect(Collectors.toMap(Resource::getId, r -> r, (a, b) -> a));
 
         // Fetch user once
@@ -392,7 +392,7 @@ public class BookingService {
                 .flatMap(b -> b.getResourceIds().stream())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        Map<String, Resource> resourceMap = resourceRepository.findAllById(resourceIds).stream()
+        Map<String, Resource> resourceMap = resourceRepository.findMinimalByIds(resourceIds).stream()
                 .collect(Collectors.toMap(Resource::getId, r -> r, (a, b) -> a));
 
         // 2. Bulk Fetch Users
@@ -400,7 +400,7 @@ public class BookingService {
                 .map(Booking::getUserId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        Map<String, com.smartcampus.model.User> userMap = userRepository.findAllById(userIds).stream()
+        Map<String, com.smartcampus.model.User> userMap = userRepository.findMinimalByIds(userIds).stream()
                 .collect(Collectors.toMap(com.smartcampus.model.User::getId, u -> u, (a, b) -> a));
 
         return bookings.stream()

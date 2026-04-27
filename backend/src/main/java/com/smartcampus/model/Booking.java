@@ -61,6 +61,7 @@ public class Booking {
 
     private String bookingCode;
 
+    @Indexed
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Booking() {

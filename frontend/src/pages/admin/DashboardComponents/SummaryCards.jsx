@@ -56,16 +56,16 @@ export default function SummaryCards({ stats }) {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
       {cards.map((card, i) => (
         <div key={i} style={{
-          background: 'rgba(192, 128, 128, 0.06)',
+          background: '#F9FAFB',
           padding: '24px',
           borderRadius: '24px',
-          border: '1px solid rgba(192, 128, 128, 0.06)',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <p style={{ color: '#6B7281', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>{card.title}</p>
-              <h3 style={{ fontSize: '2rem', fontWeight: '900', color: '#1F1F1F', margin: 0 }}>{card.value}</h3>
+              <p style={{ color: '#6B7280', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>{card.title}</p>
+              <h3 style={{ fontSize: '2rem', fontWeight: '900', color: '#111827', margin: 0 }}>{card.value}</h3>
             </div>
             <div style={{
               width: '54px', height: '54px', borderRadius: '16px',
