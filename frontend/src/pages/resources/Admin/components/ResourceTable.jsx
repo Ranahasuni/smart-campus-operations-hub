@@ -25,9 +25,19 @@ import {
   SearchX
 } from 'lucide-react';
 
+import { useAuth } from '../../../../context/AuthContext';
+
 export default function ResourceTable({ resources, loading, onUpdateStatus, onDeleteResource, clearFilters }) {
+  const { API } = useAuth();
   const [confirmModal, setConfirmModal] = useState({ show: false, type: '', id: null, title: '', message: '', nextStatus: null });
   const [successModal, setSuccessModal] = useState({ show: false, title: '', message: '' });
+
+  const resolveUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    if (url.startsWith('/api/uploads')) return `${API}${url}`;
+    return url;
+  };
 
   const getStatusStyle = (status) => {
     const s = String(status || '').toUpperCase();
@@ -147,8 +157,8 @@ export default function ResourceTable({ resources, loading, onUpdateStatus, onDe
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: '#C08080', overflow: 'hidden', border: '1px solid rgba(192, 128, 128, 0.06)'
                         }}>
-                          {r.imageUrls && r.imageUrls[0] && (r.imageUrls[0].startsWith('http') || r.imageUrls[0].startsWith('data:')) ? (
-                            <img src={r.imageUrls[0]} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          {r.imageUrls && r.imageUrls[0] ? (
+                            <img src={resolveUrl(r.imageUrls[0])} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
                             <Building2 size={26} />
                           )}

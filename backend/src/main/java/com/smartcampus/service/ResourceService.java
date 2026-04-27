@@ -198,7 +198,6 @@ public class ResourceService {
     }
 
     // ── GET BUILDINGS ───────────────────────────────────
-    // ── GET BUILDINGS ───────────────────────────────────
     @Cacheable(value = "resourceMetadata", key = "'buildings'")
     public List<String> getBuildings() {
         return mongoTemplate.getCollection("resources")

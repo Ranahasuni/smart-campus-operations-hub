@@ -133,8 +133,13 @@ export default function HomePage() {
 
       {/* ═══════ HERO ═══════ */}
       <section className="hp-hero">
-        <div className="hp-hero-bg">
-          <img src="/images/campus-hero.png" alt="Smart Campus" loading="eager" />
+        <div className="hp-hero-bg" style={{ background: '#1a0000' }}>
+          <img 
+            src="/images/campus-hero.png" 
+            alt="Smart Campus" 
+            loading="eager" 
+            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1541339907198-e08756ebafe3?auto=format&fit=crop&w=2000&q=80'; }}
+          />
         </div>
         <div className="hp-hero-overlay" />
 
@@ -235,8 +240,13 @@ export default function HomePage() {
 
 
       {/* ═══════ PARALLAX IMAGE BREAK ═══════ */}
-      <section className="hp-parallax-section">
-        <img src="/images/campus-library.png" alt="Campus Library" loading="lazy" />
+      <section className="hp-parallax-section" style={{ background: '#1a0000' }}>
+        <img 
+          src="/images/campus-library.png" 
+          alt="Campus Library" 
+          loading="lazy" 
+          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2000&q=80'; }}
+        />
         <div className="hp-parallax-overlay" />
         <div className="hp-parallax-content">
           <Reveal>
@@ -306,8 +316,13 @@ export default function HomePage() {
 
 
       {/* ═══════ SECOND PARALLAX ═══════ */}
-      <section className="hp-parallax-section">
-        <img src="/images/campus-lecture.png" alt="Lecture Hall" loading="lazy" />
+      <section className="hp-parallax-section" style={{ background: '#1a0000' }}>
+        <img 
+          src="/images/campus-lecture.png" 
+          alt="Lecture Hall" 
+          loading="lazy" 
+          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523050335392-4945e9f506ee?auto=format&fit=crop&w=2000&q=80'; }}
+        />
         <div className="hp-parallax-overlay" />
         <div className="hp-parallax-content">
           <Reveal>

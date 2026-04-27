@@ -21,16 +21,26 @@ function Reveal({ children, className = '' }) {
 import { Link } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Settings, AlertTriangle } from 'lucide-react';
 import api from '../../../api/axiosInstance';
+import { useAuth } from '../../../context/AuthContext';
 import './Catalogue.css';
 
 export default function ResourceCard({ resource }) {
+  const { API } = useAuth();
   const [imgError, setImgError] = useState(false);
   const [lazyImageUrl, setLazyImageUrl] = useState(null);
 
   // Gracefully handle images
-  const initialImageUrl = resource.imageUrls && resource.imageUrls.length > 0
+  let initialImageUrl = resource.imageUrls && resource.imageUrls.length > 0
     ? resource.imageUrls[0]
     : null;
+
+  // Resolve relative paths to absolute backend URLs
+  const resolveUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    if (url.startsWith('/api/uploads')) return `${API}${url}`;
+    return url;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -46,9 +56,21 @@ export default function ResourceCard({ resource }) {
         });
     }
     return () => { mounted = false; };
-  }, [resource.id, initialImageUrl]);
+  }, [resource.id, initialImageUrl, API]);
 
-  const imageUrl = initialImageUrl || lazyImageUrl;
+  // Elite Dynamic fallback images based on type
+  const getFallbackImage = (type) => {
+    switch (type) {
+      case 'LECTURE_HALL': return '/images/campus-lecture.png';
+      case 'AUDITORIUM': return '/images/campus-hero.png';
+      case 'MEETING_ROOM': return '/images/campus-library.png';
+      case 'LAB': return '/images/campus-lecture.png';
+      default: return '/images/campus-hero.png';
+    }
+  };
+
+  const rawUrl = initialImageUrl || lazyImageUrl || getFallbackImage(resource.type);
+  const imageUrl = resolveUrl(rawUrl);
 
   const getStatusConfig = (status) => {
     switch (status) {
@@ -64,11 +86,12 @@ export default function ResourceCard({ resource }) {
   return (
     <div className="resource-card-final">
       <div className="card-photo-top-full">
-        {imageUrl && !imgError && (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) ? (
+        {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={resource.name || 'Resource'}
             className="photo-edge-to-edge"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             loading="lazy"
             onError={() => setImgError(true)}
           />
