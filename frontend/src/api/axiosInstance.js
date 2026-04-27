@@ -3,7 +3,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'http://localhost:8082/api',
   withCredentials: true,
-  timeout: 10000, 
+  timeout: 30000, 
 });
 
 const MAX_RETRIES = 2;

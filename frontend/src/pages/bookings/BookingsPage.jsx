@@ -34,6 +34,13 @@ const RESOURCE_TYPES = [
     roles: ['ADMIN', 'LECTURER'] 
   },
   { 
+    id: 'LECTURE_THEATRE', 
+    name: 'Lecture Theatres', 
+    icon: '🏢', 
+    description: 'Specialized tiered rooms for academic presentations and large-scale teaching sessions.',
+    roles: ['ADMIN', 'LECTURER'] 
+  },
+  { 
     id: 'MEETING_ROOM', 
     name: 'Meeting Rooms', 
     icon: '🤝', 

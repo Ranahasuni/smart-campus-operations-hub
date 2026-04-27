@@ -19,6 +19,7 @@ function Reveal({ children, className = '' }) {
 }
 
 import { Pencil, Trash2, XCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
 
 /**
  * A reusable component for booking action buttons.
@@ -33,6 +34,8 @@ const BookingActionButtons = ({
   isBookingActive 
 }) => {
   const active = isBookingActive(booking);
+  const { user } = useAuth();
+  const canCancelApproved = user && (user.role === 'ADMIN' || user.role === 'LECTURER');
 
   return (
     <div className="booking-actions">
@@ -55,12 +58,14 @@ const BookingActionButtons = ({
 
       {booking.status === 'APPROVED' && (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            className="action-btn btn-cancel"
-            onClick={() => onCancelAction(booking.id, 'APPROVED')}
-          >
-            <XCircle size={14} /> Cancel
-          </button>
+          {canCancelApproved && (
+            <button 
+              className="action-btn btn-cancel"
+              onClick={() => onCancelAction(booking.id, 'APPROVED')}
+            >
+              <XCircle size={14} /> Cancel
+            </button>
+          )}
           <button 
             className="action-btn btn-show-qr"
             onClick={() => onShowQR(booking)}

@@ -1,0 +1,6 @@
+tree 2eab1aced47423d1c5ee3ef5bb60946515ad7468
+parent aad037ee4adee2eeb481db87671ce1cf756dc969
+author Ranahasuni <pererachathurya05@gmail.com> 1775670199 +0530
+committer Ranahasuni <pererachathurya05@gmail.com> 1775670199 +0530
+
+Refactor: Add strict same-day time validation and clean up resource hours display

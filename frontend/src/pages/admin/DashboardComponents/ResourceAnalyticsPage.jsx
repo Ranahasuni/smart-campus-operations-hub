@@ -35,20 +35,27 @@ export default function ResourceAnalyticsPage() {
   const { authFetch, API, user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (user) fetchAnalytics();
   }, [user]);
 
   const fetchAnalytics = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await authFetch(`${API}/api/resources/analytics/summary`);
       if (res.ok) {
         const data = await res.json();
         setStats(data);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || 'The analytics engine is currently busy. Please try again in a few seconds.');
       }
     } catch (err) {
       console.error("Analytics fetch failed:", err);
+      setError('Connection timeout. The database is taking longer than expected to respond.');
     } finally {
       setLoading(false);
     }
@@ -68,6 +75,29 @@ export default function ResourceAnalyticsPage() {
         <style>{`
           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         `}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ 
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+        height: '90vh', background: '#FFFFFF', textAlign: 'center', padding: '40px' 
+      }}>
+        <AlertTriangle size={64} color="#f59e0b" style={{ marginBottom: '24px' }} />
+        <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#1F1F1F', marginBottom: '12px' }}>Analytics Engine Offline</h2>
+        <p style={{ color: '#6B7281', marginBottom: '32px', maxWidth: '500px' }}>{error}</p>
+        <button 
+          onClick={fetchAnalytics}
+          style={{
+            padding: '16px 32px', background: '#C08080', color: '#FFFFFF', 
+            borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer',
+            boxShadow: '0 10px 20px -5px rgba(192, 128, 128, 0.4)'
+          }}
+        >
+          Retry Synchronization
+        </button>
       </div>
     );
   }
@@ -130,7 +160,7 @@ export default function ResourceAnalyticsPage() {
 
         {/* 1. Summary Block */}
         <div style={{ marginBottom: '50px' }}>
-          <SummaryCards stats={stats} />
+          <SummaryCards stats={stats || {}} />
         </div>
 
         {/* 2. Visual Intelligence Block (Charts) */}
@@ -138,13 +168,13 @@ export default function ResourceAnalyticsPage() {
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '35px', marginBottom: '40px',
           padding: '40px', background: 'rgba(192, 128, 128, 0.03)', borderRadius: '35px', border: '1px solid rgba(192, 128, 128, 0.06)'
         }}>
-          <PeakBookingHoursChart data={stats.peakBookingHours} isDark={false} />
-          <ResourcesByBuildingChart data={stats.distributionByBuilding} isDark={false} />
+          <PeakBookingHoursChart data={stats?.peakBookingHours || {}} isDark={false} />
+          <ResourcesByBuildingChart data={stats?.distributionByBuilding || {}} isDark={false} />
         </div>
 
         {/* 3. Detailed Data Table Block */}
         <div style={{ marginTop: '40px' }}>
-          <MostBookedTable data={stats.mostBooked} isDark={false} />
+          <MostBookedTable data={stats?.mostBooked || []} isDark={false} />
         </div>
 
         {/* Unified Footer */}
