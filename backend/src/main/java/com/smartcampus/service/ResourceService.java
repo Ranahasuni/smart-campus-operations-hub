@@ -103,8 +103,9 @@ public class ResourceService {
             int page, int size) {
 
         Query query = new Query();
-        // ⚡ PERFORMANCE ELITE: Fetch core fields + ONLY the first image URL
-        // Using slice(1) prevents fetching massive Base64 strings for secondary images, which was causing timeouts.
+        // ⚡ PERFORMANCE HYBRID: Metadata + Hero Image
+        // We fetch only the FIRST image URL to give immediate visual feedback.
+        // Secondary images remain excluded from the list view to maintain high performance.
         query.fields().include("id", "name", "type", "building", "floor", "roomNumber", "capacity", "status", "assignedStaffIds", "description", "equipment", "location", "availability", "imageUrls")
                      .slice("imageUrls", 1);
         if (building != null && !building.trim().isEmpty()) {
@@ -134,11 +135,19 @@ public class ResourceService {
         // Apply Pagination
         query.with(org.springframework.data.domain.PageRequest.of(page, size));
 
+        long startTime = System.currentTimeMillis();
         List<Resource> results = mongoTemplate.find(query, Resource.class);
+        long queryTime = System.currentTimeMillis() - startTime;
+        log.info("Query execution time: {}ms for {} results", queryTime, results.size());
 
-        return results.stream()
+        long mapStart = System.currentTimeMillis();
+        List<ResourceResponseDTO> dtos = results.stream()
                 .map(this::toSummaryDTO)
                 .collect(Collectors.toList());
+        long mapTime = System.currentTimeMillis() - mapStart;
+        log.info("DTO mapping time: {}ms", mapTime);
+
+        return dtos;
     }
 
     // ── GET SINGLE RESOURCE ─────────────────────────────
@@ -214,6 +223,7 @@ public class ResourceService {
     @Cacheable(value = "analytics", unless = "#result == null")
     public Map<String, Object> getAnalyticsSummary() {
         try {
+            long start = System.currentTimeMillis();
             // ⚡ PERFORMANCE STABILIZATION: Run aggregations in parallel to avoid single-thread blockage
             CompletableFuture<Map<String, Object>> statusFuture = CompletableFuture.supplyAsync(this::getStatusCounts);
             CompletableFuture<Map<String, Long>> buildingFuture = CompletableFuture.supplyAsync(this::getDistributionByBuilding);
@@ -228,24 +238,20 @@ public class ResourceService {
             Map<String, Object> summary = new LinkedHashMap<>();
             
             // 1. Status Counts
-            Map<String, Object> statusCounts = getStatusCounts();
+            Map<String, Object> statusCounts = statusFuture.join();
             summary.putAll(statusCounts);
-            log.info("Analytics: Status counts fetched ({})", statusCounts.get("totalResources"));
 
             // 2. Building Distribution
-            Map<String, Long> buildingDist = getDistributionByBuilding();
+            Map<String, Long> buildingDist = buildingFuture.join();
             summary.put("distributionByBuilding", buildingDist);
-            log.info("Analytics: Building distribution fetched ({} buildings)", buildingDist.size());
 
             // 3. Peak Hours
-            Map<String, Long> peakHours = getPeakBookingHours();
+            Map<String, Long> peakHours = peakFuture.join();
             summary.put("peakBookingHours", peakHours);
-            log.info("Analytics: Peak hours fetched ({} data points)", peakHours.size());
 
             // 4. Most Booked
-            List<Map<String, Object>> mostBooked = getMostBookedResources();
+            List<Map<String, Object>> mostBooked = leaderboardFuture.join();
             summary.put("mostBooked", mostBooked);
-            log.info("Analytics: Most booked leaderboard fetched ({} items)", mostBooked.size());
 
             // 5. Total Sync
             long repoCount = resourceRepository.count();
@@ -378,6 +384,7 @@ public class ResourceService {
         }
 
         validateBuildingLimits(dto.getBuilding(), dto.getFloor());
+        validateImageSizes(dto.getImageUrls());
 
         // ⚡ ELITE CHECK: Duplicate Room Check
         // Prevent registering two different resources in the same physical location
@@ -424,6 +431,7 @@ public class ResourceService {
     // ── UPDATE ──────────────────────────────────────────
     public ResourceResponseDTO updateResource(String id, ResourceRequestDTO dto) {
         validateBuildingLimits(dto.getBuilding(), dto.getFloor());
+        validateImageSizes(dto.getImageUrls());
 
         // ⚡ ELITE CHECK: Duplicate Room Check
         Optional<Resource> existingAtLocation = resourceRepository.findByBuildingAndFloorAndRoomNumber(
@@ -525,6 +533,19 @@ public class ResourceService {
         }
 
         resourceRepository.delete(resource);
+    }
+
+    private void validateImageSizes(List<String> imageUrls) {
+        if (imageUrls == null) return;
+        // Limit is roughly 1.5MB for Base64 (2,000,000 chars)
+        for (String url : imageUrls) {
+            if (url != null && url.startsWith("data:") && url.length() > 2000000) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE,
+                    "Image too large: One or more images exceed the 1MB limit."
+                );
+            }
+        }
     }
 
     private void validateBuildingLimits(String building, Integer floor) {

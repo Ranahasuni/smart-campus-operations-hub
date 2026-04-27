@@ -38,6 +38,7 @@ export default function ManageUsers() {
     campusId: '',
     campusEmail: '',
     password: '',
+    confirmPassword: '',
     role: 'STUDENT'
   });
 
@@ -61,11 +62,52 @@ export default function ManageUsers() {
   const handleAddUser = async (e) => {
     e.preventDefault();
     setError('');
-    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\S+$).{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError('Password is too weak. Must include Uppercase, Lowercase, Number, and Special character (@#$%^&+=!)');
+      return;
+    }
+
+    // Role-based validations (Same as RegisterPage)
+    const emailLower = formData.campusEmail.toLowerCase();
+    const idUpper = formData.campusId.toUpperCase();
+
+    if (formData.role === 'STUDENT') {
+      if (!emailLower.endsWith('@my.sliit.lk') && !emailLower.endsWith('@sliit.lk')) {
+        setError('Students must use official @my.sliit.lk or @sliit.lk email');
+        return;
+      }
+      if (!idUpper.startsWith('IT')) {
+        setError('Student ID must start with IT');
+        return;
+      }
+    } else if (formData.role === 'LECTURER') {
+      if (!idUpper.startsWith('LEC')) {
+        setError('Lecturer ID must start with LEC');
+        return;
+      }
+    } else if (formData.role === 'TECHNICIAN') {
+      if (!idUpper.startsWith('TECH')) {
+        setError('Technician ID must start with TECH');
+        return;
+      }
+    }
+
     try {
       const res = await authFetch(`${API}/api/users`, {
         method: 'POST',
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          campusId: formData.campusId,
+          campusEmail: formData.campusEmail,
+          password: formData.password,
+          role: formData.role
+        })
       });
       
       const data = await res.json();
@@ -74,7 +116,7 @@ export default function ManageUsers() {
         setShowModal(false);
         setSuccessMsg(`Account for ${formData.fullName} has been successfully provisioned.`);
         setShowSuccess(true);
-        setFormData({ fullName: '', campusId: '', campusEmail: '', password: '', role: 'STUDENT' });
+        setFormData({ fullName: '', campusId: '', campusEmail: '', password: '', confirmPassword: '', role: 'STUDENT' });
       } else {
         setError(data.message || 'Creation failed');
       }
@@ -156,7 +198,11 @@ export default function ManageUsers() {
           </div>
           
           <button 
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setError('');
+              setFormData({ fullName: '', campusId: '', campusEmail: '', password: '', confirmPassword: '', role: 'STUDENT' });
+              setShowModal(true);
+            }}
             style={{
               background: 'var(--accent-primary)',
               color: '#fff', border: 'none', borderRadius: '14px', padding: '14px 28px',
@@ -278,15 +324,24 @@ export default function ManageUsers() {
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(140, 0, 0, 0.2)', backdropFilter: 'blur(12px)' }}>
           <Reveal className="modal-reveal">
-            <form onSubmit={handleAddUser} style={{ background: '#fff', padding: '48px', borderRadius: '40px', width: '500px', boxShadow: '0 40px 100px rgba(0,0,0,0.2)', border: '1px solid rgba(192, 128, 128, 0.1)' }}>
+            <form onSubmit={handleAddUser} style={{ background: '#fff', padding: '48px', borderRadius: '40px', width: '95%', maxWidth: '550px', boxShadow: '0 40px 100px rgba(0,0,0,0.2)', border: '1px solid rgba(192, 128, 128, 0.1)' }}>
               <h2 style={{ fontSize: '2rem', fontWeight: '950', color: '#1F1F1F', marginBottom: '8px' }}>Provision Account</h2>
               <p style={{ color: '#6B7281', marginBottom: '32px', fontWeight: '500' }}>Initialize a new identity within the campus operational grid.</p>
+              
+              {error && (
+                <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '12px', marginBottom: '24px', fontSize: '0.85rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                  <AlertCircle size={16} /> {error}
+                </div>
+              )}
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <FormInput placeholder="Identity Name" value={formData.fullName} onChange={v => setFormData({...formData, fullName: v})} />
                 <FormInput placeholder="Campus ID (e.g. SL202P01)" value={formData.campusId} onChange={v => setFormData({...formData, campusId: v})} />
-                <FormInput placeholder="University Email" type="email" value={formData.campusEmail} onChange={v => setFormData({...formData, campusEmail: v})} />
-                <FormInput placeholder="System Password" type="password" value={formData.password} onChange={v => setFormData({...formData, password: v})} />
+                <FormInput placeholder="University Email" type="email" value={formData.campusEmail} onChange={v => setFormData({...formData, campusEmail: v})} autoComplete="none" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <FormInput placeholder="Password" type="password" value={formData.password} onChange={v => setFormData({...formData, password: v})} autoComplete="new-password" />
+                  <FormInput placeholder="Confirm" type="password" value={formData.confirmPassword} onChange={v => setFormData({...formData, confirmPassword: v})} autoComplete="new-password" />
+                </div>
                 <select 
                    value={formData.role} 
                    onChange={e => setFormData({...formData, role: e.target.value})}
@@ -325,11 +380,26 @@ export default function ManageUsers() {
   );
 }
 
-function FormInput({ placeholder, type = 'text', value, onChange }) {
+function FormInput({ placeholder, type = 'text', value, onChange, autoComplete = 'off' }) {
   return (
     <input 
-      type={type} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)}
-      style={{ padding: '14px 20px', borderRadius: '14px', background: 'rgba(192, 128, 128, 0.04)', border: '1px solid rgba(192, 128, 128, 0.1)', outline: 'none', color: '#1F1F1F', fontWeight: '600', fontSize: '1rem' }}
+      type={type} 
+      placeholder={placeholder} 
+      value={value} 
+      onChange={e => onChange(e.target.value)}
+      autoComplete={autoComplete}
+      style={{ 
+        width: '100%',
+        boxSizing: 'border-box',
+        padding: '14px 20px', 
+        borderRadius: '14px', 
+        background: 'rgba(192, 128, 128, 0.04)', 
+        border: '1px solid rgba(192, 128, 128, 0.1)', 
+        outline: 'none', 
+        color: '#1F1F1F', 
+        fontWeight: '600', 
+        fontSize: '1rem' 
+      }}
     />
   );
 }

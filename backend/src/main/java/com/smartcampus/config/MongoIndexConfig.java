@@ -22,110 +22,59 @@ public class MongoIndexConfig {
 
     @EventListener(ContextRefreshedEvent.class)
     public void initializeIndexes() {
-        log.info("Creating MongoDB indexes for optimal query performance...");
-        
-        // ── Ticket Collection Indexes ──────────────────────────────────
-        mongoTemplate.indexOps("tickets")
-            .ensureIndex(new Index().on("userId", Sort.Direction.DESC).named("idx_userId_desc"));
-        log.debug("✓ Index created: Ticket.userId");
-        
-        mongoTemplate.indexOps("tickets")
-            .ensureIndex(new Index().on("status", Sort.Direction.ASC).named("idx_status_asc"));
-        log.debug("✓ Index created: Ticket.status");
-        
-        mongoTemplate.indexOps("tickets")
-            .ensureIndex(new Index().on("resourceId", Sort.Direction.ASC).named("idx_resourceId_asc"));
-        log.debug("✓ Index created: Ticket.resourceId");
-        
-        mongoTemplate.indexOps("tickets")
-            .ensureIndex(new Index().on("priority", Sort.Direction.ASC).named("idx_priority_asc"));
-        log.debug("✓ Index created: Ticket.priority");
-        
-        mongoTemplate.indexOps("tickets")
-            .ensureIndex(new Index().on("technicianId", Sort.Direction.ASC).named("idx_technicianId_asc"));
-        log.debug("✓ Index created: Ticket.technicianId");
-        
-        mongoTemplate.indexOps("tickets")
-            .ensureIndex(new Index().on("createdAt", Sort.Direction.DESC).named("idx_createdAt_desc"));
-        log.debug("✓ Index created: Ticket.createdAt");
-        
-        // ── Resource Collection Indexes ────────────────────────────────
-        mongoTemplate.indexOps("resources")
-            .ensureIndex(new Index().on("building", Sort.Direction.ASC).named("idx_building_asc"));
-        log.debug("✓ Index created: Resource.building");
-        
-        mongoTemplate.indexOps("resources")
-            .ensureIndex(new Index().on("floor", Sort.Direction.ASC).named("idx_floor_asc"));
-        log.debug("✓ Index created: Resource.floor");
-        
-        mongoTemplate.indexOps("resources")
-            .ensureIndex(new Index().on("type", Sort.Direction.ASC).named("idx_type_asc"));
-        log.debug("✓ Index created: Resource.type");
-        
-        mongoTemplate.indexOps("resources")
-            .ensureIndex(new Index().on("status", Sort.Direction.ASC).named("idx_status_asc"));
-        log.debug("✓ Index created: Resource.status");
-        
-        mongoTemplate.indexOps("resources")
-            .ensureIndex(new Index().on("name", Sort.Direction.ASC).named("idx_name_asc"));
-        log.debug("✓ Index created: Resource.name");
-        
-        mongoTemplate.indexOps("resources")
-            .ensureIndex(new Index().on("building", Sort.Direction.ASC).on("floor", Sort.Direction.ASC).named("idx_building_floor"));
-        log.debug("✓ Index created: Resource.building + floor (composite)");
-        
-        // ── Booking Collection Indexes ─────────────────────────────────
-        mongoTemplate.indexOps("bookings")
-            .ensureIndex(new Index().on("userId", Sort.Direction.ASC).named("idx_userId_asc"));
-        log.debug("✓ Index created: Booking.userId");
-        
-        mongoTemplate.indexOps("bookings")
-            .ensureIndex(new Index().on("date", Sort.Direction.ASC).named("idx_date_asc"));
-        log.debug("✓ Index created: Booking.date");
-        
-        mongoTemplate.indexOps("bookings")
-            .ensureIndex(new Index().on("status", Sort.Direction.ASC).named("idx_status_asc"));
-        log.debug("✓ Index created: Booking.status");
-        
-        mongoTemplate.indexOps("bookings")
-            .ensureIndex(new Index().on("resourceIds", Sort.Direction.ASC).named("idx_resourceIds_asc"));
-        log.debug("✓ Index created: Booking.resourceIds");
-        
-        mongoTemplate.indexOps("bookings")
-            .ensureIndex(new Index().on("userId", Sort.Direction.ASC).on("date", Sort.Direction.DESC).named("idx_userId_date"));
-        log.debug("✓ Index created: Booking.userId + date (composite)");
-        
-        // ── User Collection Indexes ────────────────────────────────────
-        mongoTemplate.indexOps("users")
-            .ensureIndex(new Index().on("campusId", Sort.Direction.ASC).unique().named("idx_campusId_unique"));
-        log.debug("✓ Index created: User.campusId (UNIQUE)");
-        
-        mongoTemplate.indexOps("users")
-            .ensureIndex(new Index().on("role", Sort.Direction.ASC).named("idx_role_asc"));
-        log.debug("✓ Index created: User.role");
-        
-        // ── Comment Collection Indexes ─────────────────────────────────
-        mongoTemplate.indexOps("comments")
-            .ensureIndex(new Index().on("ticketId", Sort.Direction.ASC).named("idx_ticketId_asc"));
-        log.debug("✓ Index created: Comment.ticketId");
-        
-        mongoTemplate.indexOps("comments")
-            .ensureIndex(new Index().on("createdAt", Sort.Direction.DESC).named("idx_createdAt_desc"));
-        log.debug("✓ Index created: Comment.createdAt");
-        
-        // ── Notification Collection Indexes ────────────────────────────
-        mongoTemplate.indexOps("notifications")
-            .ensureIndex(new Index().on("userId", Sort.Direction.ASC).named("idx_userId_asc"));
-        log.debug("✓ Index created: Notification.userId");
-        
-        mongoTemplate.indexOps("notifications")
-            .ensureIndex(new Index().on("isRead", Sort.Direction.ASC).named("idx_isRead_asc"));
-        log.debug("✓ Index created: Notification.isRead");
-        
-        mongoTemplate.indexOps("notifications")
-            .ensureIndex(new Index().on("createdAt", Sort.Direction.DESC).named("idx_createdAt_desc"));
-        log.debug("✓ Index created: Notification.createdAt");
-        
-        log.info("✅ All MongoDB indexes created successfully!");
+        // ⚡ ASYNC INITIALIZATION: Run indexing in background to prevent blocking startup (103s delay fix)
+        new Thread(() -> {
+            try {
+                log.info("Starting background MongoDB index synchronization...");
+                
+                // ── Ticket Collection Indexes ──────────────────────────────────
+                safeIndex("tickets", new Index().on("userId", Sort.Direction.DESC).named("idx_userId_desc"));
+                safeIndex("tickets", new Index().on("status", Sort.Direction.ASC).named("idx_status_asc"));
+                safeIndex("tickets", new Index().on("resourceId", Sort.Direction.ASC).named("idx_resourceId_asc"));
+                safeIndex("tickets", new Index().on("priority", Sort.Direction.ASC).named("idx_priority_asc"));
+                safeIndex("tickets", new Index().on("technicianId", Sort.Direction.ASC).named("idx_technicianId_asc"));
+                safeIndex("tickets", new Index().on("createdAt", Sort.Direction.DESC).named("idx_createdAt_desc"));
+                
+                // ── Resource Collection Indexes ────────────────────────────────
+                safeIndex("resources", new Index().on("building", Sort.Direction.ASC).named("idx_building_asc"));
+                safeIndex("resources", new Index().on("floor", Sort.Direction.ASC).named("idx_floor_asc"));
+                safeIndex("resources", new Index().on("type", Sort.Direction.ASC).named("idx_type_asc"));
+                safeIndex("resources", new Index().on("status", Sort.Direction.ASC).named("idx_status_asc"));
+                safeIndex("resources", new Index().on("name", Sort.Direction.ASC).named("idx_name_asc"));
+                safeIndex("resources", new Index().on("building", Sort.Direction.ASC).on("floor", Sort.Direction.ASC).named("idx_building_floor"));
+                
+                // ── Booking Collection Indexes ─────────────────────────────────
+                safeIndex("bookings", new Index().on("userId", Sort.Direction.ASC).named("idx_userId_asc"));
+                safeIndex("bookings", new Index().on("date", Sort.Direction.ASC).named("idx_date_asc"));
+                safeIndex("bookings", new Index().on("status", Sort.Direction.ASC).named("idx_status_asc"));
+                safeIndex("bookings", new Index().on("resourceIds", Sort.Direction.ASC).named("idx_resourceIds_asc"));
+                safeIndex("bookings", new Index().on("userId", Sort.Direction.ASC).on("date", Sort.Direction.DESC).named("idx_userId_date"));
+                
+                // ── User Collection Indexes ────────────────────────────────────
+                safeIndex("users", new Index().on("campusId", Sort.Direction.ASC).unique().named("idx_campusId_unique"));
+                safeIndex("users", new Index().on("role", Sort.Direction.ASC).named("idx_role_asc"));
+                
+                // ── Comment Collection Indexes ─────────────────────────────────
+                safeIndex("comments", new Index().on("ticketId", Sort.Direction.ASC).named("idx_ticketId_asc"));
+                safeIndex("comments", new Index().on("createdAt", Sort.Direction.DESC).named("idx_createdAt_desc"));
+                
+                // ── Notification Collection Indexes ────────────────────────────
+                safeIndex("notifications", new Index().on("userId", Sort.Direction.ASC).named("idx_userId_asc"));
+                safeIndex("notifications", new Index().on("isRead", Sort.Direction.ASC).named("idx_isRead_asc"));
+                safeIndex("notifications", new Index().on("createdAt", Sort.Direction.DESC).named("idx_createdAt_desc"));
+                
+                log.info("✅ MongoDB index synchronization complete (Background)!");
+            } catch (Exception e) {
+                log.warn("Non-critical error during background indexing: {}", e.getMessage());
+            }
+        }).start();
+    }
+
+    private void safeIndex(String collection, Index index) {
+        try {
+            mongoTemplate.indexOps(collection).ensureIndex(index);
+        } catch (Exception e) {
+            log.debug("Skipping existing or conflicting index on {}: {}", collection, e.getMessage());
+        }
     }
 }

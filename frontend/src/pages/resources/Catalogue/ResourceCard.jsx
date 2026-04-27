@@ -61,11 +61,11 @@ export default function ResourceCard({ resource }) {
   // Elite Dynamic fallback images based on type
   const getFallbackImage = (type) => {
     switch (type) {
-      case 'LECTURE_HALL': return 'https://images.unsplash.com/photo-1541339907198-e08756ebafe1?auto=format&fit=crop&q=80';
-      case 'AUDITORIUM': return 'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?auto=format&fit=crop&q=80';
-      case 'MEETING_ROOM': return 'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&q=80';
-      case 'LAB': return 'https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&q=80';
-      default: return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80';
+      case 'LECTURE_HALL': return '/images/campus-lecture.png';
+      case 'AUDITORIUM': return '/images/campus-hero.png';
+      case 'MEETING_ROOM': return '/images/campus-library.png';
+      case 'LAB': return '/images/campus-lecture.png';
+      default: return '/images/campus-hero.png';
     }
   };
 
@@ -86,7 +86,7 @@ export default function ResourceCard({ resource }) {
   return (
     <div className="resource-card-final">
       <div className="card-photo-top-full">
-        {imageUrl && !imgError && (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) ? (
+        {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={resource.name || 'Resource'}
