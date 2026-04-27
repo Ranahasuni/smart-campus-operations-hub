@@ -38,6 +38,11 @@ public class ResourceService {
     private final NotificationService notificationService;
     private final MongoTemplate mongoTemplate;
 
+    // ── BULLETPROOF ANALYTICS CACHE ─────────────────────
+    private static Map<String, Object> latestAnalytics = null;
+    private static long lastUpdateTime = 0;
+    private final java.util.concurrent.ExecutorService analyticsExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+
     public ResourceService(ResourceRepository resourceRepository, 
                            BookingRepository bookingRepository, 
                            NotificationService notificationService, 
@@ -46,6 +51,32 @@ public class ResourceService {
         this.bookingRepository = bookingRepository;
         this.notificationService = notificationService;
         this.mongoTemplate = mongoTemplate;
+        
+        // Initial async load to prime the engine
+        refreshAnalyticsAsync();
+    }
+
+    private void refreshAnalyticsAsync() {
+        analyticsExecutor.submit(() -> {
+            try {
+                log.info("PRE-COMPUTING: Analytics background engine starting...");
+                latestAnalytics = computeAnalyticsDirectly();
+                lastUpdateTime = System.currentTimeMillis();
+                log.info("PRE-COMPUTING: Analytics background engine sync complete.");
+            } catch (Exception e) {
+                log.error("PRE-COMPUTING: Background sync failed: {}", e.getMessage());
+            }
+        });
+    }
+
+    private Map<String, Object> computeAnalyticsDirectly() {
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.putAll(getStatusCounts());
+        summary.put("distributionByBuilding", getDistributionByBuilding());
+        summary.put("peakBookingHours", getPeakBookingHours());
+        summary.put("mostBooked", getMostBookedResources());
+        summary.put("cachedAt", System.currentTimeMillis());
+        return summary;
     }
 
     // ── HELPER — Build location string ─────────────────
@@ -208,47 +239,17 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
-    // ── ANALYTICS SUMMARY (CORE ENGINE) ─────────────────
-    @Cacheable(value = "analytics", unless = "#result == null")
+    // ── ANALYTICS SUMMARY (INSTANT ACCESS ENGINE) ───────
     public Map<String, Object> getAnalyticsSummary() {
-        try {
-            log.info("Starting sequential analytics synchronization...");
-            long start = System.currentTimeMillis();
-
-            Map<String, Object> summary = new LinkedHashMap<>();
-            
-            // 1. Status Counts
-            Map<String, Object> statusCounts = getStatusCounts();
-            summary.putAll(statusCounts);
-            log.info("Analytics: Status counts fetched ({})", statusCounts.get("totalResources"));
-
-            // 2. Building Distribution
-            Map<String, Long> buildingDist = getDistributionByBuilding();
-            summary.put("distributionByBuilding", buildingDist);
-            log.info("Analytics: Building distribution fetched ({} buildings)", buildingDist.size());
-
-            // 3. Peak Hours
-            Map<String, Long> peakHours = getPeakBookingHours();
-            summary.put("peakBookingHours", peakHours);
-            log.info("Analytics: Peak hours fetched ({} data points)", peakHours.size());
-
-            // 4. Most Booked
-            List<Map<String, Object>> mostBooked = getMostBookedResources();
-            summary.put("mostBooked", mostBooked);
-            log.info("Analytics: Most booked leaderboard fetched ({} items)", mostBooked.size());
-
-            // 5. Total Sync
-            long repoCount = resourceRepository.count();
-            if ((long)statusCounts.getOrDefault("totalResources", 0L) < repoCount) {
-                summary.put("totalResources", repoCount);
-            }
-
-            log.info("Analytics synchronization complete in {}ms", System.currentTimeMillis() - start);
-            return summary;
-        } catch (Exception e) {
-            log.error("CRITICAL: Analytics engine failed", e);
-            throw new RuntimeException("The analytics engine encountered a database synchronization error: " + e.getMessage());
+        // If data is missing or older than 30 mins, trigger a background refresh
+        if (latestAnalytics == null || (System.currentTimeMillis() - lastUpdateTime > 1800000)) {
+            refreshAnalyticsAsync();
         }
+        
+        // Always return instantly (even if returning the last known good data or zeros)
+        if (latestAnalytics != null) return latestAnalytics;
+        
+        return getFallbackAnalytics();
     }
 
     // Helper method 1: Get status counts
@@ -266,79 +267,74 @@ public class ResourceService {
         return result;
     }
 
-    // Helper method 2: Get distribution by building
+    // Helper method 2: Get distribution by building (Java-based for reliability)
     private Map<String, Long> getDistributionByBuilding() {
-        org.springframework.data.mongodb.core.aggregation.Aggregation buildingAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
-            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("building").ne(null).ne("")),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.group("building").count().as("count"),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.project("count").and("_id").as("building")
-        );
-        
-        List<org.bson.Document> buildingResults = mongoTemplate.aggregate(buildingAgg, "resources", org.bson.Document.class).getMappedResults();
-        return buildingResults.stream()
-            .filter(d -> d.getString("building") != null)
-            .collect(Collectors.toMap(
-                d -> d.getString("building"),
-                d -> {
-                    Object count = d.get("count");
-                    return count instanceof Number ? ((Number) count).longValue() : 0L;
-                },
-                (existing, replacement) -> existing
-            ));
+        // Optimized: Only fetch the building field if possible, or just stream count
+        return resourceRepository.findAll().stream()
+            .map(r -> r.getBuilding())
+            .filter(b -> b != null && !b.isBlank())
+            .collect(Collectors.groupingBy(b -> b, Collectors.counting()));
     }
 
-    // Helper method 3: Get peak booking hours
+    // Helper method 3: Get peak booking hours (Java-based for reliability)
     private Map<String, Long> getPeakBookingHours() {
         LocalDate peakCutoff = LocalDate.now().minusDays(30);
-        org.springframework.data.mongodb.core.aggregation.Aggregation peakAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
-            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("date").gte(peakCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED)),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.project()
-                .andExpression("arrayElemAt(split(startTime, ':'), 0)").as("hour"),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.group("hour").count().as("count"),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.sort(org.springframework.data.domain.Sort.Direction.ASC, "_id")
-        );
+        List<Booking> recentBookings = bookingRepository.findRecentForAnalytics(peakCutoff);
         
-        List<org.bson.Document> peakResults = mongoTemplate.aggregate(peakAgg, "bookings", org.bson.Document.class).getMappedResults();
         Map<String, Long> peakHours = new java.util.TreeMap<>();
-        for (org.bson.Document doc : peakResults) {
-            String hour = doc.getString("_id");
-            if (hour != null) {
-                // Normalize hour to HH format (e.g., "8" -> "08")
-                String normalizedHour = hour.length() == 1 ? "0" + hour : hour;
-                peakHours.put(normalizedHour + ":00", ((Number) doc.get("count")).longValue());
+        // Initialize business hours 08:00 to 22:00
+        for (int i = 8; i <= 22; i++) {
+            peakHours.put(String.format("%02d:00", i), 0L);
+        }
+
+        for (Booking b : recentBookings) {
+            if (b == null || b.getStatus() == null || b.getStartTime() == null) continue;
+            if (b.getStatus() == com.smartcampus.model.BookingStatus.CANCELLED) continue;
+            
+            String hourStr = String.format("%02d:00", b.getStartTime().getHour());
+            if (peakHours.containsKey(hourStr)) {
+                peakHours.put(hourStr, peakHours.get(hourStr) + 1);
             }
         }
         return peakHours;
     }
 
-    // Helper method 4: Get most booked resources
+    // Helper method 4: Get most booked resources (Java-based for reliability)
     private List<Map<String, Object>> getMostBookedResources() {
-        LocalDate leaderCutoff = LocalDate.now().minusDays(30); // Increased to 30 days for better data volume
-        org.springframework.data.mongodb.core.aggregation.Aggregation leaderboardAgg = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
-            org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("date").gte(leaderCutoff).and("status").ne(com.smartcampus.model.BookingStatus.CANCELLED)),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.unwind("resourceIds"),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.group("resourceIds").count().as("count"),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.sort(org.springframework.data.domain.Sort.Direction.DESC, "count"),
-            org.springframework.data.mongodb.core.aggregation.Aggregation.limit(5) // Reduced from 10 to 5 for faster queries
-        );
+        LocalDate leaderCutoff = LocalDate.now().minusDays(30);
+        List<Booking> recentBookings = bookingRepository.findRecentForAnalytics(leaderCutoff);
+        
+        // Count resource frequencies
+        Map<String, Long> counts = recentBookings.stream()
+            .filter(b -> b != null && b.getStatus() != null && b.getResourceIds() != null)
+            .filter(b -> b.getStatus() != com.smartcampus.model.BookingStatus.CANCELLED)
+            .flatMap(b -> b.getResourceIds().stream())
+            .filter(id -> id != null)
+            .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
 
-        List<org.bson.Document> leaderboardResults = mongoTemplate.aggregate(leaderboardAgg, "bookings", org.bson.Document.class).getMappedResults();
-        Set<String> topIds = leaderboardResults.stream().map(d -> d.getString("_id")).collect(Collectors.toSet());
-        Map<String, Resource> topResources = resourceRepository.findAllById(topIds).stream()
+        // Get top 5 IDs
+        List<String> topIds = counts.entrySet().stream()
+            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+            .limit(5)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+
+        if (topIds.isEmpty()) return new java.util.ArrayList<>();
+
+        // Fetch resource details
+        Map<String, Resource> resources = resourceRepository.findAllById(topIds).stream()
             .collect(Collectors.toMap(Resource::getId, r -> r));
 
-        return leaderboardResults.stream()
-            .map(d -> {
-                String rid = d.getString("_id");
-                Resource r = topResources.get(rid);
+        return topIds.stream()
+            .map(id -> {
+                Resource r = resources.get(id);
                 if (r == null) return null;
-                
                 Map<String, Object> item = new LinkedHashMap<>();
-                item.put("resourceId", rid);
+                item.put("resourceId", id);
                 item.put("name", r.getName());
                 item.put("type", r.getType() != null ? r.getType().name() : "N/A");
                 item.put("building", r.getBuilding() != null ? r.getBuilding() : "N/A");
-                item.put("count", ((Number) d.get("count")).longValue());
+                item.put("count", counts.get(id));
                 return item;
             })
             .filter(Objects::nonNull)

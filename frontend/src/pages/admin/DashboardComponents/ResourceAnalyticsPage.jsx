@@ -31,7 +31,7 @@ import ResourcesByBuildingChart from './ResourcesByBuildingChart';
 import PeakBookingHoursChart from './PeakBookingHoursChart';
 import MostBookedTable from './MostBookedTable';
 
-export default function ResourceAnalyticsPage() {
+export default function ResourceAnalyticsPage({ embedMode = false }) {
   const { authFetch, API, user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +65,7 @@ export default function ResourceAnalyticsPage() {
     return (
       <div style={{ 
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-        height: '90vh', background: '#FFFFFF', color: '#6B7281' 
+        height: embedMode ? '400px' : '90vh', background: 'transparent', color: '#6B7281' 
       }}>
         <div style={{ 
           width: '50px', height: '50px', border: '5px solid #f3f3f3', borderTop: '5px solid #C08080', 
@@ -83,7 +83,7 @@ export default function ResourceAnalyticsPage() {
     return (
       <div style={{ 
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-        height: '90vh', background: '#FFFFFF', textAlign: 'center', padding: '40px' 
+        height: embedMode ? '400px' : '90vh', background: 'transparent', textAlign: 'center', padding: '40px' 
       }}>
         <AlertTriangle size={64} color="#f59e0b" style={{ marginBottom: '24px' }} />
         <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#1F1F1F', marginBottom: '12px' }}>Analytics Engine Offline</h2>
@@ -103,40 +103,40 @@ export default function ResourceAnalyticsPage() {
   }
 
   return (
-    <div style={{ padding: '40px 24px', minHeight: '100vh', background: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ padding: embedMode ? '0' : '40px 24px', minHeight: embedMode ? 'auto' : '100vh', background: 'transparent', fontFamily: 'Inter, sans-serif' }}>
 
       {/* Master Content Container (Premium Branding) */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(30px)',
+        background: embedMode ? 'transparent' : 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: embedMode ? 'none' : 'blur(30px)',
         borderRadius: '40px',
-        padding: '50px',
-        boxShadow: '0 30px 60px -15px rgba(140, 0, 0, 0.08)',
+        padding: embedMode ? '0' : '50px',
+        boxShadow: embedMode ? 'none' : '0 30px 60px -15px rgba(140, 0, 0, 0.08)',
         maxWidth: '1450px',
         margin: '0 auto',
-        border: '1px solid rgba(192, 128, 128, 0.1)'
+        border: embedMode ? 'none' : '1px solid rgba(192, 128, 128, 0.1)'
       }}>
 
-        {/* Top Header Row inside the Master Box */}
-        <header style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '50px',
-          paddingBottom: '30px',
-          borderBottom: '1px solid rgba(192, 128, 128, 0.06)'
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '12px' }}>
-              <Activity size={38} color="#C08080" strokeWidth={2.5} />
-              <h1 style={{ fontSize: '3.2rem', fontWeight: '950', color: '#1F1F1F', margin: 0, letterSpacing: '-2px' }}>
-                Resource <span style={{ color: '#C08080' }}>Analytics</span>
-              </h1>
+        {!embedMode && (
+          <header style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '50px',
+            paddingBottom: '30px',
+            borderBottom: '1px solid rgba(192, 128, 128, 0.06)'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '12px' }}>
+                <Activity size={38} color="#C08080" strokeWidth={2.5} />
+                <h1 style={{ fontSize: '3.2rem', fontWeight: '950', color: '#1F1F1F', margin: 0, letterSpacing: '-2px' }}>
+                  Resource <span style={{ color: '#C08080' }}>Analytics</span>
+                </h1>
+              </div>
+              <p style={{ fontSize: '1.1rem', color: '#6B7281', margin: 0, fontWeight: '500', maxWidth: '600px' }}>
+                High-fidelity evaluations of campus facility utilization and asset performance metrics.
+              </p>
             </div>
-            <p style={{ fontSize: '1.1rem', color: '#6B7281', margin: 0, fontWeight: '500', maxWidth: '600px' }}>
-              High-fidelity evaluations of campus facility utilization and asset performance metrics.
-            </p>
-          </div>
 
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <div style={{ display: 'flex', background: 'rgba(140, 0, 0, 0.03)', padding: '6px', borderRadius: '18px', border: '1px solid rgba(192, 128, 128, 0.06)' }}>
@@ -157,6 +157,7 @@ export default function ResourceAnalyticsPage() {
             </div>
           </div>
         </header>
+        )}
 
         {/* 1. Summary Block */}
         <div style={{ marginBottom: '50px' }}>

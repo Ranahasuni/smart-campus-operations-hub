@@ -34,8 +34,9 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     // ⚡ ELITE CHECK: Verify if any active bookings exist for a resource before deletion
     boolean existsByResourceIdsInAndStatusIn(java.util.Collection<String> resourceIds, java.util.Collection<BookingStatus> statuses);
 
-    // ⚡ ANALYTICS ENGINE: Fetch only recent bookings for intelligence processing
-    List<Booking> findByDateGreaterThanEqual(LocalDate date);
+    // ⚡ ANALYTICS ENGINE: Fetch only recent bookings for intelligence processing (Optimized with projection)
+    @org.springframework.data.mongodb.repository.Query(value = "{ 'date': { $gte: ?0 } }", fields = "{ 'resourceIds': 1, 'startTime': 1, 'status': 1 }")
+    List<Booking> findRecentForAnalytics(LocalDate date);
 
     long deleteByResourceIdsContaining(String resourceId);
 }
