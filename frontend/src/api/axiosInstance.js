@@ -3,10 +3,10 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'http://localhost:8082/api',
   withCredentials: true,
-  timeout: 30000, 
+  timeout: 10000, 
 });
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
 
 
@@ -45,7 +45,7 @@ api.interceptors.response.use(
         config.retryCount = 0;
     }
 
-    if (config.retryCount < config.retry && 
+    if (config.method !== 'get' && config.retryCount < config.retry && 
         (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || (error.response?.status >= 500))) {
         
         config.retryCount += 1;

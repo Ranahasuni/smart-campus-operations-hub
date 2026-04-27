@@ -41,8 +41,10 @@ public class Resource {
 
     private List<DayAvailability> availability;
 
+    @Indexed
     private List<String> assignedStaffIds;
 
+    @Indexed
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt;
 

@@ -240,10 +240,10 @@ export default function SystemLogs() {
           <table className="audit-table">
             <thead className="audit-thead">
               <tr>
-                <th className="audit-th">Timestamp</th>
-                <th className="audit-th">Event Action</th>
-                <th className="audit-th">Security Principal</th>
-                <th className="audit-th">Activity Details & Metadata</th>
+                <th className="audit-th" style={{ width: '20%', textAlign: 'left' }}>Timestamp</th>
+                <th className="audit-th" style={{ width: '20%', textAlign: 'center' }}>Event Action</th>
+                <th className="audit-th" style={{ width: '25%', textAlign: 'left' }}>Security Principal</th>
+                <th className="audit-th" style={{ width: '35%', textAlign: 'left' }}>Activity Details & Metadata</th>
               </tr>
             </thead>
             <tbody>
@@ -267,7 +267,7 @@ export default function SystemLogs() {
                     </td>
 
                     {/* Event Action */}
-                    <td className="audit-td">
+                    <td className="audit-td" style={{ textAlign: 'center' }}>
                       <span className={`audit-action-badge severity-${severity}`}>
                         {log.action}
                       </span>

@@ -30,16 +30,14 @@ export default function MostBookedTable({ data = [], isDark }) {
 
   return (
     <div style={{
-      background: 'rgba(192, 128, 128, 0.06)',
+      background: '#F9FAFB',
       padding: '35px',
       borderRadius: '35px',
-      border: '1px solid rgba(192, 128, 128, 0.06)',
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+      border: '1px solid rgba(0, 0, 0, 0.05)',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Decorative Accent */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#C08080', boxShadow: '0 0 15px rgba(192, 128, 128, 0.4)' }}></div>
 
       <div style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
@@ -73,8 +71,8 @@ export default function MostBookedTable({ data = [], isDark }) {
               const location = (item.building || item.location || 'N/A').toUpperCase();
 
               return (
-                <tr key={idx} style={{ background: 'rgba(192, 128, 128, 0.06)', borderRadius: '16px', border: '1px solid rgba(192, 128, 128, 0.06)' }}>
-                  <td style={{ ...cellStyle, fontWeight: '900', color: '#1F1F1F', fontSize: '1rem', borderRadius: '16px 0 0 16px' }}>
+                <tr key={idx} style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0, 0, 0, 0.03)' }}>
+                  <td style={{ ...cellStyle, fontWeight: '900', color: '#111827', fontSize: '1rem', borderRadius: '16px 0 0 16px' }}>
                     {name}
                   </td>
                   <td style={cellStyle}>
@@ -86,16 +84,15 @@ export default function MostBookedTable({ data = [], isDark }) {
                       {(item.type || 'N/A').replace('_', ' ')}
                     </span>
                   </td>
-                  <td style={{ ...cellStyle, color: '#6B7281', fontWeight: 700, fontSize: '0.85rem' }}>
+                  <td style={{ ...cellStyle, color: '#6B7280', fontWeight: 700, fontSize: '0.85rem' }}>
                     {location}
                   </td>
                   <td style={{ ...cellStyle, textAlign: 'right', borderRadius: '0 16px 16px 0' }}>
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                       padding: '8px 18px', borderRadius: '14px',
-                      background: '#FFFFFF', color: '#1F1F1F', fontWeight: 900, fontSize: '1.1rem',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                      background: '#F3F4F6', color: '#111827', fontWeight: 900, fontSize: '1.1rem',
+                      border: '1px solid rgba(0,0,0,0.05)'
                     }}>
                       {item.count || 0}
                     </div>

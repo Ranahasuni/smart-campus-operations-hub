@@ -48,9 +48,9 @@ export default function NotificationsPage() {
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
     try {
-      let url = `${API}/notifications?userId=${user.id}`;
-      if (showUnread) url = `${API}/notifications/unread?userId=${user.id}`;
-      if (filter !== 'ALL') url = `${API}/notifications/filter?userId=${user.id}&type=${filter}`;
+      let url = `${API}/api/notifications?userId=${user.id}`;
+      if (showUnread) url = `${API}/api/notifications/unread?userId=${user.id}`;
+      if (filter !== 'ALL') url = `${API}/api/notifications/filter?userId=${user.id}&type=${filter}`;
 
       const res  = await authFetch(url);
       const data = await res.json();
@@ -62,22 +62,22 @@ export default function NotificationsPage() {
     }
   }, [user, filter, showUnread]);
 
-  // Auto-refresh every 10 seconds
+  // Auto-refresh every 60 seconds (reduced from 10s to minimize API calls)
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10_000);
+    const interval = setInterval(fetchNotifications, 60_000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
   const handleMarkAsRead = async (id) => {
-    await authFetch(`${API}/notifications/${id}/read`, { method: 'PUT' });
+    await authFetch(`${API}/api/notifications/${id}/read`, { method: 'PUT' });
     setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, isRead: true } : n)
     );
   };
 
   const handleMarkAllRead = async () => {
-    await authFetch(`${API}/notifications/mark-all-read?userId=${user.id}`, { method: 'PUT' });
+    await authFetch(`${API}/api/notifications/mark-all-read?userId=${user.id}`, { method: 'PUT' });
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
 

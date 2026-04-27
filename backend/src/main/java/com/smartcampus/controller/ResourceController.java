@@ -47,12 +47,21 @@ public class ResourceController {
                                                 page, size));
         }
 
-        // GET /api/resources/{id}
         @GetMapping("/{id}")
         public ResponseEntity<ResourceResponseDTO> getResourceById(
                         @PathVariable String id) {
                 return ResponseEntity.ok(
                                 resourceService.getResourceById(id));
+        }
+
+        // GET /api/resources/{id}/image
+        @GetMapping("/{id}/image")
+        public ResponseEntity<Map<String, String>> getResourceImage(@PathVariable String id) {
+                String imageUrl = resourceService.getResourceImage(id);
+                if (imageUrl != null) {
+                        return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+                }
+                return ResponseEntity.notFound().build();
         }
 
         // GET /api/resources/buildings

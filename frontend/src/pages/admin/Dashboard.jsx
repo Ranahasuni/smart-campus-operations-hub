@@ -60,30 +60,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Progressive Loading: Fetch each segment independently to avoid Waterfall sequential blocking
-    const fetchData = async (url, setter, defaultVal) => {
-      try {
-        const res = await authFetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          setter(data);
-        } else {
-          setter(defaultVal);
-        }
-      } catch (err) {
-        console.error(`Error fetching ${url}:`, err);
-        setter(defaultVal);
-      }
-    };
-
-    // First load markers
-    let loadedCount = 0;
-    const checkInit = () => {
-      loadedCount++;
-      if (loadedCount >= 2) setLoading(false); // Show UI as soon as first 2 vital cards are ready
-    };
-
-    // Progressive Loading: Fetch each segment independently so the UI feels fast
     const loadMetric = async (url, updater) => {
       try {
         const res = await authFetch(url);
@@ -96,25 +72,29 @@ export default function Dashboard() {
       }
     };
 
+    // ⚡ PERFORMANCE FIX: Load basic stats first, analytics in background
     // Kick off all requests in parallel
-    loadMetric(`${API}/api/users/stats`, (d) => {
-      setStats(prev => ({ ...prev, totalUsers: d?.total || 0, activeUsers: d?.active || 0, lockedUsers: d?.locked || 0 }));
-    });
+    const basicStatsPromises = [
+      loadMetric(`${API}/api/users/stats`, (d) => {
+        setStats(prev => ({ ...prev, totalUsers: d?.total || 0, activeUsers: d?.active || 0, lockedUsers: d?.locked || 0 }));
+      }),
+      loadMetric(`${API}/api/tickets/stats/global`, (d) => {
+        setStats(prev => ({ ...prev, openTickets: d?.open || 0, allTickets: d?.total || 0 }));
+      }),
+      loadMetric(`${API}/api/logs?limit=6`, (d) => {
+        setStats(prev => ({ ...prev, recentLogs: Array.isArray(d) ? d : [] }));
+      })
+    ];
 
-    loadMetric(`${API}/api/tickets/stats/global`, (d) => {
-      setStats(prev => ({ ...prev, openTickets: d?.open || 0, allTickets: d?.total || 0 }));
-    });
+    // Clear loading screen after basic stats load (800ms timeout)
+    // This gives users immediate feedback while analytics loads in background
+    setTimeout(() => setLoading(false), 800);
 
+    // Load analytics separately in background - don't block UI
+    // This endpoint now runs in parallel (previously sequential) with 5-min cache
     loadMetric(`${API}/api/resources/analytics/summary`, (d) => {
       setStats(prev => ({ ...prev, resourceStats: d }));
     });
-
-    loadMetric(`${API}/api/logs?limit=6`, (d) => {
-      setStats(prev => ({ ...prev, recentLogs: Array.isArray(d) ? d : [] }));
-    });
-
-    // Ensure the loading screen clears quickly
-    setTimeout(() => setLoading(false), 800);
   };
 
   if (loading) {
@@ -151,7 +131,7 @@ export default function Dashboard() {
         }}>
           <div>
             <h1 style={{ fontSize: '2.2rem', fontWeight: '950', color: '#1F1F1F', margin: 0, letterSpacing: '-1.5px' }}>
-              Command <span style={{ color: '#10b981' }}>Overview</span>
+              Command <span style={{ color: '#8b0000' }}>Overview</span>
             </h1>
             <p style={{ color: '#6B7281', marginTop: '4px', fontWeight: '500' }}>
               High-level system health and security metrics
@@ -160,20 +140,20 @@ export default function Dashboard() {
 
           <div style={{
             display: 'flex',
-            background: 'rgba(140, 0, 0, 0.03)',
+            background: 'rgba(0, 0, 0, 0.03)',
             padding: '6px',
             borderRadius: '16px',
-            border: '1px solid rgba(192, 128, 128, 0.06)'
+            border: '1px solid rgba(0, 0, 0, 0.05)'
           }}>
             <button
               onClick={() => setActiveTab('OVERVIEW')}
               style={{
                 padding: '10px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '10px',
-                background: activeTab === 'OVERVIEW' ? '#10b981' : 'transparent',
+                background: activeTab === 'OVERVIEW' ? '#1F2937' : 'transparent',
                 color: activeTab === 'OVERVIEW' ? '#fff' : '#64748b',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeTab === 'OVERVIEW' ? '0 10px 20px -5px rgba(16, 185, 129, 0.2)' : 'none'
+                boxShadow: activeTab === 'OVERVIEW' ? '0 10px 20px -5px rgba(0, 0, 0, 0.1)' : 'none'
               }}
             >
               <LayoutDashboard size={18} /> Overview
@@ -186,7 +166,7 @@ export default function Dashboard() {
                 background: activeTab === 'ANALYTICS' ? '#10b981' : 'transparent',
                 color: activeTab === 'ANALYTICS' ? '#fff' : '#64748b',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeTab === 'ANALYTICS' ? '0 10px 20px -5px rgba(16, 185, 129, 0.2)' : 'none'
+                boxShadow: activeTab === 'ANALYTICS' ? '0 10px 20px -5px rgba(16, 185, 129, 0.3)' : 'none'
               }}
             >
               <TrendingUp size={18} /> Analytics

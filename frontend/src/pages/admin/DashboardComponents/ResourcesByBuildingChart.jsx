@@ -63,25 +63,26 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
 
   return (
     <div style={{ 
-      background: 'rgba(192, 128, 128, 0.06)', 
+      background: '#F9FAFB', 
       padding: '30px', 
       borderRadius: '32px', 
-      border: '1px solid rgba(192, 128, 128, 0.06)', 
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', 
-      height: '400px',
-      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(0, 0, 0, 0.05)', 
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', 
+      minHeight: '400px',
+      display: 'flex',
+      flexDirection: 'column',
       position: 'relative'
     }}>
-      <div style={{ marginBottom: '15px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#1F1F1F', margin: 0, letterSpacing: '-0.5px' }}>
+      <div style={{ marginBottom: '15px', flexShrink: 0 }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '950', color: '#111827', margin: 0, letterSpacing: '-0.5px' }}>
           Building-Wide Asset Distribution
         </h3>
-        <p style={{ fontSize: '0.85rem', color: '#6B7281', fontWeight: 600, marginTop: '4px' }}>
+        <p style={{ fontSize: '0.85rem', color: '#6B7280', fontWeight: 600, marginTop: '4px' }}>
           Spatial analysis of campus resource allocation
         </p>
       </div>
 
-      <ResponsiveContainer width="100%" height="80%">
+      <ResponsiveContainer width="100%" height={300}>
         <PieChart margin={{ left: 20, right: 20 }}>
           <Pie
             data={chartData}
@@ -93,8 +94,8 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
             dataKey="value"
             stroke="#FFFFFF"
             strokeWidth={3}
-            label={(props) => renderCustomizedLabel({ ...props, isDark: true })}
-            labelLine={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1.5 }}
+            label={(props) => renderCustomizedLabel({ ...props, isDark: false })}
+            labelLine={{ stroke: 'rgba(0,0,0,0.1)', strokeWidth: 1.5 }}
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -102,14 +103,14 @@ export default function ResourcesByBuildingChart({ data, isDark }) {
           </Pie>
           <Tooltip 
             contentStyle={{ 
-              borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', 
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+              borderRadius: '20px', border: 'none', 
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
               fontWeight: 900,
               background: '#FFFFFF',
-              color: '#1F1F1F',
+              color: '#111827',
               fontSize: '0.8rem'
             }} 
-            itemStyle={{ color: '#1F1F1F' }}
+            itemStyle={{ color: '#111827' }}
           />
         </PieChart>
       </ResponsiveContainer>

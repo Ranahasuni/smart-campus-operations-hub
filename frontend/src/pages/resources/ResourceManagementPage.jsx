@@ -43,7 +43,7 @@ export default function ResourceManagementPage() {
 
   const fetchAllResources = async () => {
     try {
-      const res = await api.get('/resources');
+      const res = await api.get('/resources?size=100');
       setAllResources(res.data || []);
       sessionStorage.setItem('admin_registry_cache', JSON.stringify(res.data || []));
     } catch (err) {

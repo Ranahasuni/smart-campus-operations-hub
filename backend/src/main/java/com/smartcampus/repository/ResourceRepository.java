@@ -59,6 +59,10 @@ public interface ResourceRepository
     @Query("{ 'status': ?0 }")
     Page<Resource> findByStatusPaginated(ResourceStatus status, PageRequest pageRequest);
 
+    // ⚡ PERFORMANCE FIX: Fetch minimal data for enrichment to avoid loading large images/availability lists
+    @Query(value = "{ '_id': { $in: ?0 } }", fields = "{ 'id': 1, 'name': 1, 'type': 1 }")
+    List<Resource> findMinimalByIds(java.util.Collection<String> ids);
+
     // ⚡ ELITE CHECK: Find if a room already exists in this exact physical spot
     java.util.Optional<Resource> findByBuildingAndFloorAndRoomNumber(String building, Integer floor, String roomNumber);
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // -- Shared Animation Hooks ---------------------------------
 function useScrollReveal() {
@@ -20,15 +20,35 @@ function Reveal({ children, className = '' }) {
 
 import { Link } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Settings, AlertTriangle } from 'lucide-react';
+import api from '../../../api/axiosInstance';
 import './Catalogue.css';
 
 export default function ResourceCard({ resource }) {
   const [imgError, setImgError] = useState(false);
+  const [lazyImageUrl, setLazyImageUrl] = useState(null);
 
   // Gracefully handle images
-  const imageUrl = resource.imageUrls && resource.imageUrls.length > 0
+  const initialImageUrl = resource.imageUrls && resource.imageUrls.length > 0
     ? resource.imageUrls[0]
     : null;
+
+  useEffect(() => {
+    let mounted = true;
+    if (!initialImageUrl && resource.id && !imgError && !lazyImageUrl) {
+      api.get(`/resources/${resource.id}/image`)
+        .then(res => {
+          if (mounted && res.data && res.data.imageUrl) {
+            setLazyImageUrl(res.data.imageUrl);
+          }
+        })
+        .catch(() => {
+          if (mounted) setImgError(true);
+        });
+    }
+    return () => { mounted = false; };
+  }, [resource.id, initialImageUrl]);
+
+  const imageUrl = initialImageUrl || lazyImageUrl;
 
   const getStatusConfig = (status) => {
     switch (status) {

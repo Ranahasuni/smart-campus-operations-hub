@@ -85,7 +85,7 @@ export function AuthProvider({ children }) {
   };
 
   /** Authenticated fetch helper — auto-attaches Bearer token and handles expiration */
-  const authFetch = async (url, options = {}, timeout = 30000) => {
+  const authFetch = async (url, options = {}, timeout = 10000) => {
     // Proactive check: if token is null/empty, session is effectively gone
     if (!token) {
       logout();
