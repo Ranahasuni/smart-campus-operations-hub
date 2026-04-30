@@ -20,6 +20,7 @@ function Reveal({ children, className = '' }) {
 
 
 import { useAuth } from '../../../../context/AuthContext';
+import { resolveUrl as sharedResolveUrl } from '../../../../utils/urlUtils';
 
 export default function ImageGallery({ images, name, status }) {
   const { API } = useAuth();
@@ -27,12 +28,7 @@ export default function ImageGallery({ images, name, status }) {
 
   const fallbackImage = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80';
   
-  const resolveUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http') || url.startsWith('data:')) return url;
-    if (url.startsWith('/api/uploads')) return `${API}${url}`;
-    return url;
-  };
+  const resolveUrl = (url) => sharedResolveUrl(url, API);
 
   const hasImages = images && images.length > 0;
   const rawMainImage = hasImages ? images[activeImageIndex] : fallbackImage;

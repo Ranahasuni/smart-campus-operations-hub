@@ -6,6 +6,7 @@ import {
   ChevronLeft, Info, Calendar, Clock, Loader2,
   AlertCircle, LayoutGrid, CheckCircle2, XCircle, AlertTriangle
 } from 'lucide-react';
+import { resolveUrl as sharedResolveUrl } from '../../utils/urlUtils';
 import '../../styles/resource-list.css';
 
 // -- Shared Animation Hooks ---------------------------------
@@ -58,12 +59,7 @@ export default function BookingResourceListPage() {
   const category = CATEGORY_MAP[type] || { name: type, icon: '📍', roles: [] };
 
   // Resolve relative paths to absolute backend URLs
-  const resolveUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http') || url.startsWith('data:')) return url;
-    if (url.startsWith('/api/uploads')) return `${API}${url}`;
-    return url;
-  };
+  const resolveUrl = (url) => sharedResolveUrl(url, API);
 
   // Elite Dynamic fallback images based on type
   const getFallbackImage = (resourceType) => {

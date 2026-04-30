@@ -22,6 +22,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Settings, AlertTriangle } from 'lucide-react';
 import api from '../../../api/axiosInstance';
 import { useAuth } from '../../../context/AuthContext';
+import { resolveUrl as sharedResolveUrl } from '../../../utils/urlUtils';
 import './Catalogue.css';
 
 export default function ResourceCard({ resource }) {
@@ -35,12 +36,7 @@ export default function ResourceCard({ resource }) {
     : null;
 
   // Resolve relative paths to absolute backend URLs
-  const resolveUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http') || url.startsWith('data:')) return url;
-    if (url.startsWith('/api/uploads')) return `${API}${url}`;
-    return url;
-  };
+  const resolveUrl = (url) => sharedResolveUrl(url, API);
 
   useEffect(() => {
     let mounted = true;

@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import CommentSection from '../../components/tickets/CommentSection';
 import { formatDuration } from '../../utils/TimeUtils';
+import { resolveUrl as sharedResolveUrl } from '../../utils/urlUtils';
 import '../../styles/tickets.css';
 
 export default function TicketDetailsPage() {
@@ -56,14 +57,7 @@ export default function TicketDetailsPage() {
   const [staffAssignedRooms, setStaffAssignedRooms] = useState([]);
 
   // Resolve relative paths to absolute backend URLs
-  const resolveUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http') || url.startsWith('data:')) return url;
-    if (url.startsWith('/api/uploads')) return `${API}${url}`;
-    if (url.startsWith('/uploads')) return `${API}/api${url}`; // Handle cases without /api
-    if (url.startsWith('uploads')) return `${API}/api/${url}`; // Handle cases without /api and leading slash
-    return url;
-  };
+  const resolveUrl = (url) => sharedResolveUrl(url, API);
 
   useEffect(() => {
     fetchTicketDetails();

@@ -95,6 +95,8 @@ export default function ManageBookings() {
       case 'REJECTED': return { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', label: 'Declined' };
       case 'CANCELLED': return { bg: 'rgba(100, 116, 139, 0.1)', color: '#6B7281', label: 'Withdrawn' };
       case 'CHECKED_IN': return { bg: 'rgba(147, 51, 234, 0.1)', color: '#9333ea', label: 'In Use' };
+      case 'CHECKED_OUT': return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', label: 'Completed' };
+      case 'NO_SHOW': return { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', label: 'No Show' };
       default: return { bg: 'rgba(234, 179, 8, 0.1)', color: '#f59e0b', label: 'Pending Review' };
     }
   };
@@ -165,6 +167,8 @@ export default function ManageBookings() {
             <option value="APPROVED">Authorized</option>
             <option value="REJECTED">Declined</option>
             <option value="CHECKED_IN">In Use</option>
+            <option value="CHECKED_OUT">Completed</option>
+            <option value="NO_SHOW">No Show</option>
           </select>
         </div>
       </Reveal>

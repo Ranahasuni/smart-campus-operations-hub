@@ -550,6 +550,19 @@ public class BookingService {
             type = resourceMap.get(resIds.get(0)).getType();
         }
 
+        // Calculate Effective Status based on time
+        BookingStatus effectiveStatus = booking.getStatus();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endDateTime = LocalDateTime.of(booking.getDate(), booking.getEndTime());
+
+        if (now.isAfter(endDateTime)) {
+            if (effectiveStatus == BookingStatus.CHECKED_IN) {
+                effectiveStatus = BookingStatus.CHECKED_OUT; // Auto-complete if time passed
+            } else if (effectiveStatus == BookingStatus.APPROVED) {
+                effectiveStatus = BookingStatus.NO_SHOW; // Mark as no-show if they never checked in
+            }
+        }
+
         return BookingResponseDTO.builder()
                 .id(booking.getId())
                 .userId(booking.getUserId())
@@ -560,7 +573,7 @@ public class BookingService {
                 .date(booking.getDate())
                 .startTime(booking.getStartTime())
                 .endTime(booking.getEndTime())
-                .status(booking.getStatus())
+                .status(effectiveStatus)
                 .purpose(booking.getPurpose())
                 .expectedAttendees(booking.getExpectedAttendees())
                 .rejectionReason(booking.getRejectionReason())
