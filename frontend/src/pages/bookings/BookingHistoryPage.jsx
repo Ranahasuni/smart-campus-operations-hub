@@ -122,7 +122,8 @@ export default function BookingHistoryPage() {
             style={{ padding: '0 12px', height: '40px', fontSize: '0.9rem' }}
           >
             <option value="ALL">All Outcomes</option>
-            <option value="APPROVED">Completed</option>
+            <option value="CHECKED_OUT">Completed</option>
+            <option value="NO_SHOW">No Show</option>
             <option value="REJECTED">Rejected</option>
             <option value="CANCELLED">Cancelled</option>
           </select>
@@ -199,12 +200,17 @@ export default function BookingHistoryPage() {
                   padding: '4px 10px', 
                   borderRadius: '20px',
                   letterSpacing: '0.5px',
-                  backgroundColor: booking.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.1)' : 
-                                  booking.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(148, 163, 184, 0.1)',
-                  color: booking.status === 'APPROVED' ? '#4ade80' : 
-                         booking.status === 'REJECTED' ? '#f87171' : '#94a3b8'
+                  backgroundColor: 
+                    booking.status === 'CHECKED_OUT' || booking.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.1)' : 
+                    booking.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.1)' : 
+                    booking.status === 'NO_SHOW' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(148, 163, 184, 0.1)',
+                  color: 
+                    booking.status === 'CHECKED_OUT' || booking.status === 'APPROVED' ? '#4ade80' : 
+                    booking.status === 'REJECTED' ? '#f87171' : 
+                    booking.status === 'NO_SHOW' ? '#f59e0b' : '#94a3b8'
                 }}>
-                  {booking.status === 'APPROVED' ? 'COMPLETED' : booking.status}
+                  {booking.status === 'CHECKED_OUT' || booking.status === 'APPROVED' ? 'COMPLETED' : 
+                   booking.status === 'NO_SHOW' ? 'NO SHOW' : booking.status}
                 </span>
                 <div style={{ color: '#334155', fontSize: '0.7rem' }}>
                   Processed Request

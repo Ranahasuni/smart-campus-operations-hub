@@ -26,18 +26,14 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../../../../context/AuthContext';
+import { resolveUrl as sharedResolveUrl } from '../../../../utils/urlUtils';
 
 export default function ResourceTable({ resources, loading, onUpdateStatus, onDeleteResource, clearFilters }) {
   const { API } = useAuth();
   const [confirmModal, setConfirmModal] = useState({ show: false, type: '', id: null, title: '', message: '', nextStatus: null });
   const [successModal, setSuccessModal] = useState({ show: false, title: '', message: '' });
 
-  const resolveUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http') || url.startsWith('data:')) return url;
-    if (url.startsWith('/api/uploads')) return `${API}${url}`;
-    return url;
-  };
+  const resolveUrl = (url) => sharedResolveUrl(url, API);
 
   const getStatusStyle = (status) => {
     const s = String(status || '').toUpperCase();

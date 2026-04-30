@@ -31,6 +31,8 @@ export default function ManageUsers() {
   
   // Modal State
   const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editUserId, setEditUserId] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [formData, setFormData] = useState({
@@ -156,6 +158,58 @@ export default function ManageUsers() {
     }
   };
 
+  const handleEditClick = (user) => {
+    setError('');
+    setIsEditing(true);
+    setEditUserId(user.id);
+    setFormData({
+      fullName: user.fullName || '',
+      campusId: user.campusId || '',
+      campusEmail: user.campusEmail || '',
+      password: '', // Not used in edit
+      confirmPassword: '', // Not used in edit
+      role: user.role || 'STUDENT'
+    });
+    setShowModal(true);
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // Role-based validations
+    const emailLower = formData.campusEmail.toLowerCase();
+    if (formData.role === 'STUDENT') {
+      if (!emailLower.endsWith('@my.sliit.lk') && !emailLower.endsWith('@sliit.lk')) {
+        setError('Students must use official @my.sliit.lk or @sliit.lk email');
+        return;
+      }
+    }
+
+    try {
+      const res = await authFetch(`${API}/api/users/${editUserId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          campusEmail: formData.campusEmail,
+          role: formData.role
+        })
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        setUsers(users.map(u => u.id === editUserId ? data : u));
+        setShowModal(false);
+        setSuccessMsg(`Account for ${formData.fullName} has been successfully updated.`);
+        setShowSuccess(true);
+      } else {
+        setError(data.message || 'Update failed');
+      }
+    } catch (err) {
+      setError('Connection refused. Is backend running?');
+    }
+  };
+
   const changeRole = async (id, newRole) => {
     try {
       const res = await authFetch(`${API}/api/users/${id}`, {
@@ -200,6 +254,7 @@ export default function ManageUsers() {
           <button 
             onClick={() => {
               setError('');
+              setIsEditing(false);
               setFormData({ fullName: '', campusId: '', campusEmail: '', password: '', confirmPassword: '', role: 'STUDENT' });
               setShowModal(true);
             }}
@@ -298,6 +353,13 @@ export default function ManageUsers() {
                   <td style={{ padding: '20px 24px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                       <button 
+                        onClick={() => handleEditClick(user)}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(192, 128, 128, 0.06)', border: '1px solid rgba(192, 128, 128, 0.1)', color: '#4B5563', cursor: 'pointer' }}
+                        title="Edit User Details"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button 
                         onClick={() => toggleStatus(user.id, user.status)}
                         style={{ padding: '10px', borderRadius: '12px', background: 'rgba(192, 128, 128, 0.06)', border: '1px solid rgba(192, 128, 128, 0.1)', color: '#4B5563', cursor: 'pointer' }}
                         title="Toggle Security Lock"
@@ -324,9 +386,9 @@ export default function ManageUsers() {
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(140, 0, 0, 0.2)', backdropFilter: 'blur(12px)' }}>
           <Reveal className="modal-reveal">
-            <form onSubmit={handleAddUser} style={{ background: '#fff', padding: '48px', borderRadius: '40px', width: '95%', maxWidth: '550px', boxShadow: '0 40px 100px rgba(0,0,0,0.2)', border: '1px solid rgba(192, 128, 128, 0.1)' }}>
-              <h2 style={{ fontSize: '2rem', fontWeight: '950', color: '#1F1F1F', marginBottom: '8px' }}>Provision Account</h2>
-              <p style={{ color: '#6B7281', marginBottom: '32px', fontWeight: '500' }}>Initialize a new identity within the campus operational grid.</p>
+            <form onSubmit={isEditing ? handleUpdateUser : handleAddUser} style={{ background: '#fff', padding: '48px', borderRadius: '40px', width: '95%', maxWidth: '550px', boxShadow: '0 40px 100px rgba(0,0,0,0.2)', border: '1px solid rgba(192, 128, 128, 0.1)' }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: '950', color: '#1F1F1F', marginBottom: '8px' }}>{isEditing ? 'Update Profile' : 'Provision Account'}</h2>
+              <p style={{ color: '#6B7281', marginBottom: '32px', fontWeight: '500' }}>{isEditing ? 'Modify existing identity details within the grid.' : 'Initialize a new identity within the campus operational grid.'}</p>
               
               {error && (
                 <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '12px', marginBottom: '24px', fontSize: '0.85rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
@@ -336,12 +398,21 @@ export default function ManageUsers() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <FormInput placeholder="Identity Name" value={formData.fullName} onChange={v => setFormData({...formData, fullName: v})} />
-                <FormInput placeholder="Campus ID (e.g. SL202P01)" value={formData.campusId} onChange={v => setFormData({...formData, campusId: v})} />
+                <FormInput 
+                  placeholder="Campus ID (Immutable)" 
+                  value={formData.campusId} 
+                  onChange={v => !isEditing && setFormData({...formData, campusId: v})} 
+                  style={{ opacity: isEditing ? 0.6 : 1, cursor: isEditing ? 'not-allowed' : 'text' }}
+                  readOnly={isEditing}
+                />
                 <FormInput placeholder="University Email" type="email" value={formData.campusEmail} onChange={v => setFormData({...formData, campusEmail: v})} autoComplete="none" />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <FormInput placeholder="Password" type="password" value={formData.password} onChange={v => setFormData({...formData, password: v})} autoComplete="new-password" />
-                  <FormInput placeholder="Confirm" type="password" value={formData.confirmPassword} onChange={v => setFormData({...formData, confirmPassword: v})} autoComplete="new-password" />
-                </div>
+                
+                {!isEditing && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <FormInput placeholder="Password" type="password" value={formData.password} onChange={v => setFormData({...formData, password: v})} autoComplete="new-password" />
+                    <FormInput placeholder="Confirm" type="password" value={formData.confirmPassword} onChange={v => setFormData({...formData, confirmPassword: v})} autoComplete="new-password" />
+                  </div>
+                )}
                 <select 
                    value={formData.role} 
                    onChange={e => setFormData({...formData, role: e.target.value})}
@@ -357,7 +428,7 @@ export default function ManageUsers() {
 
               <div style={{ display: 'flex', gap: '16px', marginTop: '40px' }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '16px', borderRadius: '16px', background: 'transparent', border: '2px solid rgba(192, 128, 128, 0.1)', color: '#4B5563', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
-                <button type="submit" style={{ flex: 1, padding: '16px', borderRadius: '16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', fontWeight: '800', cursor: 'pointer', boxShadow: '0 8px 20px rgba(140, 0, 0, 0.2)' }}>Authorize Account</button>
+                <button type="submit" style={{ flex: 1, padding: '16px', borderRadius: '16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', fontWeight: '800', cursor: 'pointer', boxShadow: '0 8px 20px rgba(140, 0, 0, 0.2)' }}>{isEditing ? 'Update Details' : 'Authorize Account'}</button>
               </div>
             </form>
           </Reveal>
@@ -380,7 +451,7 @@ export default function ManageUsers() {
   );
 }
 
-function FormInput({ placeholder, type = 'text', value, onChange, autoComplete = 'off' }) {
+function FormInput({ placeholder, type = 'text', value, onChange, autoComplete = 'off', readOnly, style }) {
   return (
     <input 
       type={type} 
@@ -388,6 +459,7 @@ function FormInput({ placeholder, type = 'text', value, onChange, autoComplete =
       value={value} 
       onChange={e => onChange(e.target.value)}
       autoComplete={autoComplete}
+      readOnly={readOnly}
       style={{ 
         width: '100%',
         boxSizing: 'border-box',
@@ -398,7 +470,8 @@ function FormInput({ placeholder, type = 'text', value, onChange, autoComplete =
         outline: 'none', 
         color: '#1F1F1F', 
         fontWeight: '600', 
-        fontSize: '1rem' 
+        fontSize: '1rem',
+        ...style
       }}
     />
   );

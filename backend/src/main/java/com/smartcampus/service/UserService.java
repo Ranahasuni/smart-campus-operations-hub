@@ -68,23 +68,41 @@ public class UserService {
     public User updateUser(String id, User updatedUser, String adminId) {
         User existing = getUserById(id);
         
-        if (updatedUser.getRole() == Role.ADMIN && existing.getRole() != Role.ADMIN) {
-            throw new IllegalArgumentException("Security Violation: Promotion to ADMIN is restricted.");
-        }
-
-        if (existing.getRole() == Role.ADMIN && updatedUser.getRole() != null && updatedUser.getRole() != Role.ADMIN) {
-            long adminCount = userRepository.findAll().stream()
-                    .filter(u -> u.getRole() == Role.ADMIN).count();
-            if (adminCount <= 1) {
-                throw new IllegalStateException("Security Violation: Cannot demote the only remaining Administrator.");
+        // 1. Security: Role Promotion/Demotion Rules
+        if (updatedUser.getRole() != null) {
+            if (updatedUser.getRole() == Role.ADMIN && existing.getRole() != Role.ADMIN) {
+                throw new IllegalArgumentException("Security Violation: Promotion to ADMIN is restricted.");
             }
+
+            if (existing.getRole() == Role.ADMIN && updatedUser.getRole() != Role.ADMIN) {
+                long adminCount = userRepository.findAll().stream()
+                        .filter(u -> u.getRole() == Role.ADMIN).count();
+                if (adminCount <= 1) {
+                    throw new IllegalStateException("Security Violation: Cannot demote the only remaining Administrator.");
+                }
+            }
+            existing.setRole(updatedUser.getRole());
         }
 
-        if (updatedUser.getFullName() != null) existing.setFullName(updatedUser.getFullName());
-        if (updatedUser.getRole() != null)     existing.setRole(updatedUser.getRole());
+        // 2. Update Basic Details
+        if (updatedUser.getFullName() != null && !updatedUser.getFullName().trim().isEmpty()) {
+            existing.setFullName(updatedUser.getFullName());
+        }
+        
+        if (updatedUser.getCampusEmail() != null && !updatedUser.getCampusEmail().trim().isEmpty()) {
+            // Check if email already exists for another user
+            userRepository.findByCampusEmail(updatedUser.getCampusEmail()).ifPresent(u -> {
+                if (!u.getId().equals(existing.getId())) {
+                    throw new IllegalArgumentException("Email already assigned to another account: " + updatedUser.getCampusEmail());
+                }
+            });
+            existing.setCampusEmail(updatedUser.getCampusEmail());
+        }
+        
+        // Note: campusId and password are NOT updated through this method for security
         
         User saved = userRepository.save(existing);
-        auditService.log(adminId, "USER_UPDATE", "Updated user: " + existing.getCampusId());
+        auditService.log(adminId, "USER_UPDATE", "Updated user details for: " + existing.getCampusId());
         return saved;
     }
 
